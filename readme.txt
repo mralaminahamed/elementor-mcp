@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -12,23 +12,27 @@ Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page de
 
 == Description ==
 
-MCP Tools for Elementor bridges the gap between AI tools and Elementor page design. It extends the official WordPress MCP Adapter to expose 92 MCP (Model Context Protocol) tools that let AI agents like Claude, Cursor, and other MCP-compatible clients create and manipulate Elementor page designs programmatically.
+MCP Tools for Elementor bridges the gap between AI tools and Elementor page design. It extends the official WordPress MCP Adapter to expose up to 118 MCP (Model Context Protocol) tools that let AI agents like Claude, Cursor, and other MCP-compatible clients create and manipulate Elementor page designs programmatically.
+
+Tool counts scale with your environment: 61 tools on a free Elementor install, 100 with Elementor Pro, 105 with Pro + WooCommerce, and 13 additional atomic tools when Elementor 4.0+ is active (74 / 113 / 118 respectively).
 
 **Key Features:**
 
 * **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, and view global design tokens.
 * **Page Management** — Create pages, update page settings, clear content, import/export templates.
-* **Layout Tools** — Add flexbox containers, move/remove/duplicate elements.
-* **Widget Tools** — 41 widget tools: universal add/update for any widget, plus 23 free convenience shortcuts and 16 conditional Pro widget tools.
-* **Pro Widget Support** — Conditional tools for Elementor Pro widgets (form, posts grid, countdown, price table, flip box, animated headline, call to action, slides, testimonial carousel, price list, gallery, share buttons, table of contents, blockquote, Lottie, hotspot) that only register when Pro is active.
-* **Template Tools** — Save pages or elements as reusable templates, apply templates to pages.
+* **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, batch updates, reorder children.
+* **Widget Tools** — Universal add/update for any widget, plus 27 free convenience shortcuts, 30 conditional Pro widget tools, and 5 WooCommerce widget tools.
+* **Pro Widget Support** — Conditional tools for Elementor Pro widgets (form, posts grid, countdown, price table, flip box, animated headline, call to action, slides, testimonial carousel, price list, gallery, share buttons, table of contents, blockquote, Lottie, hotspot, loop grid/carousel, nested tabs/accordion, portfolio, author box, login, code highlight, reviews, off-canvas, progress tracker, search, and more) that only register when Pro is active.
+* **Atomic Elements (Elementor 4.0+)** — 13 dedicated tools for Elementor's new atomic system: flexbox, div-block, heading, paragraph, button, image, svg, youtube, video, divider, plus universal `add-atomic-widget` / `update-atomic-widget` and `detect-elementor-version`.
+* **Template Tools** — Save pages or elements as reusable templates, apply templates to pages, theme builder, popups, dynamic tags (Pro).
 * **Global Settings** — Update site-wide color palettes and typography presets.
 * **Composite Tools** — Build a complete page from a declarative JSON structure in a single call.
 * **Stock Images** — Search Openverse for Creative Commons images, sideload into Media Library, add to pages.
 * **SVG Icons** — Upload SVG icons from URL or raw markup for use with Elementor icon widgets.
 * **Custom Code** — Add custom CSS (element/page level), inject JavaScript, create site-wide code snippets for head/body injection.
-* **Sample Prompts** — 5 ready-to-use landing page blueprints with one-click copy from the admin dashboard.
-* **Admin Dashboard** — Toggle individual tools on/off, view connection configs for all supported MCP clients, and browse/copy sample prompts.
+* **Low-tools Mode** — One-click toggle that trims the active tool list to a curated 50-or-so essentials so MCP clients with strict tool caps (Antigravity, Gemini API, etc.) stay under their limits.
+* **Sample Prompts** — Ready-to-use landing page blueprints with one-click copy from the admin dashboard.
+* **Admin Dashboard** — Dedicated top-level menu with Tools, Connection, Prompts, and Changelog submenus. Toggle individual tools on/off and view connection configs for all supported MCP clients.
 
 **Requires:**
 
@@ -49,7 +53,7 @@ MCP Tools for Elementor bridges the gap between AI tools and Elementor page desi
 2. Install and activate the WordPress MCP Adapter plugin.
 3. Upload the `elementor-mcp` folder to `/wp-content/plugins/`.
 4. Activate the plugin through the 'Plugins' menu in WordPress.
-5. Go to **Settings > MCP Tools for Elementor** to configure tools and view connection info.
+5. Open the new **EMCP Tools** top-level menu in the WordPress admin sidebar to configure tools and view connection info.
 
 = WP-CLI Connection (Local) =
 
@@ -134,7 +138,7 @@ Yes. Core widget tools work with free Elementor. Pro widget shortcuts (form, pos
 
 = Can I disable specific tools? =
 
-Yes. Go to Settings > MCP Tools for Elementor > Tools tab to toggle individual tools on or off.
+Yes. Open the **EMCP Tools** top-level admin menu and use the **Tools** screen to toggle individual tools on or off. If your MCP client has a strict tool cap (e.g. Antigravity's 100-tool limit), flip on **Low-tools mode** at the top of that screen to expose only a curated set of essentials.
 
 = Does this plugin require the WordPress MCP Adapter? =
 
@@ -150,6 +154,14 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 2. Connection configuration page with copy-paste configs.
 
 == Changelog ==
+
+= 1.6.0 =
+* New: Dedicated **EMCP Tools** top-level admin menu with Tools, Connection, Prompts, and Changelog submenus (previously a single tabbed screen under Settings).
+* New: Atomic element tools (Elementor 4.0+) are now listed in the admin Tools screen and can be toggled individually.
+* New: **Low-tools mode** — one-click toggle on the Tools screen that filters the registered tool list down to a curated essentials set, keeping the active count under 60 so MCP clients with strict tool caps (Antigravity, Gemini API, etc.) stay under their limits. Your individual toggles are preserved.
+* Changed: Pro widget shortcuts are now disabled by default on fresh installs and on the first admin page load after upgrade. Re-enable any of them from the Tools screen.
+* Fixed: The "disabled tools" toggles in the admin Tools screen previously had no effect on what MCP clients saw — the filter was only registered in admin context and never fired on REST API requests (#45).
+* Fixed: Atomic element tools are now visible in the Tools screen and can be toggled individually (previously missing from the UI).
 
 = 1.5.1 =
 * Fixed: Container `justify_content` / `align_items` / `align_content` settings are now remapped to Elementor's prefixed flex keys (`flex_justify_content`, `flex_align_items`, `flex_align_content`) before saving — fixes containers rendering with default alignment on the front-end despite the values being persisted (#32).
@@ -249,6 +261,9 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 * Node.js HTTP proxy for remote connections.
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+Fixes #45 — admin tool toggles now actually filter what MCP clients see. New top-level admin menu with submenus, Low-tools mode for Antigravity/Gemini-friendly tool counts, and Pro widgets now disabled by default to stay under 100-tool client caps.
 
 = 1.5.1 =
 Fixes container `justify_content` / `align_items` / `align_content` settings not being applied on the front-end (#32). Recommended for anyone using `add-container`, `update-container`, `update-element`, `batch-update`, or `build-page` to control flex alignment.

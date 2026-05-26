@@ -4,9 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via 110 MCP tools.
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to 118 MCP tools (scales with environment).
 
-**Current status: All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements support.** Foundation layer, 7 read-only query tools, page CRUD, layout, widget, template, global, composite tools, stock images, SVG icons, custom code tools, full widget coverage (97 legacy tools), and 13 new atomic element tools for Elementor 4.0+. See `PLAN.md` for the full architectural specification.
+**Current status: v1.6.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, and Low-tools mode.** Foundation layer, query tools, page CRUD, layout, widget, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, and a curated essentials filter for clients with strict tool caps (Antigravity, Gemini API).
+
+**Tool counts by configuration:**
+- Free Elementor only: **61**
+- Free Elementor + Elementor 4.0+ atomic: **74**
+- With Elementor Pro: **100**
+- With Elementor Pro + Elementor 4.0+: **113**
+- With Elementor Pro + WooCommerce + Elementor 4.0+: **118**
+- Low-tools mode (any config): capped at **51** (46 without Elementor 4.0+)
+
+See `PLAN.md` for the full architectural specification.
 
 ## Dependencies & Requirements
 
@@ -51,7 +61,7 @@ elementor-mcp/
 │   │   ├── class-stock-image-abilities.php    # 3 stock image tools (search-images, sideload-image, add-stock-image)
 │   │   └── class-custom-code-abilities.php   # 4 custom code tools (add-custom-css, add-custom-js, add-code-snippet, list-code-snippets)
 │   ├── admin/
-│   │   ├── class-admin.php                    # Admin settings page: 3 tabs (Tools, Connection, Prompts), stats bar, header
+│   │   ├── class-admin.php                    # Admin top-level menu (EMCP Tools) with 4 native submenu pages (Tools, Connection, Prompts, Changelog), stats bar, header, Low-tools mode + Pro-disabled-by-default defaults
 │   │   └── views/
 │   │       ├── page-tools.php                 # Tools tab: category-grouped tool toggles with bulk actions
 │   │       ├── page-connection.php            # Connection tab: status cards, credential form, MCP client configs
@@ -104,6 +114,8 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 - **Schema-driven validation**: Widget settings validated against auto-generated JSON schemas before saving
 - **Universal + convenience**: `add-widget` works for any widget type; convenience tools (`add-heading`, `add-button`) provide simpler interfaces for common widgets
 - **Pro-aware**: Pro widget tools only register when Elementor Pro is active; core tools work with free Elementor
+- **`elementor_mcp_ability_names` filter** lives in `Elementor_MCP_Plugin::filter_disabled_tools()` (always loaded — NOT in the admin class, which only loads on `is_admin()`). It reads two options: `elementor_mcp_disabled_tools` (user toggles) and `elementor_mcp_low_tool_mode` (essentials-only). When low-tools mode is on, every name outside `Elementor_MCP_Plugin::get_essential_tool_slugs()` is excluded — this is the runtime path that keeps the count under client tool caps.
+- **Pro widgets disabled-by-default**: on first admin page load (tracked via `elementor_mcp_defaults_applied` marker option), every Pro-badged slug from `get_all_tools()` is merged into `elementor_mcp_disabled_tools`. Users can re-enable individual Pro widgets from the Tools admin screen.
 
 ### Permission Model
 
@@ -123,7 +135,7 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 | Code snippets (create) | `manage_options` + `unfiltered_html` |
 | Code snippets (list) | `manage_options` |
 
-## All Implemented Tools (97 total)
+## All Implemented Tools (up to 118 — see counts above)
 
 ### P0 — Query/Discovery (7 read-only)
 

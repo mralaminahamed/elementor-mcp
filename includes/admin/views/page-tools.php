@@ -17,10 +17,34 @@ $elementor_mcp_all_tools     = $this->get_all_tools();
 $elementor_mcp_disabled      = get_option( Elementor_MCP_Admin::OPTION_DISABLED_TOOLS, array() );
 $elementor_mcp_enabled_count = $this->get_enabled_tool_count();
 $elementor_mcp_total_count   = $this->get_total_tool_count();
+$elementor_mcp_low_mode      = '1' === (string) get_option( Elementor_MCP_Admin::OPTION_LOW_TOOL_MODE, '0' );
 ?>
 
 <form method="post" action="options.php" id="elementor-mcp-tools-form">
 	<?php settings_fields( Elementor_MCP_Admin::SETTINGS_GROUP ); ?>
+
+	<div class="elementor-mcp-low-mode-card">
+		<label class="elementor-mcp-low-mode-toggle">
+			<input type="hidden" name="<?php echo esc_attr( Elementor_MCP_Admin::OPTION_LOW_TOOL_MODE ); ?>" value="0" />
+			<input
+				type="checkbox"
+				name="<?php echo esc_attr( Elementor_MCP_Admin::OPTION_LOW_TOOL_MODE ); ?>"
+				value="1"
+				<?php checked( $elementor_mcp_low_mode ); ?>
+			/>
+			<span class="elementor-mcp-toggle" aria-hidden="true">
+				<span class="elementor-mcp-toggle-track"></span>
+			</span>
+			<span class="elementor-mcp-low-mode-info">
+				<span class="elementor-mcp-low-mode-title">
+					<?php esc_html_e( 'Low-tools mode (Antigravity-friendly)', 'elementor-mcp' ); ?>
+				</span>
+				<span class="elementor-mcp-low-mode-desc">
+					<?php esc_html_e( 'Keeps the active tool count under 60 by exposing only a curated set of essential abilities. Use this when your MCP client enforces a strict tool cap. Your individual toggles below are preserved and take effect again when this is turned off.', 'elementor-mcp' ); ?>
+				</span>
+			</span>
+		</label>
+	</div>
 
 	<p class="elementor-mcp-tools-summary">
 		<?php
@@ -38,6 +62,7 @@ $elementor_mcp_total_count   = $this->get_total_tool_count();
 	<div class="elementor-mcp-bulk-actions">
 		<button type="button" class="button elementor-mcp-enable-all"><?php esc_html_e( 'Enable All', 'elementor-mcp' ); ?></button>
 		<button type="button" class="button elementor-mcp-disable-all"><?php esc_html_e( 'Disable All', 'elementor-mcp' ); ?></button>
+		<button type="submit" class="button button-primary elementor-mcp-bulk-save"><?php esc_html_e( 'Save Changes', 'elementor-mcp' ); ?></button>
 	</div>
 
 	<?php foreach ( $elementor_mcp_all_tools as $elementor_mcp_category_id => $elementor_mcp_category ) : ?>

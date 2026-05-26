@@ -3,7 +3,7 @@
  * Plugin Name:       MCP Tools for Elementor
  * Plugin URI:        https://github.com/msrbuilds/elementor-mcpelementor-mcp
  * Description:       Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page design tools as MCP tools for AI agents.
- * Version:           1.5.1
+ * Version:           1.6.0
  * Requires at least: 6.9
  * Tested up to:      6.9
  * Requires PHP:      8.0
@@ -20,11 +20,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'ELEMENTOR_MCP_VERSION', '1.5.1' );
+define( 'ELEMENTOR_MCP_VERSION', '1.6.0' );
 define( 'ELEMENTOR_MCP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ELEMENTOR_MCP_URL', plugin_dir_url( __FILE__ ) );
 define( 'ELEMENTOR_MCP_BASENAME', plugin_basename( __FILE__ ) );
 
+if ( ! function_exists( 'emcp_pro_fs' ) ) {
+    // Create a helper function for easy SDK access.
+    function emcp_pro_fs() {
+        global $emcp_pro_fs;
+
+        if ( ! isset( $emcp_pro_fs ) ) {
+            // Activate multisite network integration.
+            if ( ! defined( 'WP_FS__PRODUCT_30577_MULTISITE' ) ) {
+                define( 'WP_FS__PRODUCT_30577_MULTISITE', true );
+            }
+
+            // Include Freemius SDK.
+            require_once dirname( __FILE__ ) . '/includes/vendors/fremius/start.php';
+
+            $emcp_pro_fs = fs_dynamic_init( array(
+                'id'                  => '30577',
+                'slug'                => 'elementor-mcp',
+                'premium_slug'        => 'emcp-pro',
+                'type'                => 'plugin',
+                'public_key'          => 'pk_2b2a026d5c27655581635abcd4556',
+                // Distributed as a single zip via Freemius for both free and
+                // paid sites. Premium features (when added) are gated at runtime
+                // via emcp_pro_fs()->can_use_premium_code(), not at build time,
+                // so this flag stays false for everyone.
+                'is_premium'          => false,
+                'premium_suffix'      => 'Pro',
+                'has_premium_version' => true,
+                'has_addons'          => false,
+                'has_paid_plans'      => true,
+                'is_org_compliant'    => false,
+                'menu'                => array(
+                    'slug'           => 'elementor-mcp',
+                    'support'        => false,
+                ),
+            ) );
+        }
+
+        return $emcp_pro_fs;
+    }
+
+    // Init Freemius.
+    emcp_pro_fs();
+    // Signal that SDK was initiated.
+    do_action( 'emcp_pro_fs_loaded' );
+}
 /**
  * Recursively removes empty strings from enum arrays in a JSON Schema.
  *

@@ -21,11 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Elementor_MCP_Admin {
 
 	/**
-	 * The page hook suffix returned by add_options_page().
+	 * Hook suffixes returned by add_menu_page() / add_submenu_page(),
+	 * used to scope asset enqueues to our screens only.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	private $hook_suffix = '';
+	private $hook_suffixes = array();
 
 	/**
 	 * Option name for storing disabled tools.
@@ -33,6 +34,15 @@ class Elementor_MCP_Admin {
 	 * @var string
 	 */
 	const OPTION_DISABLED_TOOLS = 'elementor_mcp_disabled_tools';
+
+	/**
+	 * Option name for the low-tools-mode toggle. When set to '1', tools
+	 * outside the curated essentials list are filtered out so clients
+	 * with tight tool caps (e.g. Antigravity) stay under their limit.
+	 *
+	 * @var string
+	 */
+	const OPTION_LOW_TOOL_MODE = 'elementor_mcp_low_tool_mode';
 
 	/**
 	 * Settings group name.
@@ -49,6 +59,54 @@ class Elementor_MCP_Admin {
 	const PAGE_SLUG = 'elementor-mcp';
 
 	/**
+	 * Map of sub-screen slug => label. The first entry is the dashboard
+	 * (rendered when the parent menu item is clicked).
+	 *
+	 * @var array<string, string>|null
+	 */
+	private $submenus = null;
+
+	/**
+	 * Returns the map of submenu slugs to translated labels.
+	 *
+	 * Initialised lazily so the strings are localised at call time.
+	 *
+	 * @return array<string, string>
+	 */
+	private function get_submenus(): array {
+		if ( null === $this->submenus ) {
+			$this->submenus = array(
+				self::PAGE_SLUG                 => __( 'Tools', 'elementor-mcp' ),
+				self::PAGE_SLUG . '-connection' => __( 'Connection', 'elementor-mcp' ),
+				self::PAGE_SLUG . '-prompts'    => __( 'Prompts', 'elementor-mcp' ),
+				self::PAGE_SLUG . '-changelog'  => __( 'Changelog', 'elementor-mcp' ),
+			);
+		}
+		return $this->submenus;
+	}
+
+	/**
+	 * Determine which sub-screen is active from $_GET['page'].
+	 *
+	 * @return string One of 'tools', 'connection', 'prompts', 'changelog'.
+	 */
+	private function get_active_tab(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+		switch ( $page ) {
+			case self::PAGE_SLUG . '-connection':
+				return 'connection';
+			case self::PAGE_SLUG . '-prompts':
+				return 'prompts';
+			case self::PAGE_SLUG . '-changelog':
+				return 'changelog';
+			default:
+				return 'tools';
+		}
+	}
+
+	/**
 	 * Initialize hooks.
 	 *
 	 * @since 1.0.0
@@ -56,8 +114,47 @@ class Elementor_MCP_Admin {
 	public function init(): void {
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'maybe_apply_default_disabled_tools' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_filter( 'elementor_mcp_ability_names', array( $this, 'filter_ability_names' ) );
+	}
+
+	/**
+	 * Option that records whether the one-time default disabled-tools list
+	 * has been applied yet.
+	 */
+	const OPTION_DEFAULTS_APPLIED = 'elementor_mcp_defaults_applied';
+
+	/**
+	 * On the first admin page load after install/upgrade, mark every Pro
+	 * widget shortcut as disabled-by-default so fresh installs ship under
+	 * the 100-tool cap enforced by some MCP clients. Runs exactly once;
+	 * existing user choices are preserved by merging (union) rather than
+	 * overwriting.
+	 *
+	 * @since 1.6.0
+	 */
+	public function maybe_apply_default_disabled_tools(): void {
+		if ( '1' === get_option( self::OPTION_DEFAULTS_APPLIED, '' ) ) {
+			return;
+		}
+
+		$pro_slugs = array();
+		foreach ( $this->get_all_tools() as $category ) {
+			foreach ( $category['tools'] as $slug => $tool ) {
+				if ( in_array( 'pro', $tool['badges'], true ) ) {
+					$pro_slugs[] = $slug;
+				}
+			}
+		}
+
+		$existing = get_option( self::OPTION_DISABLED_TOOLS, array() );
+		if ( ! is_array( $existing ) ) {
+			$existing = array();
+		}
+
+		$merged = array_values( array_unique( array_merge( $existing, $pro_slugs ) ) );
+		update_option( self::OPTION_DISABLED_TOOLS, $merged );
+		update_option( self::OPTION_DEFAULTS_APPLIED, '1' );
 	}
 
 	/**
@@ -66,13 +163,26 @@ class Elementor_MCP_Admin {
 	 * @since 1.0.0
 	 */
 	public function add_settings_page(): void {
-		$this->hook_suffix = add_options_page(
+		$this->hook_suffixes[] = add_menu_page(
 			__( 'MCP Tools for Elementor', 'elementor-mcp' ),
 			__( 'EMCP Tools', 'elementor-mcp' ),
 			'manage_options',
 			self::PAGE_SLUG,
-			array( $this, 'render_page' )
+			array( $this, 'render_page' ),
+			'dashicons-superhero-alt',
+			58
 		);
+
+		foreach ( $this->get_submenus() as $slug => $label ) {
+			$this->hook_suffixes[] = add_submenu_page(
+				self::PAGE_SLUG,
+				$label,
+				$label,
+				'manage_options',
+				$slug,
+				array( $this, 'render_page' )
+			);
+		}
 	}
 
 	/**
@@ -88,6 +198,18 @@ class Elementor_MCP_Admin {
 				'type'              => 'array',
 				'default'           => array(),
 				'sanitize_callback' => array( $this, 'sanitize_disabled_tools' ),
+			)
+		);
+
+		register_setting(
+			self::SETTINGS_GROUP,
+			self::OPTION_LOW_TOOL_MODE,
+			array(
+				'type'              => 'string',
+				'default'           => '0',
+				'sanitize_callback' => static function ( $value ) {
+					return '1' === (string) $value ? '1' : '0';
+				},
 			)
 		);
 	}
@@ -128,7 +250,7 @@ class Elementor_MCP_Admin {
 	 * @param string $hook The current admin page hook.
 	 */
 	public function enqueue_assets( string $hook ): void {
-		if ( $hook !== $this->hook_suffix ) {
+		if ( ! in_array( $hook, $this->hook_suffixes, true ) ) {
 			return;
 		}
 
@@ -160,24 +282,6 @@ class Elementor_MCP_Admin {
 	}
 
 	/**
-	 * Filter ability names to remove disabled tools.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string[] $names The registered ability names.
-	 * @return string[] Filtered ability names.
-	 */
-	public function filter_ability_names( array $names ): array {
-		$disabled = get_option( self::OPTION_DISABLED_TOOLS, array() );
-
-		if ( empty( $disabled ) ) {
-			return $names;
-		}
-
-		return array_values( array_diff( $names, $disabled ) );
-	}
-
-	/**
 	 * Render the settings page.
 	 *
 	 * @since 1.0.0
@@ -187,7 +291,7 @@ class Elementor_MCP_Admin {
 			return;
 		}
 
-		$active_tab    = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'tools'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$active_tab    = $this->get_active_tab();
 		$enabled_count = $this->get_enabled_tool_count();
 		$total_count   = $this->get_total_tool_count();
 
@@ -278,26 +382,6 @@ class Elementor_MCP_Admin {
 				</div>
 			</div>
 
-			<!-- Tabs -->
-			<nav class="nav-tab-wrapper">
-				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=' . self::PAGE_SLUG . '&tab=tools' ) ); ?>"
-				   class="nav-tab <?php echo esc_attr( 'tools' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-					<?php esc_html_e( 'Tools', 'elementor-mcp' ); ?>
-				</a>
-				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=' . self::PAGE_SLUG . '&tab=connection' ) ); ?>"
-				   class="nav-tab <?php echo esc_attr( 'connection' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-					<?php esc_html_e( 'Connection', 'elementor-mcp' ); ?>
-				</a>
-				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=' . self::PAGE_SLUG . '&tab=prompts' ) ); ?>"
-				   class="nav-tab <?php echo esc_attr( 'prompts' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-					<?php esc_html_e( 'Prompts', 'elementor-mcp' ); ?>
-				</a>
-				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=' . self::PAGE_SLUG . '&tab=changelog' ) ); ?>"
-				   class="nav-tab <?php echo esc_attr( 'changelog' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-					<?php esc_html_e( 'Changelog', 'elementor-mcp' ); ?>
-				</a>
-			</nav>
-
 			<!-- Content -->
 			<div class="tab-content">
 				<?php
@@ -324,7 +408,7 @@ class Elementor_MCP_Admin {
 	 * @return array<string, array{label: string, tools: array<string, array{label: string, description: string, badges: string[]}>}> Grouped tools.
 	 */
 	public function get_all_tools(): array {
-		return array(
+		$tools = array(
 			'query'            => array(
 				'label' => __( 'Query & Discovery', 'elementor-mcp' ),
 				'tools' => array(
@@ -871,6 +955,90 @@ class Elementor_MCP_Admin {
 				),
 			),
 		);
+
+		// Atomic elements (Elementor 4.0+). The underlying abilities are only
+		// registered when Elementor >= 4.0 is active, so we mirror that gate
+		// here to avoid showing toggles for tools that don't exist.
+		if ( class_exists( 'Elementor_MCP_Atomic_Props' ) && Elementor_MCP_Atomic_Props::is_atomic_supported() ) {
+			$tools['atomic_layout'] = array(
+				'label' => __( 'Atomic Layout (Elementor 4.0+)', 'elementor-mcp' ),
+				'tools' => array(
+					'elementor-mcp/detect-elementor-version' => array(
+						'label'       => __( 'Detect Elementor Version', 'elementor-mcp' ),
+						'description' => __( 'Returns the Elementor version and whether atomic elements are supported.', 'elementor-mcp' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'elementor-mcp/add-flexbox'              => array(
+						'label'       => __( 'Add Flexbox', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic flexbox container (e-flexbox).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-div-block'            => array(
+						'label'       => __( 'Add Div Block', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic div-block container (e-div-block).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+				),
+			);
+
+			$tools['atomic_widgets'] = array(
+				'label' => __( 'Atomic Widgets (Elementor 4.0+)', 'elementor-mcp' ),
+				'tools' => array(
+					'elementor-mcp/add-atomic-widget'    => array(
+						'label'       => __( 'Add Atomic Widget', 'elementor-mcp' ),
+						'description' => __( 'Universal: adds any atomic widget by type with raw $$type settings.', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/update-atomic-widget' => array(
+						'label'       => __( 'Update Atomic Widget', 'elementor-mcp' ),
+						'description' => __( 'Universal: partial-merge update on an existing atomic widget.', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-heading'   => array(
+						'label'       => __( 'Add Atomic Heading', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic heading element (e-heading).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-paragraph' => array(
+						'label'       => __( 'Add Atomic Paragraph', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic paragraph element (e-paragraph).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-button'    => array(
+						'label'       => __( 'Add Atomic Button', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic button element (e-button).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-image'     => array(
+						'label'       => __( 'Add Atomic Image', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic image element (e-image).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-svg'       => array(
+						'label'       => __( 'Add Atomic SVG', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic SVG element (e-svg).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-youtube'   => array(
+						'label'       => __( 'Add Atomic YouTube', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic YouTube embed (e-youtube).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-video'     => array(
+						'label'       => __( 'Add Atomic Video', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic self-hosted video (e-self-hosted-video).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+					'elementor-mcp/add-atomic-divider'   => array(
+						'label'       => __( 'Add Atomic Divider', 'elementor-mcp' ),
+						'description' => __( 'Adds an atomic divider element (e-divider).', 'elementor-mcp' ),
+						'badges'      => array(),
+					),
+				),
+			);
+		}
+
+		return $tools;
 	}
 
 	/**
@@ -902,6 +1070,13 @@ class Elementor_MCP_Admin {
 	public function get_enabled_tool_count(): int {
 		$all      = $this->get_all_tool_slugs();
 		$disabled = get_option( self::OPTION_DISABLED_TOOLS, array() );
+		if ( ! is_array( $disabled ) ) {
+			$disabled = array();
+		}
+
+		if ( '1' === (string) get_option( self::OPTION_LOW_TOOL_MODE, '0' ) ) {
+			$disabled = array_merge( $disabled, array_diff( $all, Elementor_MCP_Plugin::get_essential_tool_slugs() ) );
+		}
 
 		return count( array_diff( $all, $disabled ) );
 	}

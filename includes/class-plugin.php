@@ -120,6 +120,131 @@ class Elementor_MCP_Plugin {
 		// this during mcp_adapter_init at priority 10. We hook at priority 20 so
 		// the Abilities API is initialized and our abilities are registered by then.
 		add_action( 'mcp_adapter_init', array( $this, 'register_mcp_server' ), 20 );
+
+		// Apply the disabled-tools option from the admin settings page on every
+		// request. The admin class is only loaded in is_admin() context, so the
+		// MCP REST endpoint would otherwise never see this filter and would
+		// expose every registered tool regardless of what the user disabled.
+		add_filter( 'elementor_mcp_ability_names', array( $this, 'filter_disabled_tools' ) );
+	}
+
+	/**
+	 * Removes tools the user disabled from the registered ability names list.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @param string[] $names The registered ability names.
+	 * @return string[] Ability names with disabled tools removed.
+	 */
+	public function filter_disabled_tools( array $names ): array {
+		$disabled = get_option( 'elementor_mcp_disabled_tools', array() );
+		if ( ! is_array( $disabled ) ) {
+			$disabled = array();
+		}
+
+		// Low-tools mode: drop everything outside the curated essentials list
+		// so clients with a tight tool cap (e.g. Antigravity) stay under it.
+		if ( '1' === (string) get_option( 'elementor_mcp_low_tool_mode', '0' ) ) {
+			$disabled = array_merge( $disabled, array_diff( $names, self::get_essential_tool_slugs() ) );
+		}
+
+		if ( empty( $disabled ) ) {
+			return $names;
+		}
+
+		return array_values( array_diff( $names, $disabled ) );
+	}
+
+	/**
+	 * Curated list of essential tool slugs kept active in low-tools mode.
+	 *
+	 * Trimmed to fit under a 60-tool budget while preserving every category
+	 * an AI agent needs to build a page from scratch: discovery, page CRUD,
+	 * layout, universal widget add/update, a small set of common widget
+	 * shortcuts, globals, templates, stock images, custom code, and (when
+	 * Elementor 4.0+ is active) the atomic universal + container tools.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @return string[]
+	 */
+	public static function get_essential_tool_slugs(): array {
+		return array(
+			// Query / discovery (7).
+			'elementor-mcp/list-widgets',
+			'elementor-mcp/get-widget-schema',
+			'elementor-mcp/get-page-structure',
+			'elementor-mcp/get-element-settings',
+			'elementor-mcp/list-pages',
+			'elementor-mcp/list-templates',
+			'elementor-mcp/get-global-settings',
+
+			// Page CRUD (5).
+			'elementor-mcp/create-page',
+			'elementor-mcp/update-page-settings',
+			'elementor-mcp/delete-page-content',
+			'elementor-mcp/import-template',
+			'elementor-mcp/export-page',
+
+			// Layout / structure (10).
+			'elementor-mcp/add-container',
+			'elementor-mcp/move-element',
+			'elementor-mcp/remove-element',
+			'elementor-mcp/duplicate-element',
+			'elementor-mcp/update-container',
+			'elementor-mcp/get-container-schema',
+			'elementor-mcp/find-element',
+			'elementor-mcp/update-element',
+			'elementor-mcp/batch-update',
+			'elementor-mcp/reorder-elements',
+
+			// Universal widget add/update (2).
+			'elementor-mcp/add-widget',
+			'elementor-mcp/update-widget',
+
+			// Most-used core widget shortcuts (9).
+			'elementor-mcp/add-heading',
+			'elementor-mcp/add-text-editor',
+			'elementor-mcp/add-image',
+			'elementor-mcp/add-button',
+			'elementor-mcp/add-icon',
+			'elementor-mcp/add-spacer',
+			'elementor-mcp/add-divider',
+			'elementor-mcp/add-icon-box',
+			'elementor-mcp/add-html',
+
+			// Templates (2).
+			'elementor-mcp/save-as-template',
+			'elementor-mcp/apply-template',
+
+			// Globals (2).
+			'elementor-mcp/update-global-colors',
+			'elementor-mcp/update-global-typography',
+
+			// Composite (1).
+			'elementor-mcp/build-page',
+
+			// Stock images (3).
+			'elementor-mcp/search-images',
+			'elementor-mcp/sideload-image',
+			'elementor-mcp/add-stock-image',
+
+			// SVG icons (1).
+			'elementor-mcp/upload-svg-icon',
+
+			// Custom code (4).
+			'elementor-mcp/add-custom-css',
+			'elementor-mcp/add-custom-js',
+			'elementor-mcp/add-code-snippet',
+			'elementor-mcp/list-code-snippets',
+
+			// Atomic essentials (5) — only registered when Elementor 4.0+.
+			'elementor-mcp/detect-elementor-version',
+			'elementor-mcp/add-atomic-widget',
+			'elementor-mcp/update-atomic-widget',
+			'elementor-mcp/add-flexbox',
+			'elementor-mcp/add-div-block',
+		);
 	}
 
 	/**

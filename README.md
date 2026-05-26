@@ -1,11 +1,11 @@
 # MCP Tools for Elementor
 
-[![Version](https://img.shields.io/badge/version-1.5.1-blue.svg)](https://github.com/msrbuilds/elementor-mcp/releases)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](https://github.com/msrbuilds/elementor-mcp/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D7.4-8892BF.svg)](https://php.net)
 [![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.8-21759B.svg)](https://wordpress.org)
 [![Elementor](https://img.shields.io/badge/Elementor-%3E%3D3.20-92003B.svg)](https://elementor.com)
-[![MCP Tools](https://img.shields.io/badge/MCP_Tools-97-orange.svg)](#available-tools)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20118-orange.svg)](#available-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub Issues](https://img.shields.io/github/issues/msrbuilds/elementor-mcp)](https://github.com/msrbuilds/elementor-mcp/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/msrbuilds/elementor-mcp?style=social)](https://github.com/msrbuilds/elementor-mcp)
@@ -21,12 +21,18 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 ## Features
 
-- **97 MCP Tools** covering the full Elementor page-building workflow
+- **Up to 118 MCP Tools** covering the full Elementor page-building workflow. Counts scale with your environment:
+  - 61 tools — free Elementor only
+  - 74 tools — free Elementor + Elementor 4.0 atomic elements
+  - 100 tools — with Elementor Pro
+  - 113 tools — with Elementor Pro + Elementor 4.0
+  - 118 tools — with Elementor Pro + WooCommerce + Elementor 4.0
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
-- **Widget Tools** — 51 widget tools: universal add/update for any widget, plus 27 free convenience shortcuts and 22 conditional Pro widget tools
-- **Pro Widget Support** — 22 conditional Pro widget tools including nav menu, loop grid, loop carousel, media carousel, nested tabs, nested accordion, and more
+- **Widget Tools** — Universal add/update for any widget, plus 27 free convenience shortcuts, 30 conditional Pro widget tools, and 5 WooCommerce widget tools
+- **Pro Widget Support** — Conditional tools for nav menu, loop grid, loop carousel, media carousel, nested tabs, nested accordion, portfolio, author box, login, code highlight, reviews, off-canvas, progress tracker, search, and more (only register when Elementor Pro is active)
+- **Atomic Elements (Elementor 4.0+)** — 13 dedicated tools for Elementor's atomic system: flexbox, div-block, heading, paragraph, button, image, svg, youtube, video, divider, plus universal `add-atomic-widget` / `update-atomic-widget` and `detect-elementor-version`
 - **Theme Builder** — Create theme templates (header/footer/single/archive), set display conditions (Pro)
 - **Dynamic Tags** — List all available dynamic tags, bind dynamic data to element settings (Pro)
 - **Popup Builder** — Create popup templates, configure triggers/conditions/timing (Pro)
@@ -36,7 +42,8 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 - **Stock Images** — Search Openverse for Creative Commons images, sideload into Media Library, add to pages
 - **SVG Icons** — Upload SVG icons from URL or raw markup for use with Elementor icon widgets
 - **Custom Code** — Add custom CSS (element/page level), inject JavaScript, create site-wide code snippets for head/body injection
-- **Admin Dashboard** — Toggle individual tools on/off and view connection configs for all supported MCP clients
+- **Low-tools Mode** — One-click toggle that filters the active tool list to a curated essentials set (~50 tools) so MCP clients with strict tool caps (Antigravity, Gemini API, etc.) stay under their limits
+- **Admin Dashboard** — Dedicated top-level **EMCP Tools** menu with Tools / Connection / Prompts / Changelog submenus. Toggle individual tools on/off and view connection configs for all supported MCP clients
 
 ## Requirements
 
@@ -55,7 +62,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 3. Download the latest release zip from the [Releases page](https://github.com/msrbuilds/elementor-mcp/releases/).
 4. In WordPress, go to **Plugins > Add New > Upload Plugin** and upload the downloaded zip file.
 5. Activate the plugin through the **Plugins** menu in WordPress.
-6. Go to **Settings > MCP Tools for Elementor** to configure tools and view connection info.
+6. Open the new **EMCP Tools** top-level menu in the WordPress admin sidebar to configure tools and view connection info.
 
 ## Connecting to the MCP Server
 
@@ -67,7 +74,7 @@ Connect to your WordPress site from any AI client using HTTP. No proxy or Node.j
 2. Base64-encode your credentials: `echo -n "username:app-password" | base64`
 3. Your MCP endpoint is: `https://your-site.com/wp-json/mcp/elementor-mcp-server`
 
-> **Tip:** The plugin's admin page at **Settings > MCP Tools for Elementor > Connection** can generate all configs automatically — just enter your username and Application Password.
+> **Tip:** The plugin's **EMCP Tools > Connection** admin screen can generate all configs automatically — just enter your username and Application Password.
 
 ### Claude Code
 
@@ -236,7 +243,7 @@ npx @modelcontextprotocol/inspector wp mcp-adapter serve \
 | `import-template` | Import JSON template structure into a page |
 | `export-page` | Export page's full Elementor data as JSON |
 
-### Layout & Structure (11 tools)
+### Layout & Structure (10 tools)
 
 | Tool | Description |
 |---|---|
@@ -251,7 +258,7 @@ npx @modelcontextprotocol/inspector wp mcp-adapter serve \
 | `batch-update` | Apply multiple element updates in a single call |
 | `reorder-elements` | Reorder child elements within a container |
 
-### Widgets (51 tools)
+### Widgets (2 universal + 27 free + 30 Pro + 5 WooCommerce)
 
 | Tool | Description |
 |---|---|
@@ -306,6 +313,39 @@ npx @modelcontextprotocol/inspector wp mcp-adapter serve \
 | `add-media-carousel` | Pro: media carousel for images/videos |
 | `add-nested-tabs` | Pro: nested tabs with container content |
 | `add-nested-accordion` | Pro: nested accordion with container content |
+| `add-portfolio` | Pro: portfolio grid widget |
+| `add-author-box` | Pro: post author box widget |
+| `add-login` | Pro: login form widget |
+| `add-code-highlight` | Pro: syntax-highlighted code block widget |
+| `add-reviews` | Pro: reviews/testimonials carousel widget |
+| `add-off-canvas` | Pro: off-canvas panel widget |
+| `add-progress-tracker` | Pro: scroll progress tracker widget |
+| `add-search` | Pro: search widget with live results support |
+| `add-wc-products` | Pro + WC: WooCommerce products grid |
+| `add-wc-add-to-cart` | Pro + WC: add-to-cart button |
+| `add-wc-cart` | Pro + WC: cart page widget |
+| `add-wc-checkout` | Pro + WC: checkout page widget |
+| `add-wc-menu-cart` | Pro + WC: menu cart icon widget |
+
+### Atomic Elements — Elementor 4.0+ (13 tools)
+
+These tools only register when Elementor >= 4.0 is detected. Legacy widget tools continue to work alongside them.
+
+| Tool | Description |
+|---|---|
+| `detect-elementor-version` | Returns Elementor version and whether atomic elements are supported. Call first to choose tool family. |
+| `add-flexbox` | Atomic flexbox container (`e-flexbox`). Params: direction, justify, align, gap, wrap, tag, padding, background_color |
+| `add-div-block` | Atomic div-block container (`e-div-block`). Params: tag, padding, background_color |
+| `add-atomic-widget` | Universal: add any atomic widget by type with raw `$$type` settings |
+| `update-atomic-widget` | Universal: partial-merge update on an existing atomic widget |
+| `add-atomic-heading` | Atomic heading (`e-heading`). Params: title, tag (h1-h6), link, css_id |
+| `add-atomic-paragraph` | Atomic paragraph (`e-paragraph`). Params: content, link, css_id |
+| `add-atomic-button` | Atomic button (`e-button`). Params: text, link, target_blank, css_id |
+| `add-atomic-image` | Atomic image (`e-image`). Params: image_id, image_url, alt, link, css_id |
+| `add-atomic-svg` | Atomic SVG (`e-svg`). Params: svg_id, svg_url, css_id |
+| `add-atomic-youtube` | Atomic YouTube embed (`e-youtube`). Params: video_url, css_id |
+| `add-atomic-video` | Atomic self-hosted video (`e-self-hosted-video`). Params: video_url, video_id, css_id |
+| `add-atomic-divider` | Atomic divider (`e-divider`). Params: css_id |
 
 ### Templates & Theme Builder (8 tools)
 
