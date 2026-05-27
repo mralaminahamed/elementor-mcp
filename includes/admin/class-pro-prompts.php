@@ -113,8 +113,9 @@ class Elementor_MCP_Pro_Prompts {
 	 */
 	private static function fetch_remote_bundle() {
 		$license_key = self::get_license_key();
-		if ( '' === $license_key ) {
-			return new WP_Error( 'no_license_key', __( 'No active Freemius license key was found on this site.', 'elementor-mcp' ) );
+		$license_id  = self::get_license_id();
+		if ( '' === $license_key || '' === $license_id ) {
+			return new WP_Error( 'no_license_key', __( 'No active EMCP Tools Pro license was found on this site.', 'elementor-mcp' ) );
 		}
 
 		$endpoint = apply_filters( 'elementor_mcp_pro_prompts_endpoint', self::DEFAULT_ENDPOINT );
@@ -123,6 +124,13 @@ class Elementor_MCP_Pro_Prompts {
 		// keys are credentials — query strings get logged by every proxy in the
 		// chain (server access log, Dokploy log, intermediate CDN, browser
 		// history). Authorization headers don't.
+		//
+		// X-EMCP-License-Id carries the numeric Freemius license ID. The
+		// server uses it to route to the correct Freemius API endpoint
+		// (/v1/plugins/{plugin_id}/licenses/{license_id}.json) and passes
+		// the Authorization-header license key as a verification query
+		// parameter. Freemius's API does NOT accept the license key as the
+		// path segment — it expects the integer ID there.
 		$response = wp_remote_get(
 			$endpoint,
 			array(
@@ -130,6 +138,7 @@ class Elementor_MCP_Pro_Prompts {
 				'headers' => array(
 					'Accept'                => 'application/json',
 					'Authorization'         => 'Bearer ' . $license_key,
+					'X-EMCP-License-Id'     => $license_id,
 					'X-EMCP-Site'           => home_url(),
 					'X-EMCP-Plugin-Version' => ELEMENTOR_MCP_VERSION,
 				),
@@ -201,6 +210,26 @@ class Elementor_MCP_Pro_Prompts {
 			return '';
 		}
 		return (string) $license->secret_key;
+	}
+
+	/**
+	 * Returns the active license's numeric Freemius ID, or empty string.
+	 * The server uses this to route the Freemius API check to the
+	 * correct license endpoint (id in path, key in query string).
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return string
+	 */
+	private static function get_license_id(): string {
+		if ( ! function_exists( 'emcp_pro_fs' ) ) {
+			return '';
+		}
+		$license = emcp_pro_fs()->_get_license();
+		if ( ! $license || empty( $license->id ) ) {
+			return '';
+		}
+		return (string) $license->id;
 	}
 
 	/**
