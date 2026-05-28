@@ -15,9 +15,10 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 <img width="1995" height="1141" alt="image" src="https://github.com/user-attachments/assets/06ab916a-0146-4a5f-828c-d5aa409cb072" />
 
 
-# 50+ Premium Prompts Pack - Generate Superior Landing Pages
-## [Grab the Deal](https://wpacademy.gumroad.com/l/vlrihk)
-<img width="1280" height="720" alt="banner" src="https://github.com/user-attachments/assets/d862b866-ca2e-4283-af22-c9464b52d746" />
+# Introdiucing EMCP Pro! 25% Discount for GitHub Community: MSRGIT
+## [Grab the Deal](https://emcp.msrbuilds.com/pricing)
+<img width="1697" height="250" alt="image" src="https://github.com/user-attachments/assets/f588d365-1986-4132-90d3-4d44a28da464" />
+
 
 ## Features
 
