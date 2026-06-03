@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       MCP Tools for Elementor
+ * Plugin Name:       EMCP Tools
  * Plugin URI:        https://github.com/msrbuilds/elementor-mcp
  * Description:       Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page design tools as MCP tools for AI agents.
  * Version:           2.0.0
