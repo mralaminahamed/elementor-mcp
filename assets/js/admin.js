@@ -141,6 +141,70 @@
 			return;
 		}
 
+		// The Basic Authorization header from the last generated credentials,
+		// used by the auth self-test (#41).
+		var emcpAuthHeader = '';
+
+		// Connection auth self-test (#41): proves whether the Authorization
+		// header actually reaches WordPress. Servers like Plesk/Apache/IIS often
+		// strip it, which is the usual cause of the MCP "initialize: Unauthorized"
+		// error. credentials:'omit' ensures ONLY the Authorization header
+		// authenticates (not the admin login cookie), so a 401 here is a true
+		// Basic-auth failure, not a false pass.
+		var authBtn = document.getElementById( 'elementor-mcp-authtest-btn' );
+		if ( authBtn ) {
+			authBtn.addEventListener( 'click', function () {
+				if ( ! emcpAuthHeader || typeof emcpToolsAdmin === 'undefined' || ! emcpToolsAdmin.restMeUrl ) {
+					return;
+				}
+				var statusEl = document.getElementById( 'elementor-mcp-authtest-status' );
+				var fixEl = document.getElementById( 'elementor-mcp-authtest-fix' );
+				if ( statusEl ) {
+					statusEl.style.display = '';
+					statusEl.className = 'description';
+					statusEl.textContent = emcpToolsAdmin.authTesting || 'Testing…';
+				}
+				if ( fixEl ) {
+					fixEl.style.display = 'none';
+				}
+				authBtn.disabled = true;
+
+				/* global fetch */
+				fetch( emcpToolsAdmin.restMeUrl + '?_=' + ( new Date() ).getTime(), {
+					method: 'GET',
+					credentials: 'omit',
+					headers: { Authorization: emcpAuthHeader }
+				} ).then( function ( response ) {
+					authBtn.disabled = false;
+					if ( ! statusEl ) {
+						return;
+					}
+					if ( response.ok ) {
+						statusEl.className = 'description elementor-mcp-authtest-ok';
+						statusEl.textContent = emcpToolsAdmin.authOk || 'Authentication works.';
+						if ( fixEl ) {
+							fixEl.style.display = 'none';
+						}
+					} else {
+						statusEl.className = 'description elementor-mcp-authtest-bad';
+						statusEl.textContent = ( emcpToolsAdmin.authFail || 'Authentication failed (HTTP %d).' ).replace( '%d', response.status );
+						if ( fixEl ) {
+							fixEl.style.display = '';
+						}
+					}
+				} ).catch( function () {
+					authBtn.disabled = false;
+					if ( statusEl ) {
+						statusEl.className = 'description elementor-mcp-authtest-bad';
+						statusEl.textContent = emcpToolsAdmin.authError || 'Could not reach the REST API.';
+					}
+					if ( fixEl ) {
+						fixEl.style.display = '';
+					}
+				} );
+			} );
+		}
+
 		generateBtn.addEventListener( 'click', function () {
 			var usernameEl = document.getElementById( 'elementor-mcp-b64-username' );
 			if ( ! usernameEl || ! usernameEl.value ) {
@@ -252,6 +316,13 @@
 				resultRow.style.display = '';
 				resultCode.textContent = headerValue;
 				resultCopy.value = headerValue;
+			}
+
+			// Arm the auth self-test (#41) with these credentials.
+			emcpAuthHeader = headerValue;
+			var authRow = document.getElementById( 'elementor-mcp-authtest-row' );
+			if ( authRow ) {
+				authRow.style.display = '';
 			}
 
 			if ( typeof emcpToolsAdmin === 'undefined' || ! emcpToolsAdmin.mcpEndpoint ) {
@@ -1025,6 +1096,184 @@
 		} );
 	}
 
+	/**
+	 * Slide-in code viewer overlay. Any element with [data-emcp-code-view] opens
+	 * it; the code is read from the nearest .emcp-code-src in the same table cell
+	 * (or a selector in the attribute's value). Provides Copy + Download.
+	 */
+	function initCodeOverlay() {
+		if ( document.getElementById( 'emcp-code-overlay' ) ) {
+			return;
+		}
+		var overlay = document.createElement( 'div' );
+		overlay.id = 'emcp-code-overlay';
+		overlay.className = 'emcp-code-overlay';
+		overlay.innerHTML =
+			'<div class="emcp-code-overlay__backdrop" data-emcp-close></div>' +
+			'<div class="emcp-code-overlay__panel" role="dialog" aria-modal="true" aria-label="Code viewer">' +
+				'<div class="emcp-code-overlay__header">' +
+					'<span class="emcp-code-overlay__title"></span>' +
+					'<button type="button" class="emcp-code-overlay__close" data-emcp-close aria-label="Close">&times;</button>' +
+				'</div>' +
+				'<div class="emcp-code-overlay__toolbar">' +
+					'<button type="button" class="emcp-code-overlay__btn" data-emcp-copy></button>' +
+					'<button type="button" class="emcp-code-overlay__btn" data-emcp-download></button>' +
+				'</div>' +
+				'<pre class="emcp-code-overlay__body"><code></code></pre>' +
+			'</div>';
+		document.body.appendChild( overlay );
+
+		var titleEl = overlay.querySelector( '.emcp-code-overlay__title' );
+		var codeEl  = overlay.querySelector( '.emcp-code-overlay__body code' );
+		var copyBtn = overlay.querySelector( '[data-emcp-copy]' );
+		var dlBtn   = overlay.querySelector( '[data-emcp-download]' );
+		copyBtn.textContent = window.emcpToolsAdmin && window.emcpToolsAdmin.copy ? window.emcpToolsAdmin.copy : 'Copy';
+		dlBtn.textContent   = window.emcpToolsAdmin && window.emcpToolsAdmin.download ? window.emcpToolsAdmin.download : 'Download';
+		var filename = 'code.txt';
+
+		function open( title, code, fname ) {
+			titleEl.textContent = title || 'Code';
+			codeEl.textContent = code || '';
+			filename = fname || 'code.txt';
+			copyBtn.textContent = window.emcpToolsAdmin && window.emcpToolsAdmin.copy ? window.emcpToolsAdmin.copy : 'Copy';
+			overlay.classList.add( 'is-open' );
+			document.body.style.overflow = 'hidden';
+		}
+		function close() {
+			overlay.classList.remove( 'is-open' );
+			document.body.style.overflow = '';
+		}
+
+		// Open from any trigger.
+		document.addEventListener( 'click', function ( e ) {
+			var trigger = e.target.closest( '[data-emcp-code-view]' );
+			if ( ! trigger ) { return; }
+			e.preventDefault();
+			var sel = trigger.getAttribute( 'data-emcp-code-view' );
+			var src = null;
+			if ( sel ) { src = document.querySelector( sel ); }
+			if ( ! src ) {
+				var scope = trigger.closest( 'td' ) || trigger.parentNode;
+				src = scope ? scope.querySelector( '.emcp-code-src' ) : null;
+			}
+			open(
+				trigger.getAttribute( 'data-emcp-code-title' ) || 'Code',
+				src ? src.textContent : '',
+				trigger.getAttribute( 'data-emcp-code-filename' ) || 'code.txt'
+			);
+		} );
+
+		overlay.addEventListener( 'click', function ( e ) {
+			if ( e.target.closest( '[data-emcp-close]' ) ) { close(); }
+		} );
+		document.addEventListener( 'keydown', function ( e ) {
+			if ( 'Escape' === e.key && overlay.classList.contains( 'is-open' ) ) { close(); }
+		} );
+
+		copyBtn.addEventListener( 'click', function () {
+			var text = codeEl.textContent || '';
+			var done = function () {
+				copyBtn.textContent = window.emcpToolsAdmin && window.emcpToolsAdmin.copied ? window.emcpToolsAdmin.copied : 'Copied!';
+				setTimeout( function () { copyBtn.textContent = window.emcpToolsAdmin && window.emcpToolsAdmin.copy ? window.emcpToolsAdmin.copy : 'Copy'; }, 1500 );
+			};
+			if ( navigator.clipboard && navigator.clipboard.writeText ) {
+				navigator.clipboard.writeText( text ).then( done ).catch( function () { fallbackCopy( text, codeEl ); done(); } );
+			} else {
+				fallbackCopy( text, codeEl );
+				done();
+			}
+		} );
+
+		dlBtn.addEventListener( 'click', function () {
+			var blob = new Blob( [ codeEl.textContent || '' ], { type: 'text/plain' } );
+			var url  = URL.createObjectURL( blob );
+			var a    = document.createElement( 'a' );
+			a.href = url;
+			a.download = filename;
+			document.body.appendChild( a );
+			a.click();
+			document.body.removeChild( a );
+			setTimeout( function () { URL.revokeObjectURL( url ); }, 1000 );
+		} );
+	}
+
+	/**
+	 * Clipboard fallback (older browsers / insecure context): select the code
+	 * node and execCommand('copy').
+	 *
+	 * @param {string}      text Text to copy.
+	 * @param {HTMLElement} node Element whose text can be range-selected.
+	 */
+	function fallbackCopy( text, node ) {
+		try {
+			var range = document.createRange();
+			range.selectNodeContents( node );
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange( range );
+			document.execCommand( 'copy' );
+			sel.removeAllRanges();
+		} catch ( e ) {}
+	}
+
+	/**
+	 * Copy text to the clipboard (Clipboard API with an execCommand fallback for
+	 * older browsers / insecure contexts). Returns a Promise that always resolves.
+	 *
+	 * @param {string} text Text to copy.
+	 * @return {Promise}
+	 */
+	function emcpCopyText( text ) {
+		return new Promise( function ( resolve ) {
+			if ( navigator.clipboard && navigator.clipboard.writeText ) {
+				navigator.clipboard.writeText( text ).then( resolve ).catch( function () {
+					emcpExecCopy( text );
+					resolve();
+				} );
+			} else {
+				emcpExecCopy( text );
+				resolve();
+			}
+		} );
+	}
+
+	function emcpExecCopy( text ) {
+		try {
+			var ta = document.createElement( 'textarea' );
+			ta.value = text;
+			ta.style.position = 'fixed';
+			ta.style.opacity = '0';
+			document.body.appendChild( ta );
+			ta.select();
+			document.execCommand( 'copy' );
+			document.body.removeChild( ta );
+		} catch ( e ) {}
+	}
+
+	/**
+	 * Click-to-copy for any [data-emcp-copy-text] element (e.g. a shortcode
+	 * chip). Copies the attribute value (or the element text) and flashes a
+	 * "Copied!" tooltip via the .is-copied class.
+	 */
+	function initClickToCopy() {
+		document.addEventListener( 'click', function ( e ) {
+			var el = e.target.closest( '[data-emcp-copy-text]' );
+			if ( ! el ) { return; }
+			var text = el.getAttribute( 'data-emcp-copy-text' ) || el.textContent || '';
+			emcpCopyText( text ).then( function () {
+				el.classList.add( 'is-copied' );
+				clearTimeout( el._emcpCopiedTimer );
+				el._emcpCopiedTimer = setTimeout( function () { el.classList.remove( 'is-copied' ); }, 1200 );
+			} );
+		} );
+		document.addEventListener( 'keydown', function ( e ) {
+			if ( ( 'Enter' === e.key || ' ' === e.key ) && e.target && e.target.matches && e.target.matches( '[data-emcp-copy-text]' ) ) {
+				e.preventDefault();
+				e.target.click();
+			}
+		} );
+	}
+
 	// Initialize on DOM ready.
 	function initAll() {
 		initToolsForm();
@@ -1034,6 +1283,8 @@
 		initProSync();
 		initProTemplateActions();
 		initBrandKits();
+		initCodeOverlay();
+		initClickToCopy();
 	}
 
 	if ( document.readyState === 'loading' ) {

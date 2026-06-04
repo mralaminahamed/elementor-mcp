@@ -38,6 +38,25 @@ class EMCP_Tools_Pro_Prompts {
 	const CACHE_TTL = 86400;
 
 	/**
+	 * Durable option mirroring the last successful bundle. The transient is just
+	 * a 24h freshness cache that can expire or be evicted (object cache); this
+	 * option never expires, so the Prompts count + tab keep showing the last
+	 * synced library instead of resetting to the bundled fallback. Stored
+	 * non-autoloaded (it can be large).
+	 *
+	 * @var string
+	 */
+	const STORE_KEY = 'emcp_tools_pro_prompts_store';
+
+	/**
+	 * Cron hook that re-fetches the bundle in the background when the transient
+	 * is stale, so an expired cache self-heals without a manual "Sync Library".
+	 *
+	 * @var string
+	 */
+	const REFRESH_HOOK = 'emcp_tools_refresh_pro_prompts';
+
+	/**
 	 * Default endpoint that serves the prompts bundle. Filterable via
 	 * `emcp_tools_pro_prompts_endpoint` for staging / local testing.
 	 *
@@ -97,6 +116,14 @@ class EMCP_Tools_Pro_Prompts {
 			$cached = get_transient( self::CACHE_KEY );
 			if ( is_array( $cached ) ) {
 				return $cached;
+			}
+			// Transient expired/evicted: serve the durable last-synced copy
+			// right away and refresh in the background, so the library + counts
+			// never reset while the cache is cold.
+			$stored = get_option( self::STORE_KEY );
+			if ( is_array( $stored ) && ! empty( $stored['categories'] ) ) {
+				self::maybe_schedule_refresh();
+				return $stored;
 			}
 		}
 
@@ -190,8 +217,53 @@ class EMCP_Tools_Pro_Prompts {
 
 		$bundle['fetched_at'] = time();
 		set_transient( self::CACHE_KEY, $bundle, self::CACHE_TTL );
+		// Durable mirror so the count/library survive transient expiry/eviction.
+		update_option( self::STORE_KEY, $bundle, false );
 
 		return $bundle;
+	}
+
+	/**
+	 * Non-blocking prompt count for the admin stats bar. Reads the fresh
+	 * transient, else the durable store (scheduling a background refresh), else
+	 * 0. Never performs a synchronous HTTP fetch, so it can't slow a page load.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return int
+	 */
+	public static function cached_count(): int {
+		$bundle = get_transient( self::CACHE_KEY );
+		if ( ! is_array( $bundle ) ) {
+			// Cold or expired transient: kick off a background refresh (this is
+			// only reached in a Pro context) and fall back to the durable store
+			// in the meantime, so the count holds steady instead of resetting.
+			self::maybe_schedule_refresh();
+			$bundle = get_option( self::STORE_KEY );
+		}
+		if ( ! is_array( $bundle ) || empty( $bundle['categories'] ) ) {
+			return 0;
+		}
+		$count = 0;
+		foreach ( $bundle['categories'] as $category ) {
+			if ( ! empty( $category['prompts'] ) && is_array( $category['prompts'] ) ) {
+				$count += count( $category['prompts'] );
+			}
+		}
+		return $count;
+	}
+
+	/**
+	 * Schedules a one-off background refresh (deduped) so an expired cache
+	 * self-heals without the user clicking "Sync Library".
+	 *
+	 * @since 2.1.0
+	 */
+	public static function maybe_schedule_refresh(): void {
+		if ( ! function_exists( 'wp_next_scheduled' ) || wp_next_scheduled( self::REFRESH_HOOK ) ) {
+			return;
+		}
+		wp_schedule_single_event( time() + 30, self::REFRESH_HOOK );
 	}
 
 	/**

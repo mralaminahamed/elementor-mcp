@@ -201,7 +201,23 @@ class EMCP_Tools_Data {
 		}
 
 		// Attempt native Elementor save (handles CSS regen, cache busting).
-		$result = $document->save( array( 'elements' => $data ) );
+		// Elementor 4.0 atomic widgets THROW on invalid settings instead of
+		// returning false, so catch it and return a clean error rather than
+		// letting it fatal the whole request. The fallback meta-write below runs
+		// ONLY for the no-exception `false` case (valid data, non-browser
+		// context), so invalid data is never written raw. (issue #36)
+		try {
+			$result = $document->save( array( 'elements' => $data ) );
+		} catch ( \Throwable $e ) {
+			return new \WP_Error(
+				'save_rejected',
+				sprintf(
+					/* translators: %s: error message from Elementor */
+					__( 'Elementor rejected the element data: %s', 'emcp-tools' ),
+					$e->getMessage()
+				)
+			);
+		}
 
 		if ( false === $result ) {
 			// Fallback: direct meta write for non-browser contexts (CLI, REST proxy).

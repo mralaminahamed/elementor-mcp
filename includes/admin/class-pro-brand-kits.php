@@ -40,6 +40,23 @@ class EMCP_Tools_Pro_Brand_Kits {
 	const CACHE_TTL = 86400;
 
 	/**
+	 * Durable option mirroring the last successful bundle. The transient is just
+	 * a 24h freshness cache that can expire/evict; this option never expires, so
+	 * the Brand Kits count + library keep showing the last synced set instead of
+	 * resetting to 0. Stored non-autoloaded.
+	 *
+	 * @var string
+	 */
+	const STORE_KEY = 'emcp_tools_pro_brand_kits_store';
+
+	/**
+	 * Cron hook that re-fetches the bundle in the background when stale.
+	 *
+	 * @var string
+	 */
+	const REFRESH_HOOK = 'emcp_tools_refresh_pro_brand_kits';
+
+	/**
 	 * Default endpoint. Filterable via `emcp_tools_pro_brand_kits_endpoint`.
 	 *
 	 * @var string
@@ -85,6 +102,13 @@ class EMCP_Tools_Pro_Brand_Kits {
 			$cached = get_transient( self::CACHE_KEY );
 			if ( is_array( $cached ) ) {
 				return $cached;
+			}
+			// Transient cold: serve the durable last-synced copy and refresh in
+			// the background, so the library + counts never reset to 0.
+			$stored = get_option( self::STORE_KEY );
+			if ( is_array( $stored ) && ! empty( $stored['categories'] ) ) {
+				self::maybe_schedule_refresh();
+				return $stored;
 			}
 		}
 
@@ -210,12 +234,16 @@ class EMCP_Tools_Pro_Brand_Kits {
 
 		$bundle['fetched_at'] = time();
 		set_transient( self::CACHE_KEY, $bundle, self::CACHE_TTL );
+		// Durable mirror so the count/library survive transient expiry/eviction.
+		update_option( self::STORE_KEY, $bundle, false );
 
 		return $bundle;
 	}
 
 	/**
-	 * Total kit count across the cached bundle, for the admin stats bar.
+	 * Total kit count for the admin stats bar. Reads the fresh transient, else
+	 * the durable store (scheduling a background refresh), else 0. Never blocks
+	 * on an HTTP fetch, so it no longer resets to 0 when the transient expires.
 	 *
 	 * @since 1.8.0
 	 *
@@ -223,6 +251,12 @@ class EMCP_Tools_Pro_Brand_Kits {
 	 */
 	public static function count_cached_kits(): int {
 		$bundle = get_transient( self::CACHE_KEY );
+		if ( ! is_array( $bundle ) ) {
+			// Cold or expired transient: kick off a background refresh (Pro-only
+			// context) and fall back to the durable store meanwhile.
+			self::maybe_schedule_refresh();
+			$bundle = get_option( self::STORE_KEY );
+		}
 		if ( ! is_array( $bundle ) || empty( $bundle['categories'] ) ) {
 			return 0;
 		}
@@ -233,6 +267,19 @@ class EMCP_Tools_Pro_Brand_Kits {
 			}
 		}
 		return $total;
+	}
+
+	/**
+	 * Schedules a one-off background refresh (deduped) so an expired cache
+	 * self-heals without the user clicking "Sync Library".
+	 *
+	 * @since 2.1.0
+	 */
+	public static function maybe_schedule_refresh(): void {
+		if ( ! function_exists( 'wp_next_scheduled' ) || wp_next_scheduled( self::REFRESH_HOOK ) ) {
+			return;
+		}
+		wp_schedule_single_event( time() + 30, self::REFRESH_HOOK );
 	}
 
 	/**

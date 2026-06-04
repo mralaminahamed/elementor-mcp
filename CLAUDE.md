@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to 119 MCP tools (scales with environment).
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to 120 MCP tools (scales with environment).
 
 ## Companion projects (sibling folders, edit from here)
 
@@ -19,10 +19,10 @@ When editing premium-prompts behavior, the plugin code (`includes/admin/class-pr
 
 **Tool counts by configuration:**
 - Free Elementor only: **62**
-- Free Elementor + Elementor 4.0+ atomic: **75**
+- Free Elementor + Elementor 4.0+ atomic: **76**
 - With Elementor Pro: **101**
-- With Elementor Pro + Elementor 4.0+: **114**
-- With Elementor Pro + WooCommerce + Elementor 4.0+: **119**
+- With Elementor Pro + Elementor 4.0+: **115**
+- With Elementor Pro + WooCommerce + Elementor 4.0+: **120**
 - Low-tools mode (any config): capped at **51** (46 without Elementor 4.0+)
 - Pro (EMCP license): **+7** SEO & Accessibility tools — registered but **disabled-by-default**, so they don't change the active surface until a user enables them on the Tools tab.
 
@@ -145,7 +145,7 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 | Code snippets (create) | `manage_options` + `unfiltered_html` |
 | Code snippets (list) | `manage_options` |
 
-## All Implemented Tools (up to 119 — see counts above)
+## All Implemented Tools (up to 120 — see counts above)
 
 ### P0 — Query/Discovery (7 read-only)
 
@@ -272,6 +272,23 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 | `elementor-mcp/add-code-snippet` | Create a site-wide Custom Code snippet for head/body injection (Pro only) |
 | `elementor-mcp/list-code-snippets` | List existing Custom Code snippets with locations and statuses (Pro only) |
 
+### PHP Snippets — Sandbox (6 tools, FREE, off by default)
+
+Free but capability-gated and powerful, so all six are **disabled-by-default** (the `php_snippets` category in `get_all_tools()`; the v4 defaults marker seeds them via `EMCP_Tools_Admin::php_snippet_tool_slugs()`). The whole point is the **human approval gate**: AI can author + validate **drafts**, but there is **no activate tool** — only an admin can activate a snippet (in EMCP Tools → Sandbox), which is the only way it ever executes. Write tools require `manage_options` + `unfiltered_html`; reads require `manage_options`.
+
+- `EMCP_Tools_PHP_Snippet_Validator` (`includes/class-php-snippet-validator.php`) — parse check (`token_get_all(…, TOKEN_PARSE)`) + token-walk security scan. CRITICAL findings block create/activate (exec/eval/backtick/variable-functions/file-writes/network/obfuscation-decoders/destructive-SQL/dynamic-include); WARNING findings are surfaced to the reviewer. Static analysis is a guardrail, not a guarantee.
+- `EMCP_Tools_PHP_Snippet_Store` (`includes/class-php-snippet-store.php`) — `emcp_php_snippet` CPT + sandbox (`uploads/emcp-widgets/snippets/{id}.php`, `.htaccess`-blocked). Drafts have **no executable file**; activation wraps the code in `emcp_php_snippet_{id}()`, writes it, records a sha256 manifest entry.
+- `EMCP_Tools_PHP_Snippet_Loader` (`includes/class-php-snippet-loader.php`) — manifest-only, hash-verified include; runs ACTIVE snippets on their hook and/or via `[emcp_snippet id="N"]`, inside try/catch + a `register_shutdown_function` that auto-deactivates a snippet that fatals.
+
+| Ability Name | Purpose |
+|---|---|
+| `elementor-mcp/validate-php-snippet` | Static parse + security scan of code; no store, no run. Returns critical/warning findings |
+| `elementor-mcp/create-php-snippet` | Create an **inactive draft** (validated; critical = rejected). Never runs until an admin activates it |
+| `elementor-mcp/update-php-snippet` | Update a snippet's code/settings; re-validates |
+| `elementor-mcp/get-php-snippet` | Return code, status, shortcode, and validation report |
+| `elementor-mcp/list-php-snippets` | List snippets with status and run context |
+| `elementor-mcp/delete-php-snippet` | Delete a snippet and its sandbox file |
+
 ### SEO & Accessibility Toolkit — Pro (7 tools, off by default)
 
 Pro-only, registered only when `emcp_pro_fs()->can_use_premium_code()` (self-guarded like the brand-kit tools). All seven are **disabled-by-default** (the `seo_a11y` category in `get_all_tools()` carries the `pro` badge; the v2 defaults marker in `maybe_apply_default_disabled_tools()` seeds them into `elementor_mcp_disabled_tools` on upgrade — `Elementor_MCP_Admin::seo_a11y_tool_slugs()` is the canonical list). Users re-enable individual tools on the Tools tab. No external API — pure PHP over the Elementor data layer + SEO-plugin meta. The five audits/generators are **read-only**; the two fixers **mutate only when `apply: true`** (dry-run preview by default) and are reversible via Elementor revisions. Shared helpers: `Elementor_MCP_Content_Extractor` (normalized page view), `Elementor_MCP_Color_Contrast` (WCAG math), `Elementor_MCP_Seo_Meta` (Yoast/Rank Math/core).
@@ -307,6 +324,14 @@ These tools only register when Elementor >= 4.0 is detected. Legacy tools contin
 | `elementor-mcp/add-atomic-divider` | Convenience: atomic divider (e-divider). Params: css_id |
 | `elementor-mcp/add-flexbox` | Atomic flexbox container (e-flexbox). Params: direction, justify, align, gap, wrap, tag, padding, background_color |
 | `elementor-mcp/add-div-block` | Atomic div-block container (e-div-block). Params: tag, padding, background_color |
+
+### Global Classes — Class Manager (1 tool, Elementor 4.0+)
+
+Registers only when Elementor's `Global_Classes_Repository` exists (Elementor 4.0+). Read-only (`edit_posts`); resolves the `g-` style IDs applied to elements. Implemented in `includes/abilities/class-global-classes-abilities.php`; uses Elementor's own repository + `EMCP_Tools_Atomic_Props::unwrap()` to flatten the `$$type` CSS props. ([#55](https://github.com/msrbuilds/elementor-mcp/issues/55))
+
+| Ability Name | Purpose |
+|---|---|
+| `elementor-mcp/list-global-classes` | Map Class Manager `g-` IDs → human label + CSS properties (per breakpoint/state). Optional `class_ids` filter; omit for all. |
 
 ### Atomic Element Data Model (Elementor 4.0+)
 

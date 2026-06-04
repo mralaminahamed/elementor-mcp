@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.9
 Tested up to: 7.0
-Stable tag: 2.0.2
+Stable tag: 2.1.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -155,6 +155,19 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 2. Connection configuration page with copy-paste configs.
 
 == Changelog ==
+
+= 2.1.0 =
+* New: PHP Code Snippets (Sandbox). A free, capability-gated way for an AI agent to author server-side PHP behind a hard human-approval gate. The AI can validate code and create drafts over MCP, but a draft never runs until an admin activates it in EMCP Tools > Sandbox (there is no "activate" tool). Every snippet passes a static parse + security scan (blocks exec/eval/backticks/variable-functions/file-writes/network/destructive SQL/obfuscation) before it can be saved or activated; activation writes a sha256-verified file that runs inside try/catch with a shutdown guard that auto-deactivates a snippet that fatals. Six tools (validate/create/update/get/list/delete). Off by default.
+* New: list-global-classes tool (#55). Resolves Elementor's Class Manager (Global Classes) — maps the opaque g- class IDs on elements back to their human-readable names (g-037bb9c -> card-base) and the CSS each defines, per breakpoint/state, so an AI can understand and debug a design-system-driven page. Read-only; Elementor 4.0+.
+* New: One-click authentication test on the Connection tab (#41). After generating credentials, "Test authentication" sends a real request using only the Authorization header and tells you whether a client will connect — and if your server is stripping the Authorization header (the usual cause of "initialize: Unauthorized" on Plesk/Apache/IIS), it shows the exact .htaccess / nginx fix.
+* New: OpenAI-strict tool schemas (opt-in, #42). A Connection-tab toggle that emits strict JSON Schemas (every property required, optionals nullable, additionalProperties:false) for OpenAI-compatible strict function-calling clients like CrewAI. Off by default — the default schemas keep working for Claude, Gemini and Antigravity.
+* Fixed: Atomic widgets and containers silently failed to save (#36). add-atomic-widget, update-atomic-widget and nested add-div-block passed a boolean to the save layer ("save_page_data: bool given"), so the element was never written. They now save correctly, and invalid atomic settings return a clean error instead of fataling the request.
+* Fixed: Setting theme-template conditions broke other templates (#38). set-template-conditions and set-popup-settings cleared Elementor Pro's conditions cache without rebuilding it, silently stopping unrelated headers/footers from rendering. They now use Elementor's own conditions manager, which regenerates the location cache correctly.
+* Fixed: Prompts and Brand Kits cards resetting to 0. Counts now read a durable mirror and refresh in the background, so they no longer drop to zero when the cache expires.
+* Fixed: Broken "Generate Configs" button when admin.js was quarantined by security software/host (#44). The plugin now detects a missing/renamed admin.js and shows a precise notice, and a release-time verifier guards against shipping such a build.
+* Improved: Styled Changelog screen — version cards, category tags and formatted notes instead of raw text.
+* Improved: Code viewer and copy — generated code opens in a slide-in viewer with copy/download, and shortcodes are click-to-copy.
+* Developer: the bootstrap file was slimmed to bootstrap-only and all feature logic moved into dedicated classes; restored the uninstall-cleanup hook dropped during the 2.0 rename.
 
 = 2.0.2 =
 * Fixed: Tool toggles & Low-tools mode wouldn't save. After the 2.0 rename, the legacy-settings migration ran on every page load and copied the old elementor_mcp_* options (still in the database) over your current settings — so anything you saved on the Tools screen, including Low-tools mode, was silently reset on the next load. The migration now only seeds a new setting when it has never been set, so it can't overwrite your live choices.

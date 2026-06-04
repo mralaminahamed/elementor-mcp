@@ -264,22 +264,20 @@ class EMCP_Tools_Atomic_Layout_Abilities {
 			return $page_data;
 		}
 
+		// insert_element() mutates $page_data by reference and returns a bool;
+		// save the modified $page_data, never the bool (issue #36).
 		if ( ! empty( $parent_id ) ) {
-			$inserted = $this->data->insert_element( $page_data, $parent_id, $element, $position );
-		} else {
-			if ( -1 === $position || $position >= count( $page_data ) ) {
-				$page_data[] = $element;
-			} else {
-				array_splice( $page_data, max( 0, $position ), 0, array( $element ) );
+			$ok = $this->data->insert_element( $page_data, $parent_id, $element, $position );
+			if ( ! $ok ) {
+				return new \WP_Error( 'not_found', "Parent element '{$parent_id}' not found in page {$post_id}." );
 			}
-			$inserted = $page_data;
+		} elseif ( -1 === $position || $position >= count( $page_data ) ) {
+			$page_data[] = $element;
+		} else {
+			array_splice( $page_data, max( 0, $position ), 0, array( $element ) );
 		}
 
-		if ( is_wp_error( $inserted ) ) {
-			return $inserted;
-		}
-
-		$save = $this->data->save_page_data( $post_id, $inserted );
+		$save = $this->data->save_page_data( $post_id, $page_data );
 		if ( is_wp_error( $save ) ) {
 			return $save;
 		}

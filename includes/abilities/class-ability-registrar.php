@@ -149,6 +149,14 @@ class EMCP_Tools_Ability_Registrar {
 		$atomic_layout->register();
 		$this->ability_names = array_merge( $this->ability_names, $atomic_layout->get_ability_names() );
 
+		// Global Classes (Class Manager) reader. Self-gates on Elementor 4.0+ —
+		// register()/get_ability_names() are no-ops when unavailable.
+		if ( class_exists( 'EMCP_Tools_Global_Classes_Abilities' ) ) {
+			$global_classes = new EMCP_Tools_Global_Classes_Abilities();
+			$global_classes->register();
+			$this->ability_names = array_merge( $this->ability_names, $global_classes->get_ability_names() );
+		}
+
 		// Brand kit / system-kit abilities (Pro only). Self-guards on Pro access:
 		// register() is a no-op and get_ability_names() returns [] for free sites,
 		// so the four tools never enter the MCP surface without a license.
@@ -180,6 +188,14 @@ class EMCP_Tools_Ability_Registrar {
 			$widget_builder = new EMCP_Tools_Widget_Builder_Abilities();
 			$widget_builder->register();
 			$this->ability_names = array_merge( $this->ability_names, $widget_builder->get_ability_names() );
+		}
+
+		// PHP Snippet abilities (Sandbox) — free, capability-gated. AI authors +
+		// validates drafts; activation is admin-only (no activate tool here).
+		if ( class_exists( 'EMCP_Tools_PHP_Snippet_Abilities' ) ) {
+			$php_snippets = new EMCP_Tools_PHP_Snippet_Abilities();
+			$php_snippets->register();
+			$this->ability_names = array_merge( $this->ability_names, $php_snippets->get_ability_names() );
 		}
 
 		/**

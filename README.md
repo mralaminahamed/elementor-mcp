@@ -24,10 +24,10 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 - **Up to 119 MCP Tools** covering the full Elementor page-building workflow. Counts scale with your environment:
   - 62 tools — free Elementor only
-  - 75 tools — free Elementor + Elementor 4.0 atomic elements
+  - 76 tools — free Elementor + Elementor 4.0 atomic elements
   - 101 tools — with Elementor Pro
-  - 114 tools — with Elementor Pro + Elementor 4.0
-  - 119 tools — with Elementor Pro + WooCommerce + Elementor 4.0
+  - 115 tools — with Elementor Pro + Elementor 4.0
+  - 120 tools — with Elementor Pro + WooCommerce + Elementor 4.0
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
@@ -422,6 +422,25 @@ Design and register custom Elementor widgets from a structured spec — no hand-
 | `list-custom-widgets` | List generated widgets (id, title, name, status) |
 | `set-widget-status` | Activate or deactivate a widget |
 | `delete-custom-widget` | Delete a widget (CPT + sandbox files) |
+
+### PHP Snippets — Sandbox (6 tools, free, off by default)
+
+Let an AI agent author server-side PHP behind a hard human-approval gate. The AI can validate code and create **drafts**, but a draft never runs until an admin activates it in EMCP Tools → Sandbox — there is deliberately no "activate" tool. Every snippet is statically parse-checked and security-scanned (blocks `exec`/`eval`/backticks/file-writes/network/destructive SQL/obfuscation) before it can be saved or activated.
+
+| Tool | Description |
+|---|---|
+| `validate-php-snippet` | Static parse + security scan; no store, no run |
+| `create-php-snippet` | Create an inactive draft (critical findings rejected) |
+| `update-php-snippet` | Update a snippet's code/settings; re-validates |
+| `get-php-snippet` | Return code, status, shortcode + validation report |
+| `list-php-snippets` | List snippets with status and run context |
+| `delete-php-snippet` | Delete a snippet and its sandbox file |
+
+### Global Classes — Elementor 4.0+ (1 tool)
+
+| Tool | Description |
+|---|---|
+| `list-global-classes` | Resolve Class Manager `g-` IDs to their names and the CSS each defines, per breakpoint/state (read-only) |
 
 > All tool names are prefixed with `elementor-mcp/` in the MCP namespace (e.g., `elementor-mcp/list-widgets`). The MCP Adapter converts these to `elementor-mcp-list-widgets` for transport.
 

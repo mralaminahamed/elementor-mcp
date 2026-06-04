@@ -142,6 +142,9 @@ class EMCP_Tools_Admin {
 		add_action( 'wp_ajax_emcp_tools_create_app_password', array( $this, 'ajax_create_app_password' ) );
 		add_action( 'wp_ajax_emcp_tools_toggle_widget', array( $this, 'ajax_toggle_widget' ) );
 		add_action( 'wp_ajax_emcp_tools_delete_widget', array( $this, 'ajax_delete_widget' ) );
+		add_action( 'wp_ajax_emcp_tools_save_php_snippet', array( $this, 'ajax_save_php_snippet' ) );
+		add_action( 'wp_ajax_emcp_tools_toggle_php_snippet', array( $this, 'ajax_toggle_php_snippet' ) );
+		add_action( 'wp_ajax_emcp_tools_delete_php_snippet', array( $this, 'ajax_delete_php_snippet' ) );
 	}
 
 	/**
@@ -158,7 +161,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 3;
+	const DEFAULTS_VERSION = 4;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -196,6 +199,25 @@ class EMCP_Tools_Admin {
 			'elementor-mcp/list-custom-widgets',
 			'elementor-mcp/set-widget-status',
 			'elementor-mcp/delete-custom-widget',
+		);
+	}
+
+	/**
+	 * The PHP Snippet (Sandbox) tool slugs. Free, but powerful, so they ship
+	 * disabled-by-default and the admin opts in on the Tools tab.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return string[]
+	 */
+	public static function php_snippet_tool_slugs(): array {
+		return array(
+			'elementor-mcp/validate-php-snippet',
+			'elementor-mcp/create-php-snippet',
+			'elementor-mcp/update-php-snippet',
+			'elementor-mcp/get-php-snippet',
+			'elementor-mcp/list-php-snippets',
+			'elementor-mcp/delete-php-snippet',
 		);
 	}
 
@@ -241,6 +263,11 @@ class EMCP_Tools_Admin {
 		// v3 — Widget Builder Pro MCP tools ship disabled-by-default.
 		if ( $applied < 3 ) {
 			$add = array_merge( $add, self::widget_builder_tool_slugs() );
+		}
+
+		// v4 — PHP Snippet (Sandbox) MCP tools ship disabled-by-default.
+		if ( $applied < 4 ) {
+			$add = array_merge( $add, self::php_snippet_tool_slugs() );
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -343,6 +370,21 @@ class EMCP_Tools_Admin {
 				},
 			)
 		);
+
+		// OpenAI-strict tool schemas (Connection tab). OFF by default — it's only
+		// for OpenAI-compatible strict function-calling clients (CrewAI, etc.) and
+		// would otherwise break Gemini/Antigravity. (GitHub #42)
+		register_setting(
+			self::SETTINGS_GROUP_SERVER,
+			'emcp_tools_strict_schemas',
+			array(
+				'type'              => 'string',
+				'default'           => '0',
+				'sanitize_callback' => static function ( $value ) {
+					return '1' === (string) $value ? '1' : '0';
+				},
+			)
+		);
 	}
 
 	/**
@@ -407,17 +449,34 @@ class EMCP_Tools_Admin {
 		$css_path = EMCP_TOOLS_DIR . 'assets/css/admin.css';
 		$js_path  = EMCP_TOOLS_DIR . 'assets/js/admin.js';
 
+		// Some security software and hosts rename or quarantine .js files on
+		// upload (admin.js -> admin.j_), which makes the script 404 and silently
+		// breaks JS-driven features like the Connection-tab config generator. If
+		// the asset is missing, warn the admin with an actionable fix instead of
+		// failing silently. (GitHub #44)
+		if ( ! file_exists( $js_path ) ) {
+			add_action( 'admin_notices', array( $this, 'notice_missing_js_asset' ) );
+		}
+
 		// Use filemtime in dev (when WP_DEBUG is on) so iterating on CSS/JS doesn't get stuck
 		// behind a cached file under the same plugin version. Falls back to EMCP_TOOLS_VERSION.
 		$css_ver = ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( $css_path ) ) ? filemtime( $css_path ) : EMCP_TOOLS_VERSION;
 		$js_ver  = ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( $js_path ) ) ? filemtime( $js_path ) : EMCP_TOOLS_VERSION;
 
-		wp_enqueue_style(
-			'elementor-mcp-admin',
-			EMCP_TOOLS_URL . 'assets/css/admin.css',
-			array(),
-			$css_ver
-		);
+		if ( file_exists( $css_path ) ) {
+			wp_enqueue_style(
+				'elementor-mcp-admin',
+				EMCP_TOOLS_URL . 'assets/css/admin.css',
+				array(),
+				$css_ver
+			);
+		}
+
+		// No script on disk -> nothing to enqueue or localize (the notice above
+		// tells the admin how to fix it).
+		if ( ! file_exists( $js_path ) ) {
+			return;
+		}
 
 		wp_enqueue_script(
 			'elementor-mcp-admin',
@@ -432,9 +491,17 @@ class EMCP_Tools_Admin {
 			'emcpToolsAdmin',
 			array(
 				'copied'      => __( 'Copied!', 'emcp-tools' ),
+				'copy'        => __( 'Copy', 'emcp-tools' ),
+				'download'    => __( 'Download', 'emcp-tools' ),
 				'mcpEndpoint' => rest_url( 'mcp/elementor-mcp-server' ),
 				'siteUrl'     => site_url(),
+				'restMeUrl'   => rest_url( 'wp/v2/users/me' ),
 				'proxyPath'   => EMCP_TOOLS_DIR . 'bin' . DIRECTORY_SEPARATOR . 'mcp-proxy.mjs',
+				// Connection auth self-test (#41).
+				'authTesting' => __( 'Testing…', 'emcp-tools' ),
+				'authOk'      => __( '✓ Authentication works — your AI client should connect successfully.', 'emcp-tools' ),
+				'authFail'    => __( '✗ Authentication failed (HTTP %d). If the credentials are correct, your server is stripping the Authorization header — see the fix below.', 'emcp-tools' ),
+				'authError'   => __( 'Could not reach the REST API to test. Check the site URL and that the REST API is enabled.', 'emcp-tools' ),
 				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
 				'createPwNonce' => wp_create_nonce( 'emcp_tools_create_app_password' ),
 				'generating'    => __( 'Generating…', 'emcp-tools' ),
@@ -451,6 +518,45 @@ class EMCP_Tools_Admin {
 				'viewSite'      => __( 'View site →', 'emcp-tools' ),
 			)
 		);
+	}
+
+	/**
+	 * Admin notice shown when assets/js/admin.js is missing from the plugin
+	 * folder — usually because security software or a host renamed/quarantined
+	 * the .js file on upload (e.g. admin.js -> admin.j_). Without it, JS-driven
+	 * features (the Connection-tab config generator, tool toggles, etc.) silently
+	 * do nothing, so we surface a precise, actionable message. (GitHub #44)
+	 *
+	 * @since 2.1.0
+	 */
+	public function notice_missing_js_asset(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Detect a mangled copy so we can name the exact file to restore.
+		$dir     = EMCP_TOOLS_DIR . 'assets/js/';
+		$mangled = '';
+		foreach ( array( 'admin.j_', 'admin.js_', 'admin._s', 'admin.js.quarantine' ) as $candidate ) {
+			if ( file_exists( $dir . $candidate ) ) {
+				$mangled = $candidate;
+				break;
+			}
+		}
+
+		echo '<div class="notice notice-error"><p><strong>EMCP Tools:</strong> ';
+		echo esc_html__( 'A required script is missing — assets/js/admin.js was not found in the plugin folder, so admin features like the Connection-tab config generator will not work.', 'emcp-tools' );
+		echo ' ';
+		if ( '' !== $mangled ) {
+			printf(
+				/* translators: %s: the mangled filename found, e.g. admin.j_ */
+				esc_html__( 'It looks like security software renamed it to assets/js/%s — rename that file back to admin.js.', 'emcp-tools' ),
+				esc_html( $mangled )
+			);
+		} else {
+			echo esc_html__( 'Some security software and hosts rename or quarantine .js files on upload. Re-upload a fresh copy of the plugin from the official release, and restore assets/js/admin.js if your host renamed it.', 'emcp-tools' );
+		}
+		echo '</p></div>';
 	}
 
 	/**
@@ -571,6 +677,92 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * AJAX: create or update a PHP snippet draft from the Sandbox tab. Validates
+	 * and refuses critical findings (returning them so the form can show why).
+	 *
+	 * @since 2.1.0
+	 */
+	public function ajax_save_php_snippet(): void {
+		check_ajax_referer( 'emcp_tools_php_snippets', 'nonce' );
+		if ( ! class_exists( 'EMCP_Tools_PHP_Snippet_Store' ) || ! EMCP_Tools_PHP_Snippet_Store::can_edit() ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to manage PHP snippets (requires manage_options and unfiltered_html).', 'emcp-tools' ) ), 403 );
+		}
+		$id = isset( $_POST['snippet_id'] ) ? absint( wp_unslash( $_POST['snippet_id'] ) ) : 0;
+		// Code is raw PHP: keep it verbatim (unslash only). It is never executed
+		// here — it is validated and stored; execution requires later activation.
+		$args = array(
+			'title'    => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+			'code'     => isset( $_POST['code'] ) ? wp_unslash( (string) $_POST['code'] ) : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- raw PHP source, validated by the snippet validator, never executed here.
+			'context'  => isset( $_POST['context'] ) ? sanitize_key( wp_unslash( $_POST['context'] ) ) : 'shortcode',
+			'hook'     => isset( $_POST['hook'] ) ? sanitize_text_field( wp_unslash( $_POST['hook'] ) ) : '',
+			'priority' => isset( $_POST['priority'] ) ? absint( wp_unslash( $_POST['priority'] ) ) : 10,
+		);
+
+		$res = $id
+			? EMCP_Tools_PHP_Snippet_Store::update( $id, $args )
+			: EMCP_Tools_PHP_Snippet_Store::create_draft( $args );
+
+		if ( is_wp_error( $res ) ) {
+			$data    = $res->get_error_data();
+			$payload = array( 'message' => $res->get_error_message() );
+			if ( is_array( $data ) && isset( $data['validation'] ) ) {
+				$payload['validation'] = $data['validation'];
+			}
+			wp_send_json_error( $payload, 400 );
+		}
+		wp_send_json_success( $res );
+	}
+
+	/**
+	 * AJAX: activate/deactivate a PHP snippet (the human approval gate).
+	 * Activation re-validates and writes the executable file.
+	 *
+	 * @since 2.1.0
+	 */
+	public function ajax_toggle_php_snippet(): void {
+		check_ajax_referer( 'emcp_tools_php_snippets', 'nonce' );
+		if ( ! class_exists( 'EMCP_Tools_PHP_Snippet_Store' ) || ! EMCP_Tools_PHP_Snippet_Store::can_edit() ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'emcp-tools' ) ), 403 );
+		}
+		$id     = isset( $_POST['snippet_id'] ) ? absint( wp_unslash( $_POST['snippet_id'] ) ) : 0;
+		$status = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : '';
+		if ( ! $id || ! in_array( $status, array( 'active', 'draft' ), true ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'emcp-tools' ) ), 400 );
+		}
+		$res = EMCP_Tools_PHP_Snippet_Store::set_status( $id, $status );
+		if ( is_wp_error( $res ) ) {
+			$data    = $res->get_error_data();
+			$payload = array( 'message' => $res->get_error_message() );
+			if ( is_array( $data ) && isset( $data['validation'] ) ) {
+				$payload['validation'] = $data['validation'];
+			}
+			wp_send_json_error( $payload, 400 );
+		}
+		wp_send_json_success( $res );
+	}
+
+	/**
+	 * AJAX: delete a PHP snippet from the Sandbox tab.
+	 *
+	 * @since 2.1.0
+	 */
+	public function ajax_delete_php_snippet(): void {
+		check_ajax_referer( 'emcp_tools_php_snippets', 'nonce' );
+		if ( ! class_exists( 'EMCP_Tools_PHP_Snippet_Store' ) || ! EMCP_Tools_PHP_Snippet_Store::can_edit() ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'emcp-tools' ) ), 403 );
+		}
+		$id = isset( $_POST['snippet_id'] ) ? absint( wp_unslash( $_POST['snippet_id'] ) ) : 0;
+		if ( ! $id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'emcp-tools' ) ), 400 );
+		}
+		$res = EMCP_Tools_PHP_Snippet_Store::delete( $id );
+		if ( is_wp_error( $res ) ) {
+			wp_send_json_error( array( 'message' => $res->get_error_message() ), 400 );
+		}
+		wp_send_json_success( $res );
+	}
+
+	/**
 	 * Render the settings page.
 	 *
 	 * @since 1.0.0
@@ -602,14 +794,9 @@ class EMCP_Tools_Admin {
 			class_exists( 'EMCP_Tools_Pro_Prompts' )
 			&& EMCP_Tools_Pro_Prompts::user_has_access()
 		) {
-			$bundle = get_transient( EMCP_Tools_Pro_Prompts::CACHE_KEY );
-			if ( is_array( $bundle ) && ! empty( $bundle['categories'] ) ) {
-				foreach ( $bundle['categories'] as $category ) {
-					if ( ! empty( $category['prompts'] ) && is_array( $category['prompts'] ) ) {
-						$prompt_count += count( $category['prompts'] );
-					}
-				}
-			}
+			// Durable count: survives transient expiry/eviction and triggers a
+			// background refresh when stale (no more resets to the bundled 5).
+			$prompt_count = EMCP_Tools_Pro_Prompts::cached_count();
 		}
 		if ( 0 === $prompt_count ) {
 			$prompts_dir  = EMCP_TOOLS_DIR . 'prompts/';
@@ -1327,6 +1514,11 @@ class EMCP_Tools_Admin {
 						'description' => __( 'Returns the Elementor version and whether atomic elements are supported.', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
 					),
+					'elementor-mcp/list-global-classes'      => array(
+						'label'       => __( 'List Global Classes', 'emcp-tools' ),
+						'description' => __( 'Resolves Class Manager "g-" class IDs to their names and CSS properties.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
 					'elementor-mcp/add-flexbox'              => array(
 						'label'       => __( 'Add Flexbox', 'emcp-tools' ),
 						'description' => __( 'Adds an atomic flexbox container (e-flexbox).', 'emcp-tools' ),
@@ -1431,6 +1623,46 @@ class EMCP_Tools_Admin {
 				),
 			);
 		}
+
+		// PHP Code Snippets (Sandbox) — free, but capability-gated and powerful,
+		// so all six ship disabled-by-default (maybe_apply_default_disabled_tools
+		// v4) and the admin re-enables them here. There is no "activate" tool: an
+		// AI can only create drafts; a human admin activates them on the Sandbox tab.
+		$tools['php_snippets'] = array(
+			'label' => __( 'PHP Snippets (Sandbox)', 'emcp-tools' ),
+			'tools' => array(
+				'elementor-mcp/validate-php-snippet' => array(
+					'label'       => __( 'Validate PHP Snippet', 'emcp-tools' ),
+					'description' => __( 'Statically checks snippet code (parse + security scan) without storing or running it.', 'emcp-tools' ),
+					'badges'      => array( 'read-only' ),
+				),
+				'elementor-mcp/create-php-snippet'   => array(
+					'label'       => __( 'Create PHP Snippet', 'emcp-tools' ),
+					'description' => __( 'Creates an INACTIVE draft snippet (validated; an admin must activate it before it runs).', 'emcp-tools' ),
+					'badges'      => array(),
+				),
+				'elementor-mcp/update-php-snippet'   => array(
+					'label'       => __( 'Update PHP Snippet', 'emcp-tools' ),
+					'description' => __( 'Updates a snippet\'s code/settings and re-validates.', 'emcp-tools' ),
+					'badges'      => array(),
+				),
+				'elementor-mcp/get-php-snippet'      => array(
+					'label'       => __( 'Get PHP Snippet', 'emcp-tools' ),
+					'description' => __( 'Returns a snippet\'s code, status, shortcode, and validation report.', 'emcp-tools' ),
+					'badges'      => array( 'read-only' ),
+				),
+				'elementor-mcp/list-php-snippets'    => array(
+					'label'       => __( 'List PHP Snippets', 'emcp-tools' ),
+					'description' => __( 'Lists PHP snippets with their status and run context.', 'emcp-tools' ),
+					'badges'      => array( 'read-only' ),
+				),
+				'elementor-mcp/delete-php-snippet'   => array(
+					'label'       => __( 'Delete PHP Snippet', 'emcp-tools' ),
+					'description' => __( 'Permanently deletes a snippet and its sandbox file.', 'emcp-tools' ),
+					'badges'      => array( 'destructive' ),
+				),
+			),
+		);
 
 		// SEO & Accessibility toolkit (Pro). Shown to licensed sites only —
 		// matching the ability gate. Carries the 'pro' badge so they ship

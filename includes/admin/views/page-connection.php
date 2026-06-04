@@ -77,6 +77,21 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 			?>
 		</p>
 
+		<hr class="elementor-mcp-activate-divider" />
+
+		<label class="elementor-mcp-activate-toggle">
+			<input
+				type="checkbox"
+				name="emcp_tools_strict_schemas"
+				value="1"
+				<?php checked( '1' === (string) get_option( 'emcp_tools_strict_schemas', '0' ) ); ?>
+			/>
+			<strong><?php esc_html_e( 'OpenAI-strict tool schemas', 'emcp-tools' ); ?></strong>
+		</label>
+		<p class="elementor-mcp-activate-note">
+			<?php esc_html_e( 'Enable only for OpenAI-compatible strict function-calling clients (e.g. CrewAI) that reject the default tool schemas. It lists every property as required (optional ones become nullable) and sets additionalProperties:false. Leave this OFF for Claude, Gemini, and Antigravity — they work with the default schemas, and strict mode can break Gemini/Antigravity.', 'emcp-tools' ); ?>
+		</p>
+
 		<?php submit_button( __( 'Save Settings', 'emcp-tools' ), 'primary', 'submit', false ); ?>
 	</form>
 	</div>
@@ -260,6 +275,37 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 						<button type="button" class="button elementor-mcp-copy-btn" data-target="elementor-mcp-b64-result-copy"><?php esc_html_e( 'Copy', 'emcp-tools' ); ?></button>
 						<textarea id="elementor-mcp-b64-result-copy" class="elementor-mcp-copy-source"></textarea>
 					</div>
+				</div>
+			</div>
+
+			<div id="elementor-mcp-authtest-row" style="display: none;">
+				<button type="button" class="button" id="elementor-mcp-authtest-btn"><?php esc_html_e( 'Test authentication', 'emcp-tools' ); ?></button>
+				<p id="elementor-mcp-authtest-status" class="description" style="display: none;"></p>
+
+				<div id="elementor-mcp-authtest-fix" class="elementor-mcp-authtest-fix" style="display: none;">
+					<p><strong><?php esc_html_e( 'Got 401 Unauthorized? Your server is most likely stripping the Authorization header.', 'emcp-tools' ); ?></strong></p>
+					<p class="description"><?php esc_html_e( 'Common on Apache, Plesk, LiteSpeed and some Azure/IIS stacks: the Authorization header never reaches PHP, so WordPress never sees the Application Password and every MCP "initialize" fails with Unauthorized. Pass the header through to PHP, then re-test:', 'emcp-tools' ); ?></p>
+
+					<p class="description" style="margin-bottom: 4px;"><strong><?php esc_html_e( 'Apache / Plesk / LiteSpeed', 'emcp-tools' ); ?></strong> — <?php esc_html_e( 'add to .htaccess, above the # BEGIN WordPress block:', 'emcp-tools' ); ?></p>
+					<pre class="elementor-mcp-authtest-snippet">&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine On
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+&lt;/IfModule&gt;
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
+
+					<p class="description" style="margin-bottom: 4px;"><strong><?php esc_html_e( 'Nginx', 'emcp-tools' ); ?></strong> — <?php esc_html_e( 'add inside the PHP location block, then reload nginx:', 'emcp-tools' ); ?></p>
+					<pre class="elementor-mcp-authtest-snippet">fastcgi_param HTTP_AUTHORIZATION $http_authorization;</pre>
+
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: command-line example */
+							esc_html__( 'You can also confirm from a terminal: %s — a 200 response means auth works; 401 means the header is being stripped.', 'emcp-tools' ),
+							'<code>curl -u "USER:APP PASSWORD" ' . esc_html( esc_url_raw( rest_url( 'wp/v2/users/me' ) ) ) . '</code>'
+						);
+						?>
+					</p>
 				</div>
 			</div>
 		</div>

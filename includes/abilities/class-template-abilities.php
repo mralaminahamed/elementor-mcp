@@ -493,24 +493,69 @@ class EMCP_Tools_Template_Abilities {
 			return new \WP_Error( 'missing_params', __( 'post_id and conditions are required.', 'emcp-tools' ) );
 		}
 
-		// Elementor Pro stores conditions in the meta key '_elementor_conditions'.
-		$formatted = array();
+		$result = $this->save_elementor_conditions( $post_id, $conditions );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return array(
+			'success'    => true,
+			'conditions' => $result,
+		);
+	}
+
+	/**
+	 * Saves theme-builder / display conditions the same way Elementor's own UI
+	 * does: through the conditions manager, which writes the
+	 * '_elementor_conditions' meta AND *regenerates* the location cache. Falls
+	 * back to a plain meta-write (without nuking the global cache) when the Pro
+	 * conditions manager isn't available.
+	 *
+	 * The previous approach — update_post_meta() + delete_option() on the global
+	 * 'elementor_pro_theme_builder_conditions' cache — invalidated EVERY
+	 * template's location without rebuilding it, so setting conditions on one
+	 * template silently broke unrelated headers/footers until a full rebuild.
+	 * (GitHub #38)
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param int   $post_id    Template/popup post ID.
+	 * @param array $conditions Conditions as arrays of parts (e.g.
+	 *                          ['include','singular','post']) or slash strings.
+	 * @return array|\WP_Error Normalized conditions on success, WP_Error on failure.
+	 */
+	private function save_elementor_conditions( int $post_id, array $conditions ) {
+		$normalized = array();
 		foreach ( $conditions as $condition ) {
-			if ( is_array( $condition ) ) {
-				$formatted[] = implode( '/', $condition );
-			} elseif ( is_string( $condition ) ) {
-				$formatted[] = $condition;
+			if ( is_string( $condition ) ) {
+				$normalized[] = explode( '/', $condition );
+			} elseif ( is_array( $condition ) ) {
+				$normalized[] = array_values( $condition );
 			}
 		}
 
-		update_post_meta( $post_id, '_elementor_conditions', $formatted );
-
-		// Clear Elementor Pro's conditions cache if available.
-		if ( class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
-			delete_option( 'elementor_pro_theme_builder_conditions' );
+		if ( class_exists( '\ElementorPro\Plugin' ) ) {
+			$theme_builder = \ElementorPro\Plugin::instance()->modules_manager->get_modules( 'theme-builder' );
+			if ( $theme_builder && method_exists( $theme_builder, 'get_conditions_manager' ) ) {
+				$manager = $theme_builder->get_conditions_manager();
+				if ( $manager && method_exists( $manager, 'save_conditions' ) ) {
+					$saved = $manager->save_conditions( $post_id, $normalized );
+					if ( ! $saved ) {
+						return new \WP_Error( 'conditions_save', __( 'Elementor could not save those conditions. Make sure post_id is an Elementor template.', 'emcp-tools' ) );
+					}
+					return $normalized;
+				}
+			}
 		}
 
-		return array( 'success' => true );
+		// Fallback: Elementor's slash format, without deleting the global cache.
+		$formatted = array();
+		foreach ( $normalized as $parts ) {
+			$formatted[] = rtrim( implode( '/', $parts ), '/' );
+		}
+		update_post_meta( $post_id, '_elementor_conditions', $formatted );
+
+		return $normalized;
 	}
 
 	// ── Phase 6: Dynamic Tags ─────────────────────────────────────────
@@ -810,19 +855,11 @@ class EMCP_Tools_Template_Abilities {
 			update_post_meta( $post_id, '_elementor_popup_triggers', $triggers );
 		}
 
-		if ( null !== $conditions ) {
-			$formatted = array();
-			foreach ( $conditions as $condition ) {
-				if ( is_array( $condition ) ) {
-					$formatted[] = implode( '/', $condition );
-				} elseif ( is_string( $condition ) ) {
-					$formatted[] = $condition;
-				}
-			}
-			update_post_meta( $post_id, '_elementor_conditions', $formatted );
-
-			if ( class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
-				delete_option( 'elementor_pro_theme_builder_conditions' );
+		if ( null !== $conditions && is_array( $conditions ) ) {
+			// Same conditions-cache-safe path as set-template-conditions (#38).
+			$result = $this->save_elementor_conditions( $post_id, $conditions );
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
 		}
 

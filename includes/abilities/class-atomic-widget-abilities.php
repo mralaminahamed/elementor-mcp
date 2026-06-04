@@ -148,12 +148,14 @@ class EMCP_Tools_Atomic_Widget_Abilities {
 			return $page_data;
 		}
 
-		$inserted = $this->data->insert_element( $page_data, $parent_id, $element, $position );
-		if ( is_wp_error( $inserted ) ) {
-			return $inserted;
+		// insert_element() mutates $page_data by reference and returns a bool;
+		// save the modified $page_data, never the bool (issue #36).
+		$ok = $this->data->insert_element( $page_data, $parent_id, $element, $position );
+		if ( ! $ok ) {
+			return new \WP_Error( 'not_found', "Parent element '{$parent_id}' not found in page {$post_id}." );
 		}
 
-		$save = $this->data->save_page_data( $post_id, $inserted );
+		$save = $this->data->save_page_data( $post_id, $page_data );
 		if ( is_wp_error( $save ) ) {
 			return $save;
 		}
@@ -208,12 +210,14 @@ class EMCP_Tools_Atomic_Widget_Abilities {
 			return $page_data;
 		}
 
+		// update_element_settings() mutates $page_data by reference and returns a
+		// bool; save the modified $page_data, never the bool (issue #36).
 		$updated = $this->data->update_element_settings( $page_data, $element_id, $settings );
-		if ( is_wp_error( $updated ) ) {
-			return $updated;
+		if ( ! $updated ) {
+			return new \WP_Error( 'not_found', "Element '{$element_id}' not found in page {$post_id}." );
 		}
 
-		$save = $this->data->save_page_data( $post_id, $updated );
+		$save = $this->data->save_page_data( $post_id, $page_data );
 		if ( is_wp_error( $save ) ) {
 			return $save;
 		}
