@@ -365,13 +365,39 @@ namespace {
 
 	if ( ! function_exists( 'get_option' ) ) {
 		function get_option( string $option, $default = false ) {
+			if ( isset( $GLOBALS['_wp_options'] ) && array_key_exists( $option, $GLOBALS['_wp_options'] ) ) {
+				return $GLOBALS['_wp_options'][ $option ];
+			}
 			return $default;
 		}
 	}
 
 	if ( ! function_exists( 'update_option' ) ) {
 		function update_option( string $option, $value, $autoload = null ): bool {
+			if ( ! isset( $GLOBALS['_wp_options'] ) ) {
+				$GLOBALS['_wp_options'] = array();
+			}
+			if ( ! isset( $GLOBALS['_wp_options_updates'] ) ) {
+				$GLOBALS['_wp_options_updates'] = array();
+			}
+			$GLOBALS['_wp_options'][ $option ]   = $value;
+			$GLOBALS['_wp_options_updates'][]    = array( 'option' => $option, 'value' => $value );
 			return true;
+		}
+	}
+
+	if ( ! function_exists( 'flush_rewrite_rules' ) ) {
+		function flush_rewrite_rules( $hard = true ): void {
+			if ( ! isset( $GLOBALS['_wp_flush_calls'] ) ) {
+				$GLOBALS['_wp_flush_calls'] = array();
+			}
+			$GLOBALS['_wp_flush_calls'][] = $hard;
+		}
+	}
+
+	if ( ! function_exists( 'sanitize_textarea_field' ) ) {
+		function sanitize_textarea_field( $str ) {
+			return is_string( $str ) ? trim( $str ) : '';
 		}
 	}
 
