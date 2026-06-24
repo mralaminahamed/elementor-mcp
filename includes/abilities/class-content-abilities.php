@@ -327,6 +327,14 @@ class EMCP_Tools_Content_Abilities {
 				if ( ! current_user_can( 'upload_files' ) ) {
 					$warnings[] = 'featured_image: upload_files capability required to sideload a URL.';
 				} else {
+					// media_sideload_image() and its deps live in wp-admin/includes,
+					// which are NOT loaded on the REST/WP-CLI requests the MCP server
+					// runs in — load them on demand (matches stock-image-abilities).
+					if ( ! function_exists( 'media_sideload_image' ) ) {
+						require_once ABSPATH . 'wp-admin/includes/file.php';
+						require_once ABSPATH . 'wp-admin/includes/media.php';
+						require_once ABSPATH . 'wp-admin/includes/image.php';
+					}
 					$att = media_sideload_image( esc_url_raw( (string) $fi['url'] ), $post_id, '', 'id' );
 					if ( is_wp_error( $att ) ) {
 						$warnings[] = 'featured_image: ' . $att->get_error_message();
