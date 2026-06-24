@@ -1142,6 +1142,21 @@ class EMCP_Tools_Admin {
 					),
 				),
 			),
+			'wp_settings'      => array(
+				'label' => __( 'WordPress Settings', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/get-settings'    => array(
+						'label'       => __( 'Get Settings', 'emcp-tools' ),
+						'description' => __( 'Reads curated site settings (general, reading, writing, discussion, media, permalinks).', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/update-settings' => array(
+						'label'       => __( 'Update Settings', 'emcp-tools' ),
+						'description' => __( 'Updates curated site settings; auto-flushes rewrite rules on permalink changes.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+				),
+			),
 			'page'             => array(
 				'label' => __( 'Page Management', 'emcp-tools' ),
 				'tools' => array(
