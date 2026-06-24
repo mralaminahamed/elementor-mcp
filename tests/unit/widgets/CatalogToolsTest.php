@@ -94,4 +94,40 @@ class CatalogToolsTest extends Ability_Test_Case {
 		$this->assertContains( 'form', $types );
 		$this->assertNotContains( 'heading', $types );
 	}
+
+	/** @test */
+	public function test_get_widget_schema_curated_default(): void {
+		$query = new \EMCP_Tools_Query_Abilities(
+			$this->createStub( \EMCP_Tools_Data::class ),
+			$this->createStub( \EMCP_Tools_Schema_Generator::class )
+		);
+		$out = $query->execute_get_widget_schema( array( 'widget_type' => 'heading' ) );
+		$this->assertArrayHasKey( 'widget_type', $out );
+		$this->assertSame( 'heading', $out['widget_type'] );
+		$this->assertArrayHasKey( 'params', $out, 'curated mode returns catalog params' );
+		$this->assertArrayHasKey( 'title', $out['params'] );
+	}
+
+	/** @test */
+	public function test_get_widget_schema_batch(): void {
+		$query = new \EMCP_Tools_Query_Abilities(
+			$this->createStub( \EMCP_Tools_Data::class ),
+			$this->createStub( \EMCP_Tools_Schema_Generator::class )
+		);
+		$out = $query->execute_get_widget_schema( array( 'types' => array( 'heading', 'button' ) ) );
+		$this->assertArrayHasKey( 'widgets', $out );
+		$returned = array_column( $out['widgets'], 'widget_type' );
+		$this->assertContains( 'heading', $returned );
+		$this->assertContains( 'button', $returned );
+	}
+
+	/** @test */
+	public function test_get_widget_schema_missing_input_errors(): void {
+		$query = new \EMCP_Tools_Query_Abilities(
+			$this->createStub( \EMCP_Tools_Data::class ),
+			$this->createStub( \EMCP_Tools_Schema_Generator::class )
+		);
+		$out = $query->execute_get_widget_schema( array() );
+		$this->assertInstanceOf( \WP_Error::class, $out );
+	}
 }

@@ -221,7 +221,7 @@ class EMCP_Tools_Query_Abilities {
 			'elementor-mcp/get-widget-schema',
 			array(
 				'label'               => __( 'Get Widget Schema', 'emcp-tools' ),
-				'description'         => __( 'Returns the full JSON Schema for a widget type\'s settings, describing all available controls and their types. Use this to discover what settings a widget accepts before creating or updating it.', 'emcp-tools' ),
+				'description'         => __( 'Returns curated parameters (params, required, defaults) for a widget type by default. Pass types[] for a batch lookup ({widgets:[...]}), or full:true for the raw auto-generated control schema.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_get_widget_schema' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),
@@ -230,17 +230,30 @@ class EMCP_Tools_Query_Abilities {
 					'properties' => array(
 						'widget_type' => array(
 							'type'        => 'string',
-							'description' => __( 'The widget type name, e.g. "heading", "button", "image".', 'emcp-tools' ),
+							'description' => __( 'A single widget type, e.g. "heading".', 'emcp-tools' ),
+						),
+						'types'       => array(
+							'type'        => 'array',
+							'items'       => array( 'type' => 'string' ),
+							'description' => __( 'Batch: several widget types in one call. Returns {widgets:[...]}.', 'emcp-tools' ),
+						),
+						'full'        => array(
+							'type'        => 'boolean',
+							'description' => __( 'Return the full auto-generated control schema instead of the curated params. Default: false.', 'emcp-tools' ),
 						),
 					),
-					'required'   => array( 'widget_type' ),
 				),
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
 						'widget_type' => array( 'type' => 'string' ),
-						'title'       => array( 'type' => 'string' ),
+						'tier'        => array( 'type' => 'string' ),
+						'use_case'    => array( 'type' => 'string' ),
+						'params'      => array( 'type' => 'object' ),
+						'required'    => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+						'defaults'    => array( 'type' => 'object' ),
 						'schema'      => array( 'type' => 'object' ),
+						'widgets'     => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
 					),
 				),
 				'meta'                => array(
@@ -258,41 +271,72 @@ class EMCP_Tools_Query_Abilities {
 	/**
 	 * Executes the get-widget-schema ability.
 	 *
+	 * By default returns curated catalog data (params, required, defaults) for the
+	 * requested widget(s) — no live Elementor dependency. Pass `types[]` to batch
+	 * several widgets in one call ({widgets:[...]}). Pass `full:true` for the raw
+	 * auto-generated control schema, which needs a live widget.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param array $input The input parameters.
-	 * @return array|\WP_Error The widget schema or WP_Error.
+	 * @return array|\WP_Error The widget schema(s) or WP_Error.
 	 */
 	public function execute_get_widget_schema( $input ) {
-		$widget_type = $input['widget_type'] ?? '';
+		$full  = ! empty( $input['full'] );
+		$types = array();
 
-		if ( empty( $widget_type ) ) {
-			return new \WP_Error( 'missing_widget_type', __( 'The widget_type parameter is required.', 'emcp-tools' ) );
+		if ( ! empty( $input['types'] ) && is_array( $input['types'] ) ) {
+			$types = array_map( 'sanitize_text_field', $input['types'] );
+		} elseif ( ! empty( $input['widget_type'] ) ) {
+			$types = array( sanitize_text_field( $input['widget_type'] ) );
 		}
 
-		$widget = \Elementor\Plugin::$instance->widgets_manager->get_widget_types( $widget_type );
-		if ( ! $widget ) {
-			return new \WP_Error(
-				'widget_not_found',
-				sprintf(
-					/* translators: %s: widget type name */
-					__( 'Widget type "%s" not found.', 'emcp-tools' ),
-					$widget_type
-				)
+		if ( empty( $types ) ) {
+			return new \WP_Error( 'missing_widget_type', __( 'Provide widget_type or types[].', 'emcp-tools' ) );
+		}
+
+		$build = function ( $type ) use ( $full ) {
+			$entry = EMCP_Tools_Widget_Catalog::get_widget( $type );
+
+			if ( $full ) {
+				// Escape hatch: full auto-generated control schema (needs a live widget).
+				$schema = $this->schema_generator->generate( $type );
+				return array(
+					'widget_type' => $type,
+					'tier'        => EMCP_Tools_Widget_Catalog::tier_of( $type ),
+					'use_case'    => $entry['use_case'] ?? '',
+					'schema'      => is_wp_error( $schema ) ? array() : $schema,
+				);
+			}
+
+			if ( null === $entry ) {
+				return array(
+					'widget_type' => $type,
+					'error'       => __( 'Not in the curated catalog. Retry with full:true for the raw control schema.', 'emcp-tools' ),
+				);
+			}
+
+			return array(
+				'widget_type' => $type,
+				'tier'        => $entry['tier'] ?? 'free',
+				'use_case'    => $entry['use_case'] ?? '',
+				'params'      => $entry['params'] ?? array(),
+				'required'    => $entry['required'] ?? array(),
+				'defaults'    => $entry['defaults'] ?? array(),
 			);
+		};
+
+		// Batch shape when `types[]` was provided (even if it held one entry).
+		$is_batch = ! empty( $input['types'] ) && is_array( $input['types'] );
+		if ( $is_batch ) {
+			$widgets = array();
+			foreach ( $types as $t ) {
+				$widgets[] = $build( $t );
+			}
+			return array( 'widgets' => $widgets );
 		}
 
-		$schema = $this->schema_generator->generate( $widget_type );
-
-		if ( is_wp_error( $schema ) ) {
-			return $schema;
-		}
-
-		return array(
-			'widget_type' => $widget_type,
-			'title'       => $widget->get_title(),
-			'schema'      => $schema,
-		);
+		return $build( $types[0] );
 	}
 
 	// -------------------------------------------------------------------------
