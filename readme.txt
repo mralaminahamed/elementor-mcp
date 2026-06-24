@@ -14,7 +14,7 @@ Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page de
 
 MCP Tools for Elementor bridges the gap between AI tools and Elementor page design. It extends the official WordPress MCP Adapter to expose a focused set of MCP (Model Context Protocol) tools that let AI agents like Claude, Cursor, and other MCP-compatible clients create and manipulate Elementor page designs programmatically.
 
-As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active tool surface is much smaller while every widget stays reachable. Tool counts scale with your environment: around 34 tools on a free Elementor install, ~44 with Elementor Pro, and ~58 with Pro + WooCommerce + Elementor 4.0+ atomic elements.
+As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active tool surface is much smaller while every widget stays reachable. Tool counts scale with your environment: around 44 tools on a free Elementor install, ~70 with Elementor Pro, and ~84 with Pro + Elementor 4.0+ atomic elements (WooCommerce adds no new tools — its widgets are reached through add-pro-widget). About 21 of these ship disabled-by-default (SEO & Accessibility, Widget Builder, PHP Snippets), so the typical active surface is smaller.
 
 **Key Features:**
 

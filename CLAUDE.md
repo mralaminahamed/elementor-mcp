@@ -17,21 +17,17 @@ When editing premium-prompts behavior, the plugin code (`includes/admin/class-pr
 
 **Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, and the v3.0.0 catalog-backed widget consolidation.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
 
-**Tool counts by configuration (v3.0.0 — computed; to be confirmed against a real `tools/list` in Task 9):**
-- Free Elementor only: **34**
-- Free Elementor + Elementor 4.0+ atomic: **48**
-- With Elementor Pro: **44**
-- With Elementor Pro + Elementor 4.0+: **58**
-- With Elementor Pro + WooCommerce + Elementor 4.0+: **58**
-- Low-tools mode (any config): now largely obsolete — the consolidation already keeps the surface well under common client caps. The essentials filter still exists, but the new counts already fit. (Old caps were 51 / 46.)
-- Pro (EMCP license): **+7** SEO & Accessibility tools — registered but **disabled-by-default**, so they don't change the active surface until a user enables them on the Tools tab.
+**Tool counts by configuration (v3.0.0 — measured against a live `tools/list` via WP-CLI):**
+- Free Elementor only: **44**
+- Free Elementor + Elementor 4.0+ atomic: **58** (+14 atomic tools)
+- With Elementor Pro: **70** (+26 Pro-gated tools)
+- With Elementor Pro + Elementor 4.0+: **84**
+- With Pro + WooCommerce + Elementor 4.0+: **84** — WooCommerce widgets are now reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
+- Low-tools mode (any config): still available but largely obsolete — the consolidation already keeps the surface well under common client caps.
 
-> **Arithmetic (v2.2.0 → v3.0.0).** The widget consolidation removed every per-widget convenience tool plus the old universal `add-widget`, and added `add-free-widget` (+ `add-pro-widget` only with Pro). The 62 curated widgets are now catalog DATA (27 free / 30 pro / 5 woo), not individual tools. All other ability groups are unchanged, so:
-> - **Free side:** removed 27 free convenience tools + old `add-widget` (28); added `add-free-widget` (1). Net widget tools 30 → 2, i.e. **−28**. So `62 − 28 = 34`; `76 − 28 = 48`.
-> - **Pro increment:** removed 30 Pro convenience tools; added `add-pro-widget` (1) → **−29**. So `101 − 28 − 29 = 44`; `115 − 28 − 29 = 58`.
-> - **Woo increment:** removed 5 wc convenience tools; added 0 (Woo widgets reach through `add-pro-widget`) → **−5**. So `120 − 28 − 29 − 5 = 58`.
+> **These are REGISTERED counts.** Three groups ship **disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), and PHP Snippets / Sandbox (**6**, free) = **21** tools registered-but-off. So the typical **active** surface is ~21 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ ≈ **63** active by default).
 >
-> These are computed from the registered surface and known deltas; **Task 9 will verify them against a live `tools/list` via WP-CLI and correct any discrepancy.**
+> **What the v3.0.0 consolidation changed.** Every per-widget convenience tool (62) plus the old universal `add-widget` were removed; `add-free-widget` (always) and `add-pro-widget` (Pro only) were added. The 62 curated widgets are now catalog DATA (27 free / 30 pro / 5 woo) served by `EMCP_Tools_Widget_Catalog`, not individual tools. The widget portion of the per-turn `tools/list` dropped from ~18–20k tokens to ~1.2k (the five widget tool schemas total ~5 KB). Verified end-to-end via the WP-CLI MCP stdio server: `tools/list` shows exactly the 5 widget tools and none of the 62 old names, and a real `add-container` → `add-free-widget` round-trip persists to `_elementor_data`.
 
 See `PLAN.md` for the full architectural specification.
 

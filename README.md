@@ -30,10 +30,11 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 ## Features
 
 - **A focused MCP toolset** covering the full Elementor page-building workflow. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment:
-  - ~34 tools — free Elementor only
-  - ~48 tools — free Elementor + Elementor 4.0 atomic elements
-  - ~44 tools — with Elementor Pro
-  - ~58 tools — with Elementor Pro + Elementor 4.0 (and + WooCommerce)
+  - ~44 tools — free Elementor only
+  - ~58 tools — free Elementor + Elementor 4.0 atomic elements
+  - ~70 tools — with Elementor Pro
+  - ~84 tools — with Elementor Pro + Elementor 4.0 (and + WooCommerce, which adds no new tools)
+  - ~21 of these (SEO & Accessibility, Widget Builder, PHP Snippets) ship **disabled-by-default**, so the typical active surface is smaller
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
