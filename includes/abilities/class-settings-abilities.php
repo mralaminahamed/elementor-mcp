@@ -173,6 +173,66 @@ class EMCP_Tools_Settings_Abilities {
 	}
 
 	// ---------------------------------------------------------------------
+	// Execute: get-settings
+	// ---------------------------------------------------------------------
+
+	/**
+	 * @param array $input
+	 * @return array
+	 */
+	public function execute_get_settings( $input ): array {
+		$map   = self::allowlist();
+		$group = isset( $input['group'] ) ? sanitize_key( (string) $input['group'] ) : '';
+		$keys  = ( isset( $input['keys'] ) && is_array( $input['keys'] ) )
+			? array_map( 'strval', $input['keys'] )
+			: array();
+
+		$rows = array();
+		foreach ( $map as $key => $entry ) {
+			if ( '' !== $group && $entry['group'] !== $group ) {
+				continue;
+			}
+			if ( ! empty( $keys ) && ! in_array( $key, $keys, true ) ) {
+				continue;
+			}
+			$row = array(
+				'key'      => $key,
+				'group'    => $entry['group'],
+				'label'    => $entry['label'],
+				'type'     => $entry['type'],
+				'value'    => $this->read_setting( $key, $entry ),
+				'writable' => ! empty( $entry['writable'] ),
+			);
+			if ( 'enum' === $entry['type'] && ! empty( $entry['options'] ) ) {
+				$row['options'] = array_values( $entry['options'] );
+			}
+			$rows[] = $row;
+		}
+		return array( 'settings' => $rows );
+	}
+
+	/**
+	 * Read an option and coerce it to the declared type for clean JSON.
+	 *
+	 * @param string $key
+	 * @param array  $entry Allowlist entry.
+	 * @return mixed
+	 */
+	private function read_setting( string $key, array $entry ) {
+		$raw = get_option( $key );
+		switch ( $entry['type'] ) {
+			case 'int':
+				return (int) $raw;
+			case 'bool':
+				return ! empty( $raw ) && '0' !== $raw;
+			case 'enum':
+			case 'string':
+			default:
+				return null === $raw ? '' : (string) $raw;
+		}
+	}
+
+	// ---------------------------------------------------------------------
 	// update-settings
 	// ---------------------------------------------------------------------
 
