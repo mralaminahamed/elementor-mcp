@@ -161,7 +161,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 4;
+	const DEFAULTS_VERSION = 5;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -270,9 +270,53 @@ class EMCP_Tools_Admin {
 			$add = array_merge( $add, self::php_snippet_tool_slugs() );
 		}
 
+		// v5 — Widget consolidation (3.0.0). The 62 per-widget Pro slugs seeded
+		// disabled in v1 no longer exist; strip them so they don't linger in the
+		// stored option. add-pro-widget is a single tool, left ENABLED by default
+		// (it only registers when Elementor Pro is active anyway).
+		if ( $applied < 5 ) {
+			$existing = array_values( array_diff( $existing, self::removed_widget_tool_slugs() ) );
+		}
+
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
 		update_option( self::OPTION_DISABLED_TOOLS, $merged );
 		update_option( self::OPTION_DEFAULTS_APPLIED, (string) self::DEFAULTS_VERSION );
+	}
+
+	/**
+	 * The per-widget convenience tool slugs removed in 3.0.0 (widget
+	 * consolidation). Used by the v5 defaults step to clear orphaned disabled
+	 * entries from the stored option.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return string[]
+	 */
+	public static function removed_widget_tool_slugs(): array {
+		return array(
+			'elementor-mcp/add-widget',
+			'elementor-mcp/add-heading', 'elementor-mcp/add-text-editor', 'elementor-mcp/add-image',
+			'elementor-mcp/add-button', 'elementor-mcp/add-video', 'elementor-mcp/add-icon',
+			'elementor-mcp/add-spacer', 'elementor-mcp/add-divider', 'elementor-mcp/add-icon-box',
+			'elementor-mcp/add-accordion', 'elementor-mcp/add-alert', 'elementor-mcp/add-counter',
+			'elementor-mcp/add-google-maps', 'elementor-mcp/add-icon-list', 'elementor-mcp/add-image-box',
+			'elementor-mcp/add-image-carousel', 'elementor-mcp/add-progress', 'elementor-mcp/add-social-icons',
+			'elementor-mcp/add-star-rating', 'elementor-mcp/add-tabs', 'elementor-mcp/add-testimonial',
+			'elementor-mcp/add-toggle', 'elementor-mcp/add-html', 'elementor-mcp/add-menu-anchor',
+			'elementor-mcp/add-shortcode', 'elementor-mcp/add-rating', 'elementor-mcp/add-text-path',
+			'elementor-mcp/add-form', 'elementor-mcp/add-posts-grid', 'elementor-mcp/add-countdown',
+			'elementor-mcp/add-price-table', 'elementor-mcp/add-flip-box', 'elementor-mcp/add-animated-headline',
+			'elementor-mcp/add-call-to-action', 'elementor-mcp/add-slides', 'elementor-mcp/add-testimonial-carousel',
+			'elementor-mcp/add-price-list', 'elementor-mcp/add-gallery', 'elementor-mcp/add-share-buttons',
+			'elementor-mcp/add-table-of-contents', 'elementor-mcp/add-blockquote', 'elementor-mcp/add-lottie',
+			'elementor-mcp/add-hotspot', 'elementor-mcp/add-nav-menu', 'elementor-mcp/add-loop-grid',
+			'elementor-mcp/add-loop-carousel', 'elementor-mcp/add-media-carousel', 'elementor-mcp/add-nested-tabs',
+			'elementor-mcp/add-nested-accordion', 'elementor-mcp/add-portfolio', 'elementor-mcp/add-author-box',
+			'elementor-mcp/add-login', 'elementor-mcp/add-code-highlight', 'elementor-mcp/add-reviews',
+			'elementor-mcp/add-off-canvas', 'elementor-mcp/add-progress-tracker', 'elementor-mcp/add-search',
+			'elementor-mcp/add-wc-products', 'elementor-mcp/add-wc-add-to-cart', 'elementor-mcp/add-wc-cart',
+			'elementor-mcp/add-wc-checkout', 'elementor-mcp/add-wc-menu-cart',
+		);
 	}
 
 	/**
@@ -1138,298 +1182,23 @@ class EMCP_Tools_Admin {
 					),
 				),
 			),
-			'widget_universal' => array(
-				'label' => __( 'Widget Tools', 'emcp-tools' ),
+			'widgets'          => array(
+				'label' => __( 'Widgets', 'emcp-tools' ),
 				'tools' => array(
-					'elementor-mcp/add-widget'    => array(
+					'elementor-mcp/add-free-widget' => array(
 						'label'       => __( 'Add Widget', 'emcp-tools' ),
-						'description' => __( 'Adds any widget type to a container with full settings control.', 'emcp-tools' ),
+						'description' => __( 'Adds any free/core Elementor widget by type (discover with list-widgets / get-widget-schema).', 'emcp-tools' ),
 						'badges'      => array(),
 					),
-					'elementor-mcp/update-widget' => array(
+					'elementor-mcp/add-pro-widget'  => array(
+						'label'       => __( 'Add Pro Widget', 'emcp-tools' ),
+						'description' => __( 'Adds an Elementor Pro / WooCommerce widget by type. Registers only when Elementor Pro is active.', 'emcp-tools' ),
+						'badges'      => array( 'elementor-pro' ),
+					),
+					'elementor-mcp/update-widget'   => array(
 						'label'       => __( 'Update Widget', 'emcp-tools' ),
-						'description' => __( 'Updates settings on an existing widget element.', 'emcp-tools' ),
+						'description' => __( 'Updates settings on an existing widget (partial merge).', 'emcp-tools' ),
 						'badges'      => array(),
-					),
-				),
-			),
-			'widget_core'      => array(
-				'label' => __( 'Widget Shortcuts', 'emcp-tools' ),
-				'tools' => array(
-					'elementor-mcp/add-heading'     => array(
-						'label'       => __( 'Add Heading', 'emcp-tools' ),
-						'description' => __( 'Adds a heading widget with simplified parameters.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-text-editor' => array(
-						'label'       => __( 'Add Text Editor', 'emcp-tools' ),
-						'description' => __( 'Adds a text editor (WYSIWYG) widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-image'       => array(
-						'label'       => __( 'Add Image', 'emcp-tools' ),
-						'description' => __( 'Adds an image widget by media library ID or URL.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-button'      => array(
-						'label'       => __( 'Add Button', 'emcp-tools' ),
-						'description' => __( 'Adds a button widget with text and link.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-video'       => array(
-						'label'       => __( 'Add Video', 'emcp-tools' ),
-						'description' => __( 'Adds a video embed widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-icon'        => array(
-						'label'       => __( 'Add Icon', 'emcp-tools' ),
-						'description' => __( 'Adds an icon widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-spacer'      => array(
-						'label'       => __( 'Add Spacer', 'emcp-tools' ),
-						'description' => __( 'Adds a spacer widget for vertical spacing.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-divider'     => array(
-						'label'       => __( 'Add Divider', 'emcp-tools' ),
-						'description' => __( 'Adds a horizontal divider/separator widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-icon-box'        => array(
-						'label'       => __( 'Add Icon Box', 'emcp-tools' ),
-						'description' => __( 'Adds an icon box widget (icon + title + description).', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-accordion'       => array(
-						'label'       => __( 'Add Accordion', 'emcp-tools' ),
-						'description' => __( 'Adds a collapsible accordion widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-alert'           => array(
-						'label'       => __( 'Add Alert', 'emcp-tools' ),
-						'description' => __( 'Adds an alert/notice widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-counter'         => array(
-						'label'       => __( 'Add Counter', 'emcp-tools' ),
-						'description' => __( 'Adds an animated counter widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-google-maps'     => array(
-						'label'       => __( 'Add Google Maps', 'emcp-tools' ),
-						'description' => __( 'Adds an embedded Google Maps widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-icon-list'       => array(
-						'label'       => __( 'Add Icon List', 'emcp-tools' ),
-						'description' => __( 'Adds an icon list widget for feature lists and checklists.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-image-box'       => array(
-						'label'       => __( 'Add Image Box', 'emcp-tools' ),
-						'description' => __( 'Adds an image box widget (image + title + description).', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-image-carousel'  => array(
-						'label'       => __( 'Add Image Carousel', 'emcp-tools' ),
-						'description' => __( 'Adds a rotating image carousel widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-progress'        => array(
-						'label'       => __( 'Add Progress Bar', 'emcp-tools' ),
-						'description' => __( 'Adds an animated progress bar widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-social-icons'    => array(
-						'label'       => __( 'Add Social Icons', 'emcp-tools' ),
-						'description' => __( 'Adds social media icon links.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-star-rating'     => array(
-						'label'       => __( 'Add Star Rating', 'emcp-tools' ),
-						'description' => __( 'Adds a star rating display widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-tabs'            => array(
-						'label'       => __( 'Add Tabs', 'emcp-tools' ),
-						'description' => __( 'Adds a tabbed content widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-testimonial'     => array(
-						'label'       => __( 'Add Testimonial', 'emcp-tools' ),
-						'description' => __( 'Adds a testimonial widget with quote and author.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-toggle'          => array(
-						'label'       => __( 'Add Toggle', 'emcp-tools' ),
-						'description' => __( 'Adds a toggle/expandable content widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-html'            => array(
-						'label'       => __( 'Add HTML', 'emcp-tools' ),
-						'description' => __( 'Adds a custom HTML code widget.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-menu-anchor'     => array(
-						'label'       => __( 'Add Menu Anchor', 'emcp-tools' ),
-						'description' => __( 'Adds an invisible anchor for one-page navigation links.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-shortcode'       => array(
-						'label'       => __( 'Add Shortcode', 'emcp-tools' ),
-						'description' => __( 'Adds a shortcode widget to embed WordPress shortcodes.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-rating'          => array(
-						'label'       => __( 'Add Rating', 'emcp-tools' ),
-						'description' => __( 'Adds a rating widget with customizable scale and icons.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-					'elementor-mcp/add-text-path'       => array(
-						'label'       => __( 'Add Text Path', 'emcp-tools' ),
-						'description' => __( 'Adds a text-on-path widget for curved/circular text.', 'emcp-tools' ),
-						'badges'      => array(),
-					),
-				),
-			),
-			'widget_pro'       => array(
-				'label' => __( 'Elementor Pro Widgets', 'emcp-tools' ),
-				'tools' => array(
-					'elementor-mcp/add-form'              => array(
-						'label'       => __( 'Add Form', 'emcp-tools' ),
-						'description' => __( 'Adds a form widget with configurable fields.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-posts-grid'        => array(
-						'label'       => __( 'Add Posts Grid', 'emcp-tools' ),
-						'description' => __( 'Adds a posts grid/listing widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-countdown'         => array(
-						'label'       => __( 'Add Countdown', 'emcp-tools' ),
-						'description' => __( 'Adds a countdown timer widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-price-table'       => array(
-						'label'       => __( 'Add Price Table', 'emcp-tools' ),
-						'description' => __( 'Adds a pricing table widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-flip-box'          => array(
-						'label'       => __( 'Add Flip Box', 'emcp-tools' ),
-						'description' => __( 'Adds a flip box widget with front/back sides.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-animated-headline'    => array(
-						'label'       => __( 'Add Animated Headline', 'emcp-tools' ),
-						'description' => __( 'Adds an animated headline widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-call-to-action'       => array(
-						'label'       => __( 'Add Call to Action', 'emcp-tools' ),
-						'description' => __( 'Adds a call-to-action widget with title, description, and button.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-slides'               => array(
-						'label'       => __( 'Add Slides', 'emcp-tools' ),
-						'description' => __( 'Adds a full-width slides/slider widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-testimonial-carousel'  => array(
-						'label'       => __( 'Add Testimonial Carousel', 'emcp-tools' ),
-						'description' => __( 'Adds a testimonial carousel/slider widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-price-list'           => array(
-						'label'       => __( 'Add Price List', 'emcp-tools' ),
-						'description' => __( 'Adds a price list widget for menus and services.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-gallery'              => array(
-						'label'       => __( 'Add Gallery', 'emcp-tools' ),
-						'description' => __( 'Adds an advanced gallery widget with grid/masonry layout.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-share-buttons'        => array(
-						'label'       => __( 'Add Share Buttons', 'emcp-tools' ),
-						'description' => __( 'Adds social share buttons widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-table-of-contents'    => array(
-						'label'       => __( 'Add Table of Contents', 'emcp-tools' ),
-						'description' => __( 'Adds an auto-generated table of contents widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-blockquote'           => array(
-						'label'       => __( 'Add Blockquote', 'emcp-tools' ),
-						'description' => __( 'Adds a styled blockquote widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-lottie'               => array(
-						'label'       => __( 'Add Lottie Animation', 'emcp-tools' ),
-						'description' => __( 'Adds a Lottie animation widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-hotspot'              => array(
-						'label'       => __( 'Add Hotspot', 'emcp-tools' ),
-						'description' => __( 'Adds an image hotspot widget with interactive points.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-nav-menu'             => array(
-						'label'       => __( 'Add Nav Menu', 'emcp-tools' ),
-						'description' => __( 'Adds a navigation menu widget from registered WordPress menus.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-loop-grid'            => array(
-						'label'       => __( 'Add Loop Grid', 'emcp-tools' ),
-						'description' => __( 'Adds a loop grid widget for dynamic post/CPT listings.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-loop-carousel'        => array(
-						'label'       => __( 'Add Loop Carousel', 'emcp-tools' ),
-						'description' => __( 'Adds a loop carousel widget for dynamic post/CPT carousels.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-media-carousel'       => array(
-						'label'       => __( 'Add Media Carousel', 'emcp-tools' ),
-						'description' => __( 'Adds a media carousel widget for images and videos.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-nested-tabs'          => array(
-						'label'       => __( 'Add Nested Tabs', 'emcp-tools' ),
-						'description' => __( 'Adds nested tabs widget where each tab is a container.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-nested-accordion'     => array(
-						'label'       => __( 'Add Nested Accordion', 'emcp-tools' ),
-						'description' => __( 'Adds nested accordion widget where each item is a container.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-code-highlight'       => array(
-						'label'       => __( 'Add Code Highlight', 'emcp-tools' ),
-						'description' => __( 'Adds a syntax-highlighted code block widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-reviews'              => array(
-						'label'       => __( 'Add Reviews', 'emcp-tools' ),
-						'description' => __( 'Adds a reviews/testimonials carousel widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-off-canvas'           => array(
-						'label'       => __( 'Add Off-Canvas', 'emcp-tools' ),
-						'description' => __( 'Adds an off-canvas panel widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-progress-tracker'     => array(
-						'label'       => __( 'Add Progress Tracker', 'emcp-tools' ),
-						'description' => __( 'Adds a scroll progress tracker widget.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
-					),
-					'elementor-mcp/add-search'               => array(
-						'label'       => __( 'Add Search', 'emcp-tools' ),
-						'description' => __( 'Adds a search widget with live results support.', 'emcp-tools' ),
-						'badges'      => array( 'elementor-pro' ),
 					),
 				),
 			),

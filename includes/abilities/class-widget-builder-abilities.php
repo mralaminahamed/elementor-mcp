@@ -356,7 +356,7 @@ class EMCP_Tools_Widget_Builder_Abilities {
 			'elementor-mcp/create-custom-widget',
 			array(
 				'label'               => __( 'Create Custom Widget', 'emcp-tools' ),
-				'description'         => __( 'Generates a custom Elementor widget from a spec, stores it in an isolated sandbox, and activates it so it appears in the Elementor panel under "Custom (EMCP)". Use the returned widget_name with add-widget to place it on a page.', 'emcp-tools' ),
+				'description'         => __( 'Generates a custom Elementor widget from a spec, stores it in an isolated sandbox, and activates it so it appears in the Elementor panel under "Custom (EMCP)". Use the returned widget_name with add-free-widget to place it on a page.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_create_custom_widget' ),
 				'permission_callback' => array( $this, 'check_write_permission' ),

@@ -197,20 +197,11 @@ class EMCP_Tools_Plugin {
 			'elementor-mcp/batch-update',
 			'elementor-mcp/reorder-elements',
 
-			// Universal widget add/update (2).
-			'elementor-mcp/add-widget',
+			// Widget tools — catalog-backed (3 insert/update; discovery already
+			// listed in the Query block above).
+			'elementor-mcp/add-free-widget',
+			'elementor-mcp/add-pro-widget',
 			'elementor-mcp/update-widget',
-
-			// Most-used core widget shortcuts (9).
-			'elementor-mcp/add-heading',
-			'elementor-mcp/add-text-editor',
-			'elementor-mcp/add-image',
-			'elementor-mcp/add-button',
-			'elementor-mcp/add-icon',
-			'elementor-mcp/add-spacer',
-			'elementor-mcp/add-divider',
-			'elementor-mcp/add-icon-box',
-			'elementor-mcp/add-html',
 
 			// Templates (2).
 			'elementor-mcp/save-as-template',

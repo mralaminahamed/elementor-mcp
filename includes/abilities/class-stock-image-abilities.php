@@ -456,7 +456,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'elementor-mcp/add-stock-image',
 			array(
 				'label'               => __( 'Add Stock Image', 'emcp-tools' ),
-				'description'         => __( 'Searches Openverse for an image, downloads it to the Media Library, and adds it as an image widget to the page — all in one step. Defaults to landscape (wide) images for consistent layouts. Combines search-images + sideload-image + add-image.', 'emcp-tools' ),
+				'description'         => __( 'Searches Openverse for an image, downloads it to the Media Library, and adds it as an image widget to the page — all in one step. Defaults to landscape (wide) images for consistent layouts. Combines search-images + sideload-image + add-free-widget.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_add_stock_image' ),
 				'permission_callback' => array( $this, 'check_combined_permission' ),

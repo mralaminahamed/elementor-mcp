@@ -300,7 +300,7 @@ class EMCP_Tools_Atomic_Layout_Abilities {
 			$name,
 			array(
 				'label'               => __( 'Detect Elementor Version', 'emcp-tools' ),
-				'description'         => __( 'Returns the Elementor version and whether atomic elements (v4.0+) are supported. Call this first to decide whether to use legacy tools (add-heading, add-container) or atomic tools (add-atomic-heading, add-flexbox).', 'emcp-tools' ),
+				'description'         => __( 'Returns the Elementor version and whether atomic elements (v4.0+) are supported. Call this first to decide whether to use legacy tools (add-free-widget, add-container) or atomic tools (add-atomic-heading, add-flexbox).', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => function () {
 					$core_version = defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : 'unknown';
