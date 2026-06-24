@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.9
 Tested up to: 7.0
-Stable tag: 3.1.0
+Stable tag: 3.0.0
 Requires PHP: 8.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -14,12 +14,13 @@ Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page de
 
 MCP Tools for Elementor bridges the gap between AI tools and Elementor page design. It extends the official WordPress MCP Adapter to expose a focused set of MCP (Model Context Protocol) tools that let AI agents like Claude, Cursor, and other MCP-compatible clients create and manipulate Elementor page designs programmatically.
 
-As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active tool surface is much smaller while every widget stays reachable. As of v3.1.0 the toolset grows beyond Elementor with general WordPress content management. Tool counts scale with your environment (the v3.1.0 figures add the 8 WordPress Content tools + 3 surfaced core abilities, all enabled by default): around 55 tools on a free Elementor install, ~81 with Elementor Pro, and ~95 with Pro + Elementor 4.0+ atomic elements (WooCommerce adds no new tools — its widgets are reached through add-pro-widget). About 21 of these ship disabled-by-default (SEO & Accessibility, Widget Builder, PHP Snippets), so the typical active surface is smaller.
+As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active tool surface is much smaller while every widget stays reachable, and the toolset takes its first steps beyond Elementor with general WordPress content management and curated site-settings control. Tool counts scale with your environment (the v3.0.0 beyond-Elementor surface adds the 8 WordPress Content tools + 3 surfaced core abilities + 2 WordPress Settings tools, all enabled by default): around 57 tools on a free Elementor install, ~83 with Elementor Pro, and ~97 with Pro + Elementor 4.0+ atomic elements (WooCommerce adds no new tools — its widgets are reached through add-pro-widget). About 21 of these ship disabled-by-default (SEO & Accessibility, Widget Builder, PHP Snippets), so the typical active surface is smaller.
 
 **Key Features:**
 
 * **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, and view global design tokens.
-* **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages. (v3.1.0)
+* **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages. (v3.0.0)
+* **WordPress Settings (beyond Elementor)** — Read and batch-update core WordPress settings (general/reading/writing/discussion/media/permalinks) over MCP. Curated allowlist only — no arbitrary option access; `admin_email` is read-only; permalink changes auto-flush rewrite rules. `manage_options`. (v3.0.0)
 * **Page Management** — Create pages, update page settings, clear content, import/export templates.
 * **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, batch updates, reorder children.
 * **Widget Tools** — A catalog-backed model: list-widgets (filter by tier/category/search) -> get-widget-schema (curated params, batch, or full raw schema) -> add-free-widget / add-pro-widget (with Pro) -> update-widget. The 62 widgets' curated params live in a built-in catalog (27 free / 30 Pro / 5 WooCommerce), so every widget and parameter stays reachable while the per-turn tool-list cost drops ~10x.
@@ -157,15 +158,16 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 
 == Changelog ==
 
-= 3.1.0 =
-* Added: WordPress Content tools — the first step beyond Elementor. Eight new MCP tools to manage general WordPress content from an AI agent: list-post-types, list-taxonomies, create-post, get-post, update-post, list-posts, delete-post, and set-post-terms. Create and edit posts, pages, and any custom post type — title, content (classic HTML or block markup), status, slug, author, taxonomy terms, custom fields, and featured image — without touching Elementor data (an is_elementor flag steers you to the Elementor tools for builder pages). Capability-gated and enabled by default; delete-post trashes by default (pass force to permanently delete).
-* Added: WordPress core's read-only context abilities (core/get-site-info, core/get-user-info, core/get-environment-info) are now surfaced on the EMCP server too.
-
 = 3.0.0 =
+The first major release of the rebranded EMCP Tools — a step beyond Elementor into general WordPress management, plus a leaner catalog-backed widget surface. This single 3.0.0 release bundles the MCP namespace rename, the widget consolidation, the WordPress Content tools (domain 1), and the WordPress Settings tools (domain 2). (Previous release: 2.2.0.)
+* Changed (BREAKING): MCP namespace + server route renamed elementor-mcp -> emcp-tools. Every tool is now under the emcp-tools/ ability namespace (tool names become emcp-tools-<tool>), and the server route moved from /wp-json/mcp/elementor-mcp-server to /wp-json/mcp/emcp-tools-server (WP-CLI --server=emcp-tools-server). Every existing AI-client connection must be reconnected with the new route — regenerate configs from EMCP Tools > Connection. Stored per-tool toggles migrate automatically to the new slugs.
 * Changed (BREAKING): Widget tools consolidated. The 62 per-widget convenience tools (add-heading, add-button, add-form, ...) and the universal add-widget are removed, replaced by 5 catalog-backed tools: list-widgets (now with tier/category/search filters), get-widget-schema (curated params by default, types[] batch, full:true escape hatch), add-free-widget, add-pro-widget, and update-widget. No capability is lost — every widget and every curated parameter is still reachable via discover -> inspect -> act. AI scripts that hardcoded an old tool name must switch to add-free-widget / add-pro-widget with a widget_type.
+* Added: WordPress Content tools — the first step beyond Elementor (domain 1). Eight new MCP tools to manage general WordPress content: list-post-types, list-taxonomies, create-post, get-post, update-post, list-posts, delete-post, and set-post-terms. Create and edit posts, pages, and any custom post type — title, content (classic HTML or block markup), status, slug, author, taxonomy terms, custom fields, and featured image — without touching Elementor data (an is_elementor flag steers you to the Elementor tools for builder pages). Capability-gated and enabled by default; delete-post trashes by default (pass force to permanently delete).
+* Added: WordPress Settings tools — beyond Elementor, domain 2. Two new MCP tools over a curated, typed allowlist of core WordPress settings: get-settings (read general/reading/writing/discussion/media/permalinks settings; doubles as discovery — returns each setting's type, label, enum options, and writable flag; manage_options, read-only) and update-settings (batch-update allowlisted settings; non-allowlisted, read-only, or invalid values are reported in skipped[] without aborting the batch; changing a permalink setting auto-flushes rewrite rules; manage_options). Safety: curated allowlist only — no arbitrary option access; siteurl/home and users_can_register/default_role are excluded; admin_email is read-only.
+* Added: WordPress core's read-only context abilities (core/get-site-info, core/get-user-info, core/get-environment-info) are now surfaced on the EMCP server too.
+* Added: A curated widget catalog (62 widgets — 27 free / 30 Pro / 5 WooCommerce) that powers the consolidated widget tools.
 * Changed: Per-turn widget tool-list context cut ~10x (~18-20k -> ~2k tokens), freeing the model's context window and removing the need for Low-tools mode on most clients.
 * Migration: Old per-widget disabled-tool toggles are cleared automatically (defaults seeder v5). Existing pages and templates are unaffected — this changes the tools, not _elementor_data.
-* Added: A curated widget catalog (62 widgets — 27 free / 30 Pro / 5 WooCommerce) that powers the new tools.
 
 = 2.2.0 =
 * Performance: Leaner widget tool schemas. Each per-widget convenience tool now publishes a focused set of core parameters instead of a fully-enumerated schema, cutting the MCP tools/list payload (re-sent on every request) by roughly a third with no loss of capability — every other setting still passes through to Elementor and stays discoverable via get-widget-schema.

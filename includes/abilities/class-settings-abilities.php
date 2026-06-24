@@ -14,7 +14,7 @@
  * widget settings) — unrelated class, no collision.
  *
  * @package EMCP_Tools
- * @since   3.2.0
+ * @since   3.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,14 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Registers and implements the WordPress settings abilities.
  *
- * @since 3.2.0
+ * @since 3.0.0
  */
 class EMCP_Tools_Settings_Abilities {
 
 	/**
 	 * Names of the abilities actually registered by register().
 	 *
-	 * @since 3.2.0
+	 * @since 3.0.0
 	 * @var string[]
 	 */
 	private $ability_names = array();
@@ -39,7 +39,7 @@ class EMCP_Tools_Settings_Abilities {
 	/**
 	 * Returns the names of all abilities registered by this group.
 	 *
-	 * @since 3.2.0
+	 * @since 3.0.0
 	 * @return string[]
 	 */
 	public function get_ability_names(): array {
@@ -49,7 +49,7 @@ class EMCP_Tools_Settings_Abilities {
 	/**
 	 * Registers this group's MCP abilities.
 	 *
-	 * @since 3.2.0
+	 * @since 3.0.0
 	 */
 	public function register(): void {
 		$this->register_get_settings();
@@ -59,7 +59,7 @@ class EMCP_Tools_Settings_Abilities {
 	/**
 	 * Permission gate: both tools require manage_options.
 	 *
-	 * @since 3.2.0
+	 * @since 3.0.0
 	 * @return bool
 	 */
 	public function check_manage_permission(): bool {
@@ -76,7 +76,7 @@ class EMCP_Tools_Settings_Abilities {
 	 * type: string|int|bool|enum. writable:false → read-only. options: enum
 	 * members. min/max: int clamp range. group: the Settings screen it belongs to.
 	 *
-	 * @since 3.2.0
+	 * @since 3.0.0
 	 * @return array<string,array>
 	 */
 	private static function allowlist(): array {

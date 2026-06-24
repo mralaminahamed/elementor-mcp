@@ -2,18 +2,28 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
-## [3.1.0]
-
-- Added: **WordPress Content tools — the first step beyond Elementor.** Eight new MCP tools to manage general WordPress content from an AI agent: `list-post-types`, `list-taxonomies`, `create-post`, `get-post`, `update-post`, `list-posts`, `delete-post`, and `set-post-terms`. Create and edit posts, pages, and any custom post type — title, content (classic HTML or block markup), status, slug, author, taxonomy terms, custom fields, and featured image — without touching Elementor data (a `is_elementor` flag steers you to the Elementor tools for builder pages). Capability-gated and enabled by default; `delete-post` trashes by default (pass `force` to permanently delete).
-- Added: WordPress core's read-only context abilities (`core/get-site-info`, `core/get-user-info`, `core/get-environment-info`) are now surfaced on the EMCP server too.
-
 ## [3.0.0]
 
-- Changed (BREAKING): **MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`.** As the toolset grows beyond Elementor, every tool is now under the `emcp-tools/` ability namespace (MCP tool names become `emcp-tools-<tool>`, e.g. `emcp-tools-list-widgets`), and the server route moved from `/wp-json/mcp/elementor-mcp-server` to `/wp-json/mcp/emcp-tools-server` (WP-CLI `--server=emcp-tools-server`). **Every existing AI-client connection (Claude Desktop/Code, Cursor, WP-CLI, the proxy) must be reconnected with the new route** — regenerate configs from the EMCP Tools → Connection tab. Your stored per-tool enable/disable toggles migrate automatically to the new slugs, so Pro tools stay disabled-by-default as before.
-- Changed (BREAKING): **Widget tools consolidated.** The 62 per-widget convenience tools (`add-heading`, `add-button`, `add-form`, …) and the universal `add-widget` are removed, replaced by 5 catalog-backed tools: `list-widgets` (now with `tier`/`category`/`search` filters), `get-widget-schema` (curated params by default, `types[]` batch, `full:true` escape hatch), `add-free-widget`, `add-pro-widget`, and `update-widget`. **No capability is lost** — every widget and every curated parameter is still reachable via discover → inspect → act. AI scripts that hardcoded an old tool name must switch to `add-free-widget`/`add-pro-widget` with a `widget_type`.
-- Changed: **Per-turn widget tool-list context cut ~10×** (~18–20k → ~2k tokens), freeing the model's context window and removing the need for Low-tools mode on most clients.
-- Migration: Old per-widget disabled-tool toggles are cleared automatically (defaults seeder v5). Existing pages and templates are unaffected — this changes the tools, not `_elementor_data`.
-- Added: **`includes/widgets/`** — a curated widget catalog (`class-widget-catalog.php` + `catalog-{free,pro,woo}.php`, 62 widgets) that powers the new tools.
+> The first major release of the rebranded **EMCP Tools** — the toolset's step beyond Elementor into general WordPress management, alongside a leaner, catalog-backed widget surface. This single 3.0.0 release bundles the MCP namespace rename, the widget consolidation, the WordPress **Content** tools (domain 1), and the WordPress **Settings** tools (domain 2). (Previous release: 2.2.0.)
+
+### Changed (BREAKING)
+- **MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`.** As the toolset grows beyond Elementor, every tool is now under the `emcp-tools/` ability namespace (MCP tool names become `emcp-tools-<tool>`, e.g. `emcp-tools-list-widgets`), and the server route moved from `/wp-json/mcp/elementor-mcp-server` to `/wp-json/mcp/emcp-tools-server` (WP-CLI `--server=emcp-tools-server`). **Every existing AI-client connection (Claude Desktop/Code, Cursor, WP-CLI, the proxy) must be reconnected with the new route** — regenerate configs from the EMCP Tools → Connection tab. Your stored per-tool enable/disable toggles migrate automatically to the new slugs, so Pro tools stay disabled-by-default as before.
+- **Widget tools consolidated.** The 62 per-widget convenience tools (`add-heading`, `add-button`, `add-form`, …) and the universal `add-widget` are removed, replaced by 5 catalog-backed tools: `list-widgets` (now with `tier`/`category`/`search` filters), `get-widget-schema` (curated params by default, `types[]` batch, `full:true` escape hatch), `add-free-widget`, `add-pro-widget`, and `update-widget`. **No capability is lost** — every widget and every curated parameter is still reachable via discover → inspect → act. AI scripts that hardcoded an old tool name must switch to `add-free-widget`/`add-pro-widget` with a `widget_type`.
+
+### Added
+- **WordPress Content tools — the first step beyond Elementor (domain 1).** Eight new MCP tools to manage general WordPress content from an AI agent: `list-post-types`, `list-taxonomies`, `create-post`, `get-post`, `update-post`, `list-posts`, `delete-post`, and `set-post-terms`. Create and edit posts, pages, and any custom post type — title, content (classic HTML or block markup), status, slug, author, taxonomy terms, custom fields, and featured image — without touching Elementor data (a `is_elementor` flag steers you to the Elementor tools for builder pages). Capability-gated and enabled by default; `delete-post` trashes by default (pass `force` to permanently delete).
+- **WordPress Settings tools — beyond Elementor, domain 2.** Two MCP tools over a curated, typed allowlist of core WordPress settings.
+  - `emcp-tools/get-settings` — read general/reading/writing/discussion/media/permalinks settings; doubles as discovery (returns each setting's type, label, enum options, writable flag). `manage_options`, read-only.
+  - `emcp-tools/update-settings` — batch-update allowlisted settings; non-allowlisted, read-only (`admin_email`), or invalid values are reported in `skipped[]` (partial failure never aborts the batch). Changing a permalink setting auto-flushes rewrite rules. `manage_options`.
+  - Safety: curated allowlist only (no arbitrary option access); `siteurl`/`home`, `users_can_register`/`default_role` excluded; `admin_email` read-only.
+- WordPress core's read-only context abilities (`core/get-site-info`, `core/get-user-info`, `core/get-environment-info`) are now surfaced on the EMCP server too.
+- **`includes/widgets/`** — a curated widget catalog (`class-widget-catalog.php` + `catalog-{free,pro,woo}.php`, 62 widgets) that powers the consolidated widget tools.
+
+### Changed
+- **Per-turn widget tool-list context cut ~10×** (~18–20k → ~2k tokens), freeing the model's context window and removing the need for Low-tools mode on most clients.
+
+### Migration
+- Old per-widget disabled-tool toggles are cleared automatically (defaults seeder v5). Existing pages and templates are unaffected — this changes the tools, not `_elementor_data`.
 
 ## [2.2.0]
 
