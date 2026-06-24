@@ -29,16 +29,15 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 ## Features
 
-- **Up to 119 MCP Tools** covering the full Elementor page-building workflow. Counts scale with your environment:
-  - 62 tools — free Elementor only
-  - 76 tools — free Elementor + Elementor 4.0 atomic elements
-  - 101 tools — with Elementor Pro
-  - 115 tools — with Elementor Pro + Elementor 4.0
-  - 120 tools — with Elementor Pro + WooCommerce + Elementor 4.0
+- **A focused MCP toolset** covering the full Elementor page-building workflow. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment:
+  - ~34 tools — free Elementor only
+  - ~48 tools — free Elementor + Elementor 4.0 atomic elements
+  - ~44 tools — with Elementor Pro
+  - ~58 tools — with Elementor Pro + Elementor 4.0 (and + WooCommerce)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
-- **Widget Tools** — Universal add/update for any widget, plus 27 free convenience shortcuts, 30 conditional Pro widget tools, and 5 WooCommerce widget tools
+- **Widget Tools** — A catalog-backed model: `list-widgets` (filter by tier/category/search) → `get-widget-schema` (curated params, batch, or full raw schema) → `add-free-widget` / `add-pro-widget` (with Pro) → `update-widget`. The 62 widgets' curated params live in a built-in catalog (27 free / 30 Pro / 5 WooCommerce), so every widget and parameter stays reachable while the per-turn tool-list cost drops ~10×
 - **Pro Widget Support** — Conditional tools for nav menu, loop grid, loop carousel, media carousel, nested tabs, nested accordion, portfolio, author box, login, code highlight, reviews, off-canvas, progress tracker, search, and more (only register when Elementor Pro is active)
 - **Atomic Elements (Elementor 4.0+)** — 13 dedicated tools for Elementor's atomic system: flexbox, div-block, heading, paragraph, button, image, svg, youtube, video, divider, plus universal `add-atomic-widget` / `update-atomic-widget` and `detect-elementor-version`
 - **Theme Builder** — Create theme templates (header/footer/single/archive), set display conditions (Pro)
@@ -52,7 +51,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 - **Stock Images** — Search Openverse for Creative Commons images, sideload into Media Library, add to pages
 - **SVG Icons** — Upload SVG icons from URL or raw markup for use with Elementor icon widgets
 - **Custom Code** — Add custom CSS (element/page level), inject JavaScript, create site-wide code snippets for head/body injection
-- **Low-tools Mode** — One-click toggle that filters the active tool list to a curated essentials set (~50 tools) so MCP clients with strict tool caps (Antigravity, Gemini API, etc.) stay under their limits
+- **Low-tools Mode** — One-click toggle that filters the active tool list to a curated essentials set, for MCP clients with strict tool caps (Antigravity, Gemini API, etc.). After the v3.0.0 widget consolidation the active count already fits most caps, so this is rarely needed now
 - **Admin Dashboard** — Dedicated top-level **EMCP Tools** menu with Tools / Connection / Prompts / Templates / Brand Kits / Skills / Widget Builder / Changelog tabs. Toggle individual tools on/off, view connection configs for all supported MCP clients, and reach the **Get Support** portal from any tab
 
 ## Requirements
@@ -277,74 +276,17 @@ npx @modelcontextprotocol/inspector wp mcp-adapter serve \
 | `batch-update` | Apply multiple element updates in a single call |
 | `reorder-elements` | Reorder child elements within a container |
 
-### Widgets (2 universal + 27 free + 30 Pro + 5 WooCommerce)
+### Widgets — catalog-backed (5 tools)
+
+As of v3.0.0 the 62 per-widget tools (`add-heading`, `add-button`, `add-form`, the `add-wc-*` set, …) and the universal `add-widget` were replaced by a catalog-backed model. The 62 widgets' curated params now live in a built-in catalog (27 free / 30 Pro / 5 WooCommerce) instead of as individual tools — every widget and parameter is still reachable through **discover → inspect → act**, and any valid Elementor control passes straight through.
 
 | Tool | Description |
 |---|---|
-| `add-widget` | Universal: add any widget type to a container |
-| `update-widget` | Universal: update settings on an existing widget |
-| `add-heading` | Convenience: heading widget |
-| `add-text-editor` | Convenience: rich text editor widget |
-| `add-image` | Convenience: image widget |
-| `add-button` | Convenience: button widget |
-| `add-video` | Convenience: video widget |
-| `add-icon` | Convenience: icon widget |
-| `add-spacer` | Convenience: spacer widget |
-| `add-divider` | Convenience: divider widget |
-| `add-icon-box` | Convenience: icon box widget |
-| `add-accordion` | Convenience: collapsible accordion widget |
-| `add-alert` | Convenience: alert/notice widget |
-| `add-counter` | Convenience: animated counter widget |
-| `add-google-maps` | Convenience: embedded Google Maps widget |
-| `add-icon-list` | Convenience: icon list for features/checklists |
-| `add-image-box` | Convenience: image box (image + title + description) |
-| `add-image-carousel` | Convenience: rotating image carousel |
-| `add-progress` | Convenience: animated progress bar |
-| `add-social-icons` | Convenience: social media icon links |
-| `add-star-rating` | Convenience: star rating display |
-| `add-tabs` | Convenience: tabbed content widget |
-| `add-testimonial` | Convenience: testimonial with quote and author |
-| `add-toggle` | Convenience: toggle/expandable content |
-| `add-html` | Convenience: custom HTML code widget |
-| `add-menu-anchor` | Convenience: invisible anchor for one-page navigation |
-| `add-shortcode` | Convenience: embed WordPress shortcodes |
-| `add-rating` | Convenience: customizable rating widget |
-| `add-text-path` | Convenience: curved/circular text on a path |
-| `add-form` | Pro: form widget |
-| `add-posts-grid` | Pro: posts grid widget |
-| `add-countdown` | Pro: countdown timer widget |
-| `add-price-table` | Pro: price table widget |
-| `add-flip-box` | Pro: flip box widget |
-| `add-animated-headline` | Pro: animated headline widget |
-| `add-call-to-action` | Pro: call-to-action widget |
-| `add-slides` | Pro: full-width slides/slider |
-| `add-testimonial-carousel` | Pro: testimonial carousel/slider |
-| `add-price-list` | Pro: price list for menus/services |
-| `add-gallery` | Pro: advanced gallery (grid/masonry/justified) |
-| `add-share-buttons` | Pro: social share buttons |
-| `add-table-of-contents` | Pro: auto-generated table of contents |
-| `add-blockquote` | Pro: styled blockquote widget |
-| `add-lottie` | Pro: Lottie animation widget |
-| `add-hotspot` | Pro: image hotspot widget |
-| `add-nav-menu` | Pro: WordPress navigation menu |
-| `add-loop-grid` | Pro: dynamic post/CPT loop grid |
-| `add-loop-carousel` | Pro: dynamic post/CPT loop carousel |
-| `add-media-carousel` | Pro: media carousel for images/videos |
-| `add-nested-tabs` | Pro: nested tabs with container content |
-| `add-nested-accordion` | Pro: nested accordion with container content |
-| `add-portfolio` | Pro: portfolio grid widget |
-| `add-author-box` | Pro: post author box widget |
-| `add-login` | Pro: login form widget |
-| `add-code-highlight` | Pro: syntax-highlighted code block widget |
-| `add-reviews` | Pro: reviews/testimonials carousel widget |
-| `add-off-canvas` | Pro: off-canvas panel widget |
-| `add-progress-tracker` | Pro: scroll progress tracker widget |
-| `add-search` | Pro: search widget with live results support |
-| `add-wc-products` | Pro + WC: WooCommerce products grid |
-| `add-wc-add-to-cart` | Pro + WC: add-to-cart button |
-| `add-wc-cart` | Pro + WC: cart page widget |
-| `add-wc-checkout` | Pro + WC: checkout page widget |
-| `add-wc-menu-cart` | Pro + WC: menu cart icon widget |
+| `list-widgets` | Compact catalog index of widgets; filter by `tier` / `category` / `search` |
+| `get-widget-schema` | Curated params for a widget (or `types[]` batch); `full:true` for the raw control schema |
+| `add-free-widget` | Add any free/core widget by type |
+| `add-pro-widget` | Add an Elementor Pro / WooCommerce widget by type (only when Elementor Pro is active) |
+| `update-widget` | Update settings on an existing widget |
 
 ### Atomic Elements — Elementor 4.0+ (13 tools)
 

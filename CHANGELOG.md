@@ -2,6 +2,13 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [3.0.0]
+
+- Changed (BREAKING): **Widget tools consolidated.** The 62 per-widget convenience tools (`add-heading`, `add-button`, `add-form`, …) and the universal `add-widget` are removed, replaced by 5 catalog-backed tools: `list-widgets` (now with `tier`/`category`/`search` filters), `get-widget-schema` (curated params by default, `types[]` batch, `full:true` escape hatch), `add-free-widget`, `add-pro-widget`, and `update-widget`. **No capability is lost** — every widget and every curated parameter is still reachable via discover → inspect → act. AI scripts that hardcoded an old tool name must switch to `add-free-widget`/`add-pro-widget` with a `widget_type`.
+- Changed: **Per-turn widget tool-list context cut ~10×** (~18–20k → ~2k tokens), freeing the model's context window and removing the need for Low-tools mode on most clients.
+- Migration: Old per-widget disabled-tool toggles are cleared automatically (defaults seeder v5). Existing pages and templates are unaffected — this changes the tools, not `_elementor_data`.
+- Added: **`includes/widgets/`** — a curated widget catalog (`class-widget-catalog.php` + `catalog-{free,pro,woo}.php`, 62 widgets) that powers the new tools.
+
 ## [2.2.0]
 
 - Performance: **Leaner tool schemas — a lighter tool list on every request.** The per-widget convenience tools each published a large, fully-enumerated settings schema; multiplied across ~70 widgets, those dominated the MCP `tools/list` payload that an AI client re-sends on *every* turn. Each convenience tool now publishes a focused set of core parameters (content + primary layout + colours), while **every other setting still works** — it passes straight through to Elementor and stays fully discoverable via `get-widget-schema`. The tool list drops by roughly a third (~36% off the widget tools) with **no loss of capability**, leaving far more of the model's context for the actual page build.

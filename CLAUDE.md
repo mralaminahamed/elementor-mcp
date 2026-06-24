@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to 120 MCP tools (scales with environment).
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~58 MCP tools (scales with environment). As of v3.0.0 the 62 per-widget convenience tools were folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable.
 
 ## Companion projects (sibling folders, edit from here)
 
@@ -15,16 +15,23 @@ MCP Tools for Elementor Plugin — a WordPress plugin that extends the official 
 
 When editing premium-prompts behavior, the plugin code (`includes/admin/class-pro-prompts.php`) and the website's API endpoint (`website/src/pages/api/emcp/prompts.json.ts` per the PLAN) must stay in sync via the contract in `docs/PREMIUM_PROMPTS_API.md`.
 
-**Current status: v1.6.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, and Low-tools mode.** Foundation layer, query tools, page CRUD, layout, widget, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, and a curated essentials filter for clients with strict tool caps (Antigravity, Gemini API).
+**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, and the v3.0.0 catalog-backed widget consolidation.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
 
-**Tool counts by configuration:**
-- Free Elementor only: **62**
-- Free Elementor + Elementor 4.0+ atomic: **76**
-- With Elementor Pro: **101**
-- With Elementor Pro + Elementor 4.0+: **115**
-- With Elementor Pro + WooCommerce + Elementor 4.0+: **120**
-- Low-tools mode (any config): capped at **51** (46 without Elementor 4.0+)
+**Tool counts by configuration (v3.0.0 — computed; to be confirmed against a real `tools/list` in Task 9):**
+- Free Elementor only: **34**
+- Free Elementor + Elementor 4.0+ atomic: **48**
+- With Elementor Pro: **44**
+- With Elementor Pro + Elementor 4.0+: **58**
+- With Elementor Pro + WooCommerce + Elementor 4.0+: **58**
+- Low-tools mode (any config): now largely obsolete — the consolidation already keeps the surface well under common client caps. The essentials filter still exists, but the new counts already fit. (Old caps were 51 / 46.)
 - Pro (EMCP license): **+7** SEO & Accessibility tools — registered but **disabled-by-default**, so they don't change the active surface until a user enables them on the Tools tab.
+
+> **Arithmetic (v2.2.0 → v3.0.0).** The widget consolidation removed every per-widget convenience tool plus the old universal `add-widget`, and added `add-free-widget` (+ `add-pro-widget` only with Pro). The 62 curated widgets are now catalog DATA (27 free / 30 pro / 5 woo), not individual tools. All other ability groups are unchanged, so:
+> - **Free side:** removed 27 free convenience tools + old `add-widget` (28); added `add-free-widget` (1). Net widget tools 30 → 2, i.e. **−28**. So `62 − 28 = 34`; `76 − 28 = 48`.
+> - **Pro increment:** removed 30 Pro convenience tools; added `add-pro-widget` (1) → **−29**. So `101 − 28 − 29 = 44`; `115 − 28 − 29 = 58`.
+> - **Woo increment:** removed 5 wc convenience tools; added 0 (Woo widgets reach through `add-pro-widget`) → **−5**. So `120 − 28 − 29 − 5 = 58`.
+>
+> These are computed from the registered surface and known deltas; **Task 9 will verify them against a live `tools/list` via WP-CLI and correct any discrepancy.**
 
 See `PLAN.md` for the full architectural specification.
 
@@ -34,7 +41,7 @@ See `PLAN.md` for the full architectural specification.
 - Elementor >= 3.20 (container support required; >= 4.0 for atomic elements)
 - WordPress Abilities API — core in WP 6.9+/7.0 (the only hard external dep is Elementor)
 - WordPress MCP Adapter — **bundled** with the plugin since v1.7.4 (`includes/vendors/mcp-adapter/`); no separate install needed. If a standalone MCP Adapter plugin is active, the plugin defers to it (see `Elementor_MCP_Adapter_Bootstrap`).
-- PHP >= 8.0
+- PHP >= 8.2
 
 ## Build & Development Commands
 
@@ -59,12 +66,13 @@ elementor-mcp/
 │   ├── class-element-factory.php              # Builds valid Elementor JSON element structures (container, widget, section, column)
 │   ├── class-id-generator.php                 # 7-char hex unique IDs via random_bytes()
 │   ├── class-openverse-client.php             # HTTP client for Openverse image search API
+│   ├── widgets/                               # Curated widget catalog (v3.0.0): class-widget-catalog.php + catalog-{free,pro,woo}.php (27/30/5 = 62 widgets as DATA, not tools)
 │   ├── abilities/
 │   │   ├── class-ability-registrar.php        # Coordinates registration of all ability groups across all phases
 │   │   ├── class-query-abilities.php          # P0: 7 read-only tools (list-widgets, get-widget-schema, get-page-structure, etc.)
 │   │   ├── class-page-abilities.php           # P1: 5 page CRUD tools (create-page, update-page-settings, delete-page-content, import-template, export-page)
 │   │   ├── class-layout-abilities.php         # P1: 4 layout tools (add-container, move-element, remove-element, duplicate-element)
-│   │   ├── class-widget-abilities.php         # P1/P2: 2 universal + 9 core + 6 Pro convenience widget tools
+│   │   ├── class-widget-abilities.php         # Catalog-backed: add-free-widget + update-widget (+ add-pro-widget when Pro). Serves EMCP_Tools_Widget_Catalog
 │   │   ├── class-template-abilities.php       # P2: 2 template tools (save-as-template, apply-template)
 │   │   ├── class-global-abilities.php         # P2: 2 global tools (update-global-colors, update-global-typography)
 │   │   ├── class-composite-abilities.php      # P2: 1 composite tool (build-page)
@@ -108,7 +116,7 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 
 3. **Schema Generator** (`class-schema-generator.php` + `class-control-mapper.php`) — Maps Elementor control types (TEXT, SLIDER, SELECT, MEDIA, DIMENSIONS, REPEATER, etc.) to JSON Schema. This powers the `get-widget-schema` tool that tells AI agents what settings each widget accepts.
 
-4. **Abilities** — Grouped by domain: query (7 read-only tools), page CRUD (5), layout/container (4), widgets (16 including convenience shortcuts), templates (2), globals (2), and the composite `build-page` tool.
+4. **Abilities** — Grouped by domain: query (7 read-only tools, including the catalog-backed `list-widgets`/`get-widget-schema`), page CRUD (5), layout/container (4), widgets (3 catalog-backed: `add-free-widget`, `update-widget`, and `add-pro-widget` when Pro), templates (2), globals (2), and the composite `build-page` tool.
 
 ### Implementation Phases (from PLAN.md)
 
@@ -122,7 +130,7 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 
 - **Container-first**: Uses modern Elementor Container element (flexbox), not legacy Sections/Columns
 - **Schema-driven validation**: Widget settings validated against auto-generated JSON schemas before saving
-- **Universal + convenience**: `add-widget` works for any widget type; convenience tools (`add-heading`, `add-button`) provide simpler interfaces for common widgets
+- **Catalog-backed widgets (v3.0.0)**: instead of 62 per-widget tools, a curated catalog (`includes/widgets/`) holds each widget's tier/category/curated params as DATA. The flow is discover → inspect → act: `list-widgets` (compact index, `tier`/`category`/`search` filters) → `get-widget-schema` (curated `params`, `types[]` batch, `full:true` for raw control schema) → `add-free-widget` / `add-pro-widget` (catalog defaults merged automatically) → `update-widget`. Per-turn widget tool-list cost drops ~10×; no capability is lost (any valid Elementor control passes through).
 - **Pro-aware**: Pro widget tools only register when Elementor Pro is active; core tools work with free Elementor
 - **`elementor_mcp_ability_names` filter** lives in `Elementor_MCP_Plugin::filter_disabled_tools()` (always loaded — NOT in the admin class, which only loads on `is_admin()`). It reads two options: `elementor_mcp_disabled_tools` (user toggles) and `elementor_mcp_low_tool_mode` (essentials-only). When low-tools mode is on, every name outside `Elementor_MCP_Plugin::get_essential_tool_slugs()` is excluded — this is the runtime path that keeps the count under client tool caps.
 - **Pro widgets disabled-by-default**: on first admin page load (tracked via `elementor_mcp_defaults_applied` marker option), every Pro-badged slug from `get_all_tools()` is merged into `elementor_mcp_disabled_tools`. Users can re-enable individual Pro widgets from the Tools admin screen.
@@ -145,14 +153,14 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 | Code snippets (create) | `manage_options` + `unfiltered_html` |
 | Code snippets (list) | `manage_options` |
 
-## All Implemented Tools (up to 120 — see counts above)
+## All Implemented Tools (up to ~58 — see counts above)
 
 ### P0 — Query/Discovery (7 read-only)
 
 | Ability Name | Purpose |
 |---|---|
-| `elementor-mcp/list-widgets` | All registered widget types with names, titles, icons, categories, keywords |
-| `elementor-mcp/get-widget-schema` | Full JSON Schema for a widget's settings (auto-generated from Elementor controls) |
+| `elementor-mcp/list-widgets` | Compact catalog index of widgets; filter by `tier`/`category`/`search` (v3.0.0) |
+| `elementor-mcp/get-widget-schema` | Curated `params` for a widget by default (or `types[]` batch); `full:true` returns the raw auto-generated control schema (v3.0.0) |
 | `elementor-mcp/get-page-structure` | Element tree for a page (containers, widgets, nesting) |
 | `elementor-mcp/get-element-settings` | Current settings for a specific element on a page |
 | `elementor-mcp/list-pages` | All Elementor-enabled pages/posts |
@@ -178,56 +186,17 @@ The MCP Adapter converts ability names like `elementor-mcp/list-widgets` to tool
 | `elementor-mcp/remove-element` | Remove an element and all children (destructive) |
 | `elementor-mcp/duplicate-element` | Duplicate element with fresh IDs |
 
-### P1/P2 — Widgets (2 universal + 23 core + 21 Pro convenience)
+### Widgets — catalog-backed (5 tools, v3.0.0)
+
+The 62 per-widget convenience tools and the old universal `add-widget` were removed in v3.0.0. They are replaced by a **catalog-backed** model: the 62 widgets' tiers, categories, and curated params now live as DATA in `includes/widgets/` (`class-widget-catalog.php` + `catalog-{free,pro,woo}.php`, 27 free / 30 pro / 5 woo), served by `EMCP_Tools_Widget_Catalog`. No capability is lost — every widget and every curated parameter is still reachable through **discover → inspect → act**, and any valid Elementor control passes straight through. This cuts per-turn widget tool-list context ~10× (~18–20k → ~2k tokens).
 
 | Ability Name | Purpose |
 |---|---|
-| `elementor-mcp/add-widget` | Universal: add any widget type to a container |
-| `elementor-mcp/update-widget` | Universal: update settings on an existing widget |
-| `elementor-mcp/add-heading` | Convenience: heading widget |
-| `elementor-mcp/add-text-editor` | Convenience: rich text editor widget |
-| `elementor-mcp/add-image` | Convenience: image widget |
-| `elementor-mcp/add-button` | Convenience: button widget |
-| `elementor-mcp/add-video` | Convenience: video widget |
-| `elementor-mcp/add-icon` | Convenience: icon widget |
-| `elementor-mcp/add-spacer` | Convenience: spacer widget |
-| `elementor-mcp/add-divider` | Convenience: divider widget |
-| `elementor-mcp/add-icon-box` | Convenience: icon box widget |
-| `elementor-mcp/add-accordion` | Convenience: collapsible accordion widget |
-| `elementor-mcp/add-alert` | Convenience: alert/notice widget |
-| `elementor-mcp/add-counter` | Convenience: animated counter widget |
-| `elementor-mcp/add-google-maps` | Convenience: embedded Google Maps widget |
-| `elementor-mcp/add-icon-list` | Convenience: icon list for features/checklists |
-| `elementor-mcp/add-image-box` | Convenience: image box (image + title + description) |
-| `elementor-mcp/add-image-carousel` | Convenience: rotating image carousel |
-| `elementor-mcp/add-progress` | Convenience: animated progress bar |
-| `elementor-mcp/add-social-icons` | Convenience: social media icon links |
-| `elementor-mcp/add-star-rating` | Convenience: star rating display |
-| `elementor-mcp/add-tabs` | Convenience: tabbed content widget |
-| `elementor-mcp/add-testimonial` | Convenience: testimonial with quote and author |
-| `elementor-mcp/add-toggle` | Convenience: toggle/expandable content |
-| `elementor-mcp/add-html` | Convenience: custom HTML code widget |
-| `elementor-mcp/add-form` | Pro: form widget |
-| `elementor-mcp/add-posts-grid` | Pro: posts grid widget |
-| `elementor-mcp/add-countdown` | Pro: countdown timer widget |
-| `elementor-mcp/add-price-table` | Pro: price table widget |
-| `elementor-mcp/add-flip-box` | Pro: flip box widget |
-| `elementor-mcp/add-animated-headline` | Pro: animated headline widget |
-| `elementor-mcp/add-call-to-action` | Pro: call-to-action widget |
-| `elementor-mcp/add-slides` | Pro: full-width slides/slider |
-| `elementor-mcp/add-testimonial-carousel` | Pro: testimonial carousel/slider |
-| `elementor-mcp/add-price-list` | Pro: price list for menus/services |
-| `elementor-mcp/add-gallery` | Pro: advanced gallery (grid/masonry/justified) |
-| `elementor-mcp/add-share-buttons` | Pro: social share buttons |
-| `elementor-mcp/add-table-of-contents` | Pro: auto-generated table of contents |
-| `elementor-mcp/add-blockquote` | Pro: styled blockquote widget |
-| `elementor-mcp/add-lottie` | Pro: Lottie animation widget |
-| `elementor-mcp/add-hotspot` | Pro: image hotspot widget |
-| `elementor-mcp/add-code-highlight` | Pro: syntax-highlighted code block widget |
-| `elementor-mcp/add-reviews` | Pro: reviews/testimonials carousel widget |
-| `elementor-mcp/add-off-canvas` | Pro: off-canvas panel widget |
-| `elementor-mcp/add-progress-tracker` | Pro: scroll progress tracker widget |
-| `elementor-mcp/add-search` | Pro: search widget with live results support |
+| `elementor-mcp/list-widgets` | Compact catalog index of widgets; filter by `tier`/`category`/`search`. Step 1 of discover → inspect → act. |
+| `elementor-mcp/get-widget-schema` | Curated `params` for a widget (or `types[]` batch); `full:true` for the raw control schema. |
+| `elementor-mcp/add-free-widget` | Add any free/core widget by type (always registered; folds the old `add-widget`). |
+| `elementor-mcp/add-pro-widget` | Add an Elementor Pro / WooCommerce widget by type (registered only when Elementor Pro is active). |
+| `elementor-mcp/update-widget` | Update settings on an existing widget. |
 
 ### P2 — Templates (2 tools)
 
