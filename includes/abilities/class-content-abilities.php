@@ -57,6 +57,8 @@ class EMCP_Tools_Content_Abilities {
 		$this->register_get_post();
 		$this->register_update_post();
 		$this->register_delete_post();
+		$this->register_list_posts();
+		$this->register_set_post_terms();
 	}
 
 	// ---------------------------------------------------------------------
@@ -766,5 +768,212 @@ class EMCP_Tools_Content_Abilities {
 		}
 		$res = wp_trash_post( $post_id );
 		return array( 'success' => (bool) $res, 'post_id' => $post_id, 'deleted' => 'trashed' );
+	}
+
+	// ---------------------------------------------------------------------
+	// list-posts
+	// ---------------------------------------------------------------------
+
+	private function register_list_posts(): void {
+		$this->ability_names[] = 'emcp-tools/list-posts';
+		emcp_tools_register_ability(
+			'emcp-tools/list-posts',
+			array(
+				'label'               => __( 'List Posts', 'emcp-tools' ),
+				'description'         => __( 'Lists/searches posts, pages, or any CPT. Filter by type, status, search text, taxonomy term, author, or parent; paginated. Returns compact rows (no content body) — call get-post for the full content. The is_elementor flag flags builder pages.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_list_posts' ),
+				'permission_callback' => array( $this, 'check_read_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'post_type' => array( 'type' => array( 'string', 'array' ), 'description' => __( 'Type(s) to query. Default: post.', 'emcp-tools' ) ),
+						'status'    => array( 'type' => array( 'string', 'array' ), 'description' => __( 'Status(es). Default: any.', 'emcp-tools' ) ),
+						'search'    => array( 'type' => 'string' ),
+						'taxonomy'  => array( 'type' => 'object', 'description' => __( 'Map of taxonomy → array of term IDs or slugs (AND).', 'emcp-tools' ) ),
+						'author'    => array( 'type' => 'integer' ),
+						'parent'    => array( 'type' => 'integer' ),
+						'per_page'  => array( 'type' => 'integer', 'description' => __( '1-100. Default: 20.', 'emcp-tools' ) ),
+						'page'      => array( 'type' => 'integer', 'description' => __( 'Default: 1.', 'emcp-tools' ) ),
+						'orderby'   => array( 'type' => 'string', 'enum' => array( 'date', 'modified', 'title', 'menu_order', 'ID' ) ),
+						'order'     => array( 'type' => 'string', 'enum' => array( 'ASC', 'DESC' ) ),
+					),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'posts' => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+					'total' => array( 'type' => 'integer' ), 'pages' => array( 'type' => 'integer' ),
+					'page' => array( 'type' => 'integer' ),
+				) ),
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array
+	 */
+	public function execute_list_posts( $input ): array {
+		$per_page = max( 1, min( 100, absint( $input['per_page'] ?? 20 ) ) );
+		$page     = max( 1, absint( $input['page'] ?? 1 ) );
+		$orderby  = in_array( $input['orderby'] ?? '', array( 'date', 'modified', 'title', 'menu_order', 'ID' ), true ) ? $input['orderby'] : 'date';
+		$order    = ( isset( $input['order'] ) && 'ASC' === strtoupper( (string) $input['order'] ) ) ? 'ASC' : 'DESC';
+
+		$args = array(
+			'post_type'      => $input['post_type'] ?? 'post',
+			'post_status'    => $input['status'] ?? 'any',
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
+			'orderby'        => $orderby,
+			'order'          => $order,
+		);
+		if ( ! empty( $input['search'] ) ) {
+			$args['s'] = sanitize_text_field( $input['search'] );
+		}
+		if ( ! empty( $input['author'] ) ) {
+			$args['author'] = absint( $input['author'] );
+		}
+		if ( isset( $input['parent'] ) ) {
+			$args['post_parent'] = absint( $input['parent'] );
+		}
+		if ( ! empty( $input['taxonomy'] ) && is_array( $input['taxonomy'] ) ) {
+			$tax_query = array( 'relation' => 'AND' );
+			foreach ( $input['taxonomy'] as $tax => $terms ) {
+				$terms       = array_values( (array) $terms );
+				$field       = ( ! empty( $terms ) && is_numeric( $terms[0] ) ) ? 'term_id' : 'slug';
+				$tax_query[] = array( 'taxonomy' => sanitize_key( $tax ), 'field' => $field, 'terms' => $terms );
+			}
+			$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+		}
+
+		$query = new \WP_Query( $args );
+		$rows  = array();
+		foreach ( $query->posts as $p ) {
+			$rows[] = array(
+				'post_id'      => (int) $p->ID,
+				'post_type'    => (string) $p->post_type,
+				'title'        => (string) $p->post_title,
+				'slug'         => (string) $p->post_name,
+				'status'       => (string) $p->post_status,
+				'date'         => (string) $p->post_date,
+				'modified'     => (string) ( $p->post_modified ?? '' ),
+				'author_id'    => (int) ( $p->post_author ?? 0 ),
+				'permalink'    => (string) get_permalink( (int) $p->ID ),
+				'is_elementor' => 'builder' === get_post_meta( (int) $p->ID, '_elementor_edit_mode', true ),
+			);
+		}
+		return array(
+			'posts' => $rows,
+			'total' => (int) $query->found_posts,
+			'pages' => (int) $query->max_num_pages,
+			'page'  => $page,
+		);
+	}
+
+	// ---------------------------------------------------------------------
+	// set-post-terms
+	// ---------------------------------------------------------------------
+
+	private function register_set_post_terms(): void {
+		$this->ability_names[] = 'emcp-tools/set-post-terms';
+		emcp_tools_register_ability(
+			'emcp-tools/set-post-terms',
+			array(
+				'label'               => __( 'Set Post Terms', 'emcp-tools' ),
+				'description'         => __( 'Assigns taxonomy terms (categories, tags, custom) to a post. mode controls replace (default), append, or remove. Terms may be IDs or names; missing names are created when create_missing is true and you can manage that taxonomy.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_set_post_terms' ),
+				'permission_callback' => array( $this, 'check_edit_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'post_id'        => array( 'type' => 'integer', 'description' => __( 'The post ID.', 'emcp-tools' ) ),
+						'taxonomy'       => array( 'type' => 'string', 'description' => __( 'Taxonomy name (e.g. category, post_tag).', 'emcp-tools' ) ),
+						'terms'          => array( 'type' => 'array', 'items' => array( 'type' => array( 'integer', 'string' ) ), 'description' => __( 'Term IDs or names.', 'emcp-tools' ) ),
+						'mode'           => array( 'type' => 'string', 'enum' => array( 'replace', 'append', 'remove' ), 'description' => __( 'Default: replace.', 'emcp-tools' ) ),
+						'create_missing' => array( 'type' => 'boolean', 'description' => __( 'Create term names that do not exist. Default: true.', 'emcp-tools' ) ),
+					),
+					'required'   => array( 'post_id', 'taxonomy', 'terms' ),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'post_id' => array( 'type' => 'integer' ), 'taxonomy' => array( 'type' => 'string' ),
+					'terms' => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+					'created' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+				) ),
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => false, 'destructive' => false, 'idempotent' => false ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_set_post_terms( $input ) {
+		$post_id  = absint( $input['post_id'] ?? 0 );
+		$taxonomy = sanitize_key( $input['taxonomy'] ?? '' );
+		if ( ! $post_id || '' === $taxonomy ) {
+			return new \WP_Error( 'missing_params', __( 'post_id and taxonomy are required.', 'emcp-tools' ) );
+		}
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new \WP_Error( 'post_not_found', __( 'Post not found.', 'emcp-tools' ) );
+		}
+		$mode  = $input['mode'] ?? 'replace';
+		$mode  = in_array( $mode, array( 'replace', 'append', 'remove' ), true ) ? $mode : 'replace';
+		$terms = array_values( (array) ( $input['terms'] ?? array() ) );
+
+		$create_missing = ! isset( $input['create_missing'] ) || (bool) $input['create_missing'];
+
+		// When not auto-creating, resolve names to existing term IDs and drop
+		// any name that doesn't exist (numeric IDs pass through untouched).
+		if ( 'remove' !== $mode && ! $create_missing ) {
+			$resolved = array();
+			foreach ( $terms as $term ) {
+				if ( is_numeric( $term ) ) {
+					$resolved[] = (int) $term;
+					continue;
+				}
+				$existing = get_term_by( 'name', (string) $term, $taxonomy );
+				if ( ! $existing ) {
+					$existing = get_term_by( 'slug', sanitize_title( (string) $term ), $taxonomy );
+				}
+				if ( $existing && ! is_wp_error( $existing ) ) {
+					$resolved[] = (int) $existing->term_id;
+				}
+			}
+			$terms = $resolved;
+		}
+
+		if ( 'remove' === $mode ) {
+			$res = function_exists( 'wp_remove_object_terms' ) ? wp_remove_object_terms( $post_id, $terms, $taxonomy ) : true;
+		} else {
+			$res = wp_set_object_terms( $post_id, $terms, $taxonomy, 'append' === $mode );
+		}
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+
+		$current = array();
+		$tobjs   = get_the_terms( $post, $taxonomy );
+		if ( is_array( $tobjs ) ) {
+			foreach ( $tobjs as $t ) {
+				$current[] = array( 'term_id' => (int) $t->term_id, 'name' => (string) $t->name, 'slug' => (string) $t->slug );
+			}
+		}
+		return array(
+			'post_id'  => $post_id,
+			'taxonomy' => $taxonomy,
+			'terms'    => $current,
+			// v1: wp_set_object_terms auto-creates missing names but does not report
+			// which were new; 'created' is reserved for a future per-name diff.
+			'created'  => array(),
+		);
 	}
 }

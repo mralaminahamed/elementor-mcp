@@ -548,6 +548,12 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'get_term_by' ) ) {
+		function get_term_by( string $field, $value, string $taxonomy = '' ) {
+			return $GLOBALS['_wp_existing_terms'][ $taxonomy ][ (string) $value ] ?? false;
+		}
+	}
+
 	if ( ! function_exists( 'get_post_thumbnail_id' ) ) {
 		function get_post_thumbnail_id( $post = null ) {
 			return $GLOBALS['_wp_post_thumbnail_id'] ?? 0;
@@ -557,6 +563,29 @@ namespace {
 	if ( ! function_exists( 'wp_get_attachment_image_url' ) ) {
 		function wp_get_attachment_image_url( int $id, $size = 'thumbnail' ) {
 			return 'http://example.com/img-' . $id . '.jpg';
+		}
+	}
+
+	if ( ! function_exists( 'wp_remove_object_terms' ) ) {
+		function wp_remove_object_terms( int $object_id, $terms, string $taxonomy ) {
+			$GLOBALS['_wp_term_calls'][] = array( 'object_id' => $object_id, 'terms' => $terms, 'taxonomy' => $taxonomy, 'remove' => true );
+			return true;
+		}
+	}
+
+	if ( ! class_exists( 'WP_Query' ) ) {
+		class WP_Query {
+			public $posts = array();
+			public $found_posts = 0;
+			public $max_num_pages = 0;
+			public function __construct( $args = array() ) {
+				$set                 = $GLOBALS['_wp_query_result'] ?? array();
+				$this->posts         = $set['posts'] ?? array();
+				$this->found_posts   = $set['found'] ?? count( $this->posts );
+				$per                 = max( 1, (int) ( $args['posts_per_page'] ?? 20 ) );
+				$this->max_num_pages = (int) ceil( $this->found_posts / $per );
+				$GLOBALS['_wp_query_args'] = $args;
+			}
 		}
 	}
 

@@ -18,6 +18,7 @@ class ContentToolsTest extends Ability_Test_Case {
 		$GLOBALS['_wp_posts']             = array();
 		$GLOBALS['_wp_trashed_posts']     = array();
 		$GLOBALS['_wp_term_calls']        = array();
+		$GLOBALS['_wp_existing_terms']    = array();
 		$GLOBALS['_wp_thumbnail_calls']   = array();
 		$GLOBALS['_wp_current_user_id']   = 1;
 		$GLOBALS['_wp_post_type_objects'] = array(
@@ -160,5 +161,55 @@ class ContentToolsTest extends Ability_Test_Case {
 		$out = $this->ability->execute_delete_post( array( 'post_id' => 701, 'force' => true ) );
 		$this->assertSame( 'deleted', $out['deleted'] );
 		$this->assertContains( 701, $GLOBALS['_wp_deleted_posts'] );
+	}
+
+	/** @test */
+	public function test_list_posts_compact_shape_and_paging(): void {
+		$GLOBALS['_wp_query_result'] = array(
+			'posts' => array(
+				(object) array( 'ID' => 1, 'post_type' => 'post', 'post_title' => 'A', 'post_name' => 'a', 'post_status' => 'publish', 'post_date' => '2026-01-01 00:00:00', 'post_modified' => '2026-01-01 00:00:00', 'post_author' => 1 ),
+				(object) array( 'ID' => 2, 'post_type' => 'post', 'post_title' => 'B', 'post_name' => 'b', 'post_status' => 'draft', 'post_date' => '2026-01-02 00:00:00', 'post_modified' => '2026-01-02 00:00:00', 'post_author' => 1 ),
+			),
+			'found' => 2,
+		);
+		$out = $this->ability->execute_list_posts( array( 'per_page' => 20 ) );
+		$this->assertResultHasKey( $out, 'posts' );
+		$this->assertSame( 2, $out['total'] );
+		$this->assertCount( 2, $out['posts'] );
+		$this->assertArrayHasKey( 'is_elementor', $out['posts'][0] );
+		$this->assertArrayNotHasKey( 'content', $out['posts'][0], 'list rows must be compact (no content body)' );
+	}
+
+	/** @test */
+	public function test_set_post_terms_replace(): void {
+		$GLOBALS['_wp_posts'][800] = (object) array( 'ID' => 800, 'post_type' => 'post', 'post_status' => 'publish', 'post_author' => 1 );
+		$out = $this->ability->execute_set_post_terms( array( 'post_id' => 800, 'taxonomy' => 'category', 'terms' => array( 3, 4 ), 'mode' => 'replace' ) );
+		$this->assertNotWPError( $out );
+		$this->assertSame( 'category', $out['taxonomy'] );
+		$call = end( $GLOBALS['_wp_term_calls'] );
+		$this->assertFalse( $call['append'], 'replace mode → append=false' );
+	}
+
+	/** @test */
+	public function test_set_post_terms_append(): void {
+		$GLOBALS['_wp_posts'][801] = (object) array( 'ID' => 801, 'post_type' => 'post', 'post_status' => 'publish', 'post_author' => 1 );
+		$this->ability->execute_set_post_terms( array( 'post_id' => 801, 'taxonomy' => 'post_tag', 'terms' => array( 9 ), 'mode' => 'append' ) );
+		$call = end( $GLOBALS['_wp_term_calls'] );
+		$this->assertTrue( $call['append'], 'append mode → append=true' );
+	}
+
+	/** @test */
+	public function test_set_post_terms_not_found(): void {
+		$out = $this->ability->execute_set_post_terms( array( 'post_id' => 99999, 'taxonomy' => 'category', 'terms' => array( 1 ) ) );
+		$this->assertWPError( $out, 'post_not_found' );
+	}
+
+	/** @test */
+	public function test_set_post_terms_create_missing_false_drops_unknown(): void {
+		$GLOBALS['_wp_posts'][802] = (object) array( 'ID' => 802, 'post_type' => 'post', 'post_status' => 'publish', 'post_author' => 1 );
+		$GLOBALS['_wp_existing_terms'] = array( 'category' => array( 'News' => (object) array( 'term_id' => 11, 'name' => 'News', 'slug' => 'news' ) ) );
+		$this->ability->execute_set_post_terms( array( 'post_id' => 802, 'taxonomy' => 'category', 'terms' => array( 'News', 'Nonexistent' ), 'create_missing' => false ) );
+		$call = end( $GLOBALS['_wp_term_calls'] );
+		$this->assertSame( array( 11 ), $call['terms'], 'News resolves to 11; Nonexistent is dropped' );
 	}
 }
