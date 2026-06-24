@@ -49,4 +49,49 @@ class PluginToolsTest extends Ability_Test_Case {
 		$GLOBALS['_wp_fs_method'] = 'ftpext';
 		$this->assertWPError( \EMCP_Tools_Package_Guard::filesystem_ready(), 'filesystem_unavailable' );
 	}
+
+	private function plugins(): \EMCP_Tools_Plugin_Abilities {
+		$a = new \EMCP_Tools_Plugin_Abilities();
+		$a->register();
+		return $a;
+	}
+
+	/** @test */
+	public function test_registers_seven_tools(): void {
+		$names = $this->plugins()->get_ability_names();
+		$this->assertContains( 'emcp-tools/list-plugins', $names );
+		$this->assertContains( 'emcp-tools/search-plugins', $names );
+	}
+
+	/** @test */
+	public function test_list_plugins_rows_and_flags(): void {
+		$GLOBALS['_wp_site_transients']['update_plugins'] = (object) array(
+			'response' => array( 'hello-dolly/hello.php' => (object) array( 'new_version' => '1.8' ) ),
+		);
+		$out  = $this->plugins()->execute_list_plugins( array() );
+		$this->assertResultHasKey( $out, 'plugins' );
+		$rows = array();
+		foreach ( $out['plugins'] as $r ) { $rows[ $r['file'] ] = $r; }
+		$this->assertTrue( $rows['elementor/elementor.php']['is_protected'] );
+		$this->assertTrue( $rows['elementor/elementor.php']['active'] );
+		$this->assertFalse( $rows['hello-dolly/hello.php']['active'] );
+		$this->assertTrue( $rows['hello-dolly/hello.php']['update_available'] );
+		$this->assertSame( '1.8', $rows['hello-dolly/hello.php']['new_version'] );
+		$this->assertFalse( $rows['akismet/akismet.php']['is_protected'] );
+	}
+
+	/** @test */
+	public function test_search_plugins_returns_rows(): void {
+		$GLOBALS['_wp_plugins_api_query'] = array(
+			(object) array( 'slug' => 'contact-form-7', 'name' => 'Contact Form 7', 'version' => '5.9', 'rating' => 90, 'num_ratings' => 200, 'requires' => '6.0', 'tested' => '6.9', 'short_description' => 'Just a CF.' ),
+		);
+		$out = $this->plugins()->execute_search_plugins( array( 'search' => 'contact form' ) );
+		$this->assertResultHasKey( $out, 'results' );
+		$this->assertSame( 'contact-form-7', $out['results'][0]['slug'] );
+	}
+
+	/** @test */
+	public function test_search_plugins_requires_query(): void {
+		$this->assertWPError( $this->plugins()->execute_search_plugins( array() ), 'missing_params' );
+	}
 }
