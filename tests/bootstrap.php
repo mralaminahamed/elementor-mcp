@@ -395,12 +395,6 @@ namespace {
 		}
 	}
 
-	if ( ! function_exists( 'sanitize_textarea_field' ) ) {
-		function sanitize_textarea_field( $str ) {
-			return is_string( $str ) ? trim( $str ) : '';
-		}
-	}
-
 	if ( ! function_exists( 'esc_url' ) ) {
 		function esc_url( string $url, array $protocols = [], string $context = 'display' ): string {
 			return esc_url_raw( $url );

@@ -154,7 +154,7 @@ class EMCP_Tools_Settings_Abilities {
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
-						'group' => array( 'type' => 'string', 'enum' => array( 'general', 'reading', 'writing', 'discussion', 'media', 'permalinks' ), 'description' => __( 'Filter to one Settings screen.', 'emcp-tools' ) ),
+						'group' => array( 'type' => 'string', 'enum' => self::groups(), 'description' => __( 'Filter to one Settings screen.', 'emcp-tools' ) ),
 						'keys'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ), 'description' => __( 'Return only these allowlisted keys.', 'emcp-tools' ) ),
 					),
 				),
