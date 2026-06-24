@@ -1774,7 +1774,7 @@ class EMCP_Tools_Admin {
 			);
 
 			$tools['widget_builder'] = array(
-				'label' => __( 'Sandbox', 'emcp-tools' ),
+				'label' => __( 'Widget Builder (Pro)', 'emcp-tools' ),
 				'tools' => array(
 					'elementor-mcp/list-control-types'   => array(
 						'label'       => __( 'List Control Types', 'emcp-tools' ),
