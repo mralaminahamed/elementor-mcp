@@ -448,6 +448,112 @@ namespace {
 		}
 	}
 
+	// --- Content-tool stubs (added for WordPress Content tools) ---
+	// Note: sanitize_key() and sanitize_title() already defined above; skipped here.
+
+	if ( ! function_exists( 'wp_trash_post' ) ) {
+		function wp_trash_post( int $post_id ) {
+			$GLOBALS['_wp_trashed_posts'][] = $post_id;
+			return (object) array( 'ID' => $post_id );
+		}
+	}
+
+	if ( ! function_exists( 'wp_set_object_terms' ) ) {
+		function wp_set_object_terms( int $object_id, $terms, string $taxonomy, bool $append = false ) {
+			$GLOBALS['_wp_term_calls'][] = compact( 'object_id', 'terms', 'taxonomy', 'append' );
+			return is_array( $terms ) ? array_map( 'absint', array_values( array_filter( $terms, 'is_numeric' ) ) ) : array();
+		}
+	}
+
+	if ( ! function_exists( 'set_post_thumbnail' ) ) {
+		function set_post_thumbnail( $post, int $thumbnail_id ): bool {
+			$GLOBALS['_wp_thumbnail_calls'][] = array( 'post' => is_object( $post ) ? $post->ID : $post, 'thumb' => $thumbnail_id );
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'delete_post_thumbnail' ) ) {
+		function delete_post_thumbnail( $post ): bool {
+			$GLOBALS['_wp_thumbnail_calls'][] = array( 'post' => is_object( $post ) ? $post->ID : $post, 'thumb' => 0 );
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'is_protected_meta' ) ) {
+		function is_protected_meta( string $meta_key, string $meta_type = '' ): bool {
+			return '_' === substr( $meta_key, 0, 1 );
+		}
+	}
+
+	if ( ! function_exists( 'get_userdata' ) ) {
+		function get_userdata( int $user_id ) {
+			if ( isset( $GLOBALS['_wp_users'] ) && array_key_exists( $user_id, $GLOBALS['_wp_users'] ) ) {
+				return $GLOBALS['_wp_users'][ $user_id ];
+			}
+			return (object) array( 'ID' => $user_id, 'display_name' => 'User ' . $user_id );
+		}
+	}
+
+	if ( ! function_exists( 'get_current_user_id' ) ) {
+		function get_current_user_id(): int {
+			return $GLOBALS['_wp_current_user_id'] ?? 1;
+		}
+	}
+
+	if ( ! function_exists( 'post_type_exists' ) ) {
+		function post_type_exists( string $post_type ): bool {
+			$known = $GLOBALS['_wp_post_types'] ?? array( 'post', 'page' );
+			return in_array( $post_type, array_keys( (array) $known ), true ) || in_array( $post_type, (array) $known, true );
+		}
+	}
+
+	if ( ! function_exists( 'get_post_types' ) ) {
+		function get_post_types( array $args = array(), string $output = 'names', string $operator = 'and' ): array {
+			$objs = $GLOBALS['_wp_post_type_objects'] ?? array();
+			if ( 'objects' === $output ) {
+				return $objs;
+			}
+			return array_keys( $objs );
+		}
+	}
+
+	if ( ! function_exists( 'get_taxonomies' ) ) {
+		function get_taxonomies( array $args = array(), string $output = 'names' ): array {
+			$objs = $GLOBALS['_wp_taxonomy_objects'] ?? array();
+			return 'objects' === $output ? $objs : array_keys( $objs );
+		}
+	}
+
+	if ( ! function_exists( 'get_object_taxonomies' ) ) {
+		function get_object_taxonomies( $object, string $output = 'names' ): array {
+			return array_keys( $GLOBALS['_wp_taxonomy_objects'] ?? array() );
+		}
+	}
+
+	if ( ! function_exists( 'get_terms' ) ) {
+		function get_terms( $args = array() ): array {
+			return $GLOBALS['_wp_terms'] ?? array();
+		}
+	}
+
+	if ( ! function_exists( 'get_the_terms' ) ) {
+		function get_the_terms( $post, string $taxonomy ) {
+			return $GLOBALS['_wp_post_terms'][ $taxonomy ] ?? array();
+		}
+	}
+
+	if ( ! function_exists( 'get_post_thumbnail_id' ) ) {
+		function get_post_thumbnail_id( $post = null ) {
+			return $GLOBALS['_wp_post_thumbnail_id'] ?? 0;
+		}
+	}
+
+	if ( ! function_exists( 'wp_get_attachment_image_url' ) ) {
+		function wp_get_attachment_image_url( int $id, $size = 'thumbnail' ) {
+			return 'http://example.com/img-' . $id . '.jpg';
+		}
+	}
+
 	// -----------------------------------------------------------------------
 	// WP_Error stub
 	// -----------------------------------------------------------------------
@@ -619,6 +725,7 @@ namespace {
 			'EMCP_Tools_Seo_Abilities'          => 'includes/abilities/class-seo-abilities.php',
 			'EMCP_Tools_A11y_Abilities'         => 'includes/abilities/class-a11y-abilities.php',
 			// Ability classes — all groups
+			'EMCP_Tools_Content_Abilities'      => 'includes/abilities/class-content-abilities.php',
 			'EMCP_Tools_Custom_Code_Abilities'  => 'includes/abilities/class-custom-code-abilities.php',
 			'EMCP_Tools_Stock_Image_Abilities'  => 'includes/abilities/class-stock-image-abilities.php',
 			'EMCP_Tools_Composite_Abilities'    => 'includes/abilities/class-composite-abilities.php',
