@@ -939,7 +939,7 @@ class EMCP_Tools_Admin {
 
 		?>
 		<div class="wrap elementor-mcp-admin">
-			<h1><?php esc_html_e( 'MCP Tools for Elementor', 'emcp-tools' ); ?></h1>
+			<h1><?php esc_html_e( 'MCP Tools for WordPress & Page Builders', 'emcp-tools' ); ?></h1>
 
 			<?php
 			// Success notice after a Settings API save (options.php redirects back
@@ -961,10 +961,10 @@ class EMCP_Tools_Admin {
 				</span>
 				<div class="elementor-mcp-header-info">
 					<h2 class="elementor-mcp-header-title">
-						<?php esc_html_e( 'MCP Tools for Elementor', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'MCP Tools for WordPress & Page Builders', 'emcp-tools' ); ?>
 						<span class="elementor-mcp-header-version">v<?php echo esc_html( EMCP_TOOLS_VERSION ); ?></span>
 					</h2>
-					<p class="elementor-mcp-header-subtitle"><?php esc_html_e( 'AI-powered page building tools for Elementor via Model Context Protocol.', 'emcp-tools' ); ?></p>
+					<p class="elementor-mcp-header-subtitle"><?php esc_html_e( 'AI-powered WordPress management and page-building tools via the Model Context Protocol.', 'emcp-tools' ); ?></p>
 				</div>
 				<div class="elementor-mcp-header-actions">
 					<a href="https://www.youtube.com/watch?v=tXCpGa-hqxk" class="elementor-mcp-header-btn elementor-mcp-header-btn--secondary" target="_blank" rel="noopener noreferrer">
