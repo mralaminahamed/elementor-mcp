@@ -252,6 +252,10 @@ class EMCP_Tools_Plugin {
 			// WordPress plugins & themes (2 reads — writes opt-in only).
 			'emcp-tools/list-plugins',
 			'emcp-tools/list-themes',
+
+			// WordPress media (2 — detail read + metadata edit; delete is opt-in).
+			'emcp-tools/get-media',
+			'emcp-tools/update-media',
 		);
 	}
 

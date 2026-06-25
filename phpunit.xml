@@ -35,6 +35,9 @@
         <testsuite name="Packages">
             <directory>tests/unit/packages</directory>
         </testsuite>
+        <testsuite name="Media">
+            <directory>tests/unit/media</directory>
+        </testsuite>
     </testsuites>
 
     <source>

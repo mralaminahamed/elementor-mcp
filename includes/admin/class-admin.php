@@ -161,7 +161,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 6;
+	const DEFAULTS_VERSION = 7;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -245,6 +245,18 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * Media tool slugs that ship disabled-by-default. Only delete-media (the
+	 * destructive, effectively-permanent op); get-media / update-media stay on.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return string[]
+	 */
+	public static function media_write_tool_slugs(): array {
+		return array( 'emcp-tools/delete-media' );
+	}
+
+	/**
 	 * Seeds default disabled-tools on install/upgrade so new Pro tool batches
 	 * ship off-by-default (keeping sites under client tool caps), then records
 	 * the applied version. Each version step adds ONLY its newly-introduced
@@ -305,6 +317,11 @@ class EMCP_Tools_Admin {
 		// (powerful: install/activate/deactivate/update/delete). Reads stay on.
 		if ( $applied < 6 ) {
 			$add = array_merge( $add, self::package_write_tool_slugs() );
+		}
+
+		// v7 — delete-media ships disabled-by-default (permanent deletion).
+		if ( $applied < 7 ) {
+			$add = array_merge( $add, self::media_write_tool_slugs() );
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -1438,6 +1455,21 @@ class EMCP_Tools_Admin {
 						'label'       => __( 'List Media', 'emcp-tools' ),
 						'description' => __( 'Lists and searches images already in the WordPress Media Library (the site\'s own uploads).', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/get-media'        => array(
+						'label'       => __( 'Get Media', 'emcp-tools' ),
+						'description' => __( 'Full detail of one attachment (sizes, metadata, alt/caption).', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/update-media'     => array(
+						'label'       => __( 'Update Media', 'emcp-tools' ),
+						'description' => __( 'Edit an attachment\'s alt text, title, caption, description.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/delete-media'     => array(
+						'label'       => __( 'Delete Media', 'emcp-tools' ),
+						'description' => __( 'Delete an attachment (permanent; requires confirm).', 'emcp-tools' ),
+						'badges'      => array( 'destructive' ),
 					),
 					'emcp-tools/search-images'    => array(
 						'label'       => __( 'Search Images', 'emcp-tools' ),
