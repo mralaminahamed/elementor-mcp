@@ -391,10 +391,85 @@ class EMCP_Tools_Media_Library_Abilities {
 	}
 
 	// -------------------------------------------------------------------------
-	// update-media (stub — replaced in Task 3)
+	// update-media
 	// -------------------------------------------------------------------------
 
-	private function register_update_media(): void {}
+	private function register_update_media(): void {
+		emcp_tools_register_ability(
+			'emcp-tools/update-media',
+			array(
+				'label'               => __( 'Update Media', 'emcp-tools' ),
+				'description'         => __( 'Updates an existing attachment\'s metadata: title, alt text, caption, and/or description. Only the fields you pass change. Great for fixing missing alt text (accessibility/SEO) on images already in the library.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_update_media' ),
+				'permission_callback' => array( $this, 'check_edit_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'id'          => array( 'type' => 'integer', 'description' => __( 'Attachment ID.', 'emcp-tools' ) ),
+						'title'       => array( 'type' => 'string' ),
+						'alt'         => array( 'type' => 'string', 'description' => __( 'Alt text (accessibility).', 'emcp-tools' ) ),
+						'caption'     => array( 'type' => 'string' ),
+						'description' => array( 'type' => 'string' ),
+					),
+					'required'   => array( 'id' ),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'id' => array( 'type' => 'integer' ), 'updated' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+					'alt' => array( 'type' => 'string' ), 'title' => array( 'type' => 'string' ),
+					'caption' => array( 'type' => 'string' ), 'description' => array( 'type' => 'string' ),
+				) ),
+				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => false, 'idempotent' => false ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_update_media( $input ) {
+		$post = $this->resolve_attachment( $input['id'] ?? 0 );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+		$id      = (int) $post->ID;
+		$updated = array();
+
+		$postarr = array( 'ID' => $id );
+		if ( array_key_exists( 'title', $input ) ) {
+			$postarr['post_title'] = sanitize_text_field( (string) $input['title'] );
+			$updated[]             = 'title';
+		}
+		if ( array_key_exists( 'caption', $input ) ) {
+			$postarr['post_excerpt'] = sanitize_text_field( (string) $input['caption'] );
+			$updated[]               = 'caption';
+		}
+		if ( array_key_exists( 'description', $input ) ) {
+			$postarr['post_content'] = (string) $input['description'];
+			$updated[]               = 'description';
+		}
+		if ( count( $postarr ) > 1 ) {
+			$res = wp_update_post( wp_slash( $postarr ), true );
+			if ( is_wp_error( $res ) ) {
+				return $res;
+			}
+		}
+		if ( array_key_exists( 'alt', $input ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( (string) $input['alt'] ) );
+			$updated[] = 'alt';
+		}
+
+		$fresh = get_post( $id );
+		return array(
+			'id'          => $id,
+			'updated'     => $updated,
+			'alt'         => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ),
+			'title'       => (string) ( $fresh->post_title ?? $post->post_title ),
+			'caption'     => (string) ( $fresh->post_excerpt ?? $post->post_excerpt ),
+			'description' => (string) ( $fresh->post_content ?? $post->post_content ),
+		);
+	}
 
 	// -------------------------------------------------------------------------
 	// delete-media (stub — replaced in Task 4)

@@ -57,4 +57,26 @@ class MediaToolsTest extends Ability_Test_Case {
 	public function test_get_media_requires_id(): void {
 		$this->assertWPError( $this->ability->execute_get_media( array() ), 'missing_params' );
 	}
+
+	/** @test */
+	public function test_update_media_writes_only_passed_fields(): void {
+		$out = $this->ability->execute_update_media( array( 'id' => 77, 'alt' => 'Sunset over the sea', 'title' => 'Sunset HQ' ) );
+		$this->assertNotWPError( $out );
+		$this->assertContains( 'alt', $out['updated'] );
+		$this->assertContains( 'title', $out['updated'] );
+		$this->assertNotContains( 'caption', $out['updated'] );
+		// alt written via _wp_attachment_image_alt meta.
+		$altCalls = array_filter( $GLOBALS['_wp_meta_calls'], fn( $c ) => ( $c['meta_key'] ?? '' ) === '_wp_attachment_image_alt' && ( $c['post_id'] ?? 0 ) === 77 );
+		$this->assertNotEmpty( $altCalls );
+	}
+
+	/** @test */
+	public function test_update_media_rejects_non_attachment(): void {
+		$this->assertWPError( $this->ability->execute_update_media( array( 'id' => 88, 'alt' => 'x' ) ), 'not_an_attachment' );
+	}
+
+	/** @test */
+	public function test_update_media_requires_id(): void {
+		$this->assertWPError( $this->ability->execute_update_media( array( 'alt' => 'x' ) ), 'missing_params' );
+	}
 }
