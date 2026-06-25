@@ -1117,6 +1117,8 @@ namespace {
 			'EMCP_Tools_Theme_Abilities'        => 'includes/abilities/class-theme-abilities.php',
 			'EMCP_Tools_Media_Library_Abilities' => 'includes/abilities/class-media-library-abilities.php',
 			'EMCP_Tools_User_Abilities'         => 'includes/abilities/class-user-abilities.php',
+		// Admin class (loaded standalone for static-method unit tests)
+		'EMCP_Tools_Admin'                  => 'includes/admin/class-admin.php',
 		];
 
 		if ( isset( $map[ $class ] ) ) {

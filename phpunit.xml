@@ -41,6 +41,9 @@
         <testsuite name="Users">
             <directory>tests/unit/users</directory>
         </testsuite>
+        <testsuite name="Admin">
+            <directory>tests/unit/admin</directory>
+        </testsuite>
     </testsuites>
 
     <source>

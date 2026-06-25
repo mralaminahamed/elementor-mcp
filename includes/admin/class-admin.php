@@ -1076,6 +1076,43 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * The ordered platform sub-tabs for the Tools page. Keyed by the `platform`
+	 * value a category carries; the value is the display label. A future page
+	 * builder is added by giving its categories a new platform value and adding
+	 * a matching entry here.
+	 *
+	 * @since 3.0.0
+	 * @return array<string,string>
+	 */
+	public static function platform_tabs(): array {
+		return array(
+			'elementor' => __( 'Elementor', 'emcp-tools' ),
+			'wordpress' => __( 'WordPress', 'emcp-tools' ),
+		);
+	}
+
+	/**
+	 * Group a tool-category map into one bucket per platform tab, preserving
+	 * category order within each bucket. A category with a missing or unknown
+	 * `platform` falls into the default ('elementor') bucket.
+	 *
+	 * @since 3.0.0
+	 * @param array $categories Category map (id => category array) from get_all_tools().
+	 * @return array<string,array> [ 'elementor' => [...], 'wordpress' => [...] ]
+	 */
+	public static function partition_by_platform( array $categories ): array {
+		$buckets = array();
+		foreach ( array_keys( self::platform_tabs() ) as $tab_id ) {
+			$buckets[ $tab_id ] = array();
+		}
+		foreach ( $categories as $id => $cat ) {
+			$platform = ( isset( $cat['platform'] ) && isset( $buckets[ $cat['platform'] ] ) ) ? $cat['platform'] : 'elementor';
+			$buckets[ $platform ][ $id ] = $cat;
+		}
+		return $buckets;
+	}
+
+	/**
 	 * Get all tools grouped by category for the UI.
 	 *
 	 * Returns the curated catalog (see get_tool_catalog()) and, under WP_DEBUG,
