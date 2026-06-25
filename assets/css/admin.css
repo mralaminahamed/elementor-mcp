@@ -2615,6 +2615,48 @@
 	white-space: pre;
 }
 
+/* ── Tools page platform sub-tabs ─────────────────────────────── */
+.elementor-mcp-subtabs {
+	display: flex;
+	gap: 4px;
+	margin: 16px 0 18px;
+	border-bottom: 1px solid var(--mcp-gray-200);
+}
+.elementor-mcp-subtab {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 18px;
+	margin-bottom: -1px;
+	background: transparent;
+	border: 1px solid transparent;
+	border-bottom: 2px solid transparent;
+	border-radius: 6px 6px 0 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--mcp-gray-500);
+	cursor: pointer;
+}
+.elementor-mcp-subtab:hover { color: var(--mcp-gray-800); background: var(--mcp-gray-100); }
+.elementor-mcp-subtab.is-active {
+	color: var(--mcp-gray-800);
+	border-bottom-color: #2271b1;
+}
+.elementor-mcp-subtab-count {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--mcp-gray-500);
+	background: var(--mcp-gray-100);
+	border-radius: 10px;
+	padding: 1px 8px;
+}
+.elementor-mcp-subtab.is-active .elementor-mcp-subtab-count {
+	color: var(--mcp-white);
+	background: #2271b1;
+}
+.elementor-mcp-tabpanel { display: none; }
+.elementor-mcp-tabpanel.is-active { display: block; }
+
 /* Low-tools mode: pause/grey the per-tool grid + bulk selects (Save stays active). */
 #elementor-mcp-tools-form.is-low-mode .elementor-mcp-category,
 #elementor-mcp-tools-form.is-low-mode .elementor-mcp-enable-all,

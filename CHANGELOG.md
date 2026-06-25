@@ -24,6 +24,7 @@ All notable changes to MCP Tools for Elementor are documented in this file.
 
 ### Changed
 - **Per-turn widget tool-list context cut ~10×** (~18–20k → ~2k tokens), freeing the model's context window and removing the need for Low-tools mode on most clients.
+- **Tools admin page reorganized into Elementor / WordPress sub-tabs.** As the toolset grew well beyond page-building, the Tools screen now groups categories under two tabs — **Elementor** (Query, Page, Layout, Widgets, Templates, Global, Composite, SVG, Custom Code, Accessibility, Widget Builder, atomic) and **WordPress** (Content, Settings, Plugins & Themes, Users, Stock & Media, PHP Snippets, SEO). Each category is tagged with its platform so future page builders can get their own tab. Presentation only — no change to which tools are enabled or how they're gated.
 
 ### Migration
 - Old per-widget disabled-tool toggles are cleared automatically (defaults seeder v5). Existing pages and templates are unaffected — this changes the tools, not `_elementor_data`.

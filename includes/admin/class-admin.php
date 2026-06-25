@@ -1076,6 +1076,43 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * The ordered platform sub-tabs for the Tools page. Keyed by the `platform`
+	 * value a category carries; the value is the display label. A future page
+	 * builder is added by giving its categories a new platform value and adding
+	 * a matching entry here.
+	 *
+	 * @since 3.0.0
+	 * @return array<string,string>
+	 */
+	public static function platform_tabs(): array {
+		return array(
+			'elementor' => __( 'Elementor', 'emcp-tools' ),
+			'wordpress' => __( 'WordPress', 'emcp-tools' ),
+		);
+	}
+
+	/**
+	 * Group a tool-category map into one bucket per platform tab, preserving
+	 * category order within each bucket. A category with a missing or unknown
+	 * `platform` falls into the default ('elementor') bucket.
+	 *
+	 * @since 3.0.0
+	 * @param array $categories Category map (id => category array) from get_all_tools().
+	 * @return array<string,array> [ 'elementor' => [...], 'wordpress' => [...] ]
+	 */
+	public static function partition_by_platform( array $categories ): array {
+		$buckets = array();
+		foreach ( array_keys( self::platform_tabs() ) as $tab_id ) {
+			$buckets[ $tab_id ] = array();
+		}
+		foreach ( $categories as $id => $cat ) {
+			$platform = ( isset( $cat['platform'] ) && isset( $buckets[ $cat['platform'] ] ) ) ? $cat['platform'] : 'elementor';
+			$buckets[ $platform ][ $id ] = $cat;
+		}
+		return $buckets;
+	}
+
+	/**
 	 * Get all tools grouped by category for the UI.
 	 *
 	 * Returns the curated catalog (see get_tool_catalog()) and, under WP_DEBUG,
@@ -1121,6 +1158,7 @@ class EMCP_Tools_Admin {
 	private function get_tool_catalog(): array {
 		$tools = array(
 			'query'            => array(
+				'platform' => 'elementor',
 				'label' => __( 'Query & Discovery', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-widgets'         => array(
@@ -1161,6 +1199,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'wp_content'       => array(
+				'platform' => 'wordpress',
 				'label' => __( 'WordPress Content', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-post-types' => array(
@@ -1206,6 +1245,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'wp_settings'      => array(
+				'platform' => 'wordpress',
 				'label' => __( 'WordPress Settings', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/get-settings'    => array(
@@ -1221,6 +1261,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'wp_packages'      => array(
+				'platform' => 'wordpress',
 				'label' => __( 'Plugins & Themes', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-plugins'      => array(
@@ -1291,6 +1332,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'wp_users'         => array(
+				'platform' => 'wordpress',
 				'label' => __( 'Users', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-users'   => array(
@@ -1316,6 +1358,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'page'             => array(
+				'platform' => 'elementor',
 				'label' => __( 'Page Management', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/create-page'          => array(
@@ -1346,6 +1389,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'layout'           => array(
+				'platform' => 'elementor',
 				'label' => __( 'Layout & Structure', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/add-container'     => array(
@@ -1401,6 +1445,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'widgets'          => array(
+				'platform' => 'elementor',
 				'label' => __( 'Widgets', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/add-free-widget' => array(
@@ -1421,6 +1466,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'template'         => array(
+				'platform' => 'elementor',
 				'label' => __( 'Templates', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/save-as-template' => array(
@@ -1466,6 +1512,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'global'           => array(
+				'platform' => 'elementor',
 				'label' => __( 'Global Settings', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/update-global-colors'     => array(
@@ -1481,6 +1528,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'composite'        => array(
+				'platform' => 'elementor',
 				'label' => __( 'Composite', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/build-page' => array(
@@ -1491,6 +1539,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'stock_images'     => array(
+				'platform' => 'wordpress',
 				'label' => __( 'Stock & Media Images', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-media'       => array(
@@ -1531,6 +1580,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'svg_icons'        => array(
+				'platform' => 'elementor',
 				'label' => __( 'SVG Icons', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/upload-svg-icon'  => array(
@@ -1541,6 +1591,7 @@ class EMCP_Tools_Admin {
 				),
 			),
 			'custom_code'      => array(
+				'platform' => 'elementor',
 				'label' => __( 'Custom Code', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/add-custom-css'     => array(
@@ -1572,6 +1623,7 @@ class EMCP_Tools_Admin {
 		// here to avoid showing toggles for tools that don't exist.
 		if ( class_exists( 'EMCP_Tools_Atomic_Props' ) && EMCP_Tools_Atomic_Props::is_atomic_supported() ) {
 			$tools['atomic_layout'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Atomic Layout (Elementor 4.0+)', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/detect-elementor-version' => array(
@@ -1598,6 +1650,7 @@ class EMCP_Tools_Admin {
 			);
 
 			$tools['atomic_widgets'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Atomic Widgets (Elementor 4.0+)', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/add-atomic-widget'    => array(
@@ -1663,6 +1716,7 @@ class EMCP_Tools_Admin {
 			&& EMCP_Tools_Pro_Brand_Kits::user_has_access()
 		) {
 			$tools['brand_kits'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Brand Kits', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-brand-kits'           => array(
@@ -1694,6 +1748,7 @@ class EMCP_Tools_Admin {
 		// v4) and the admin re-enables them here. There is no "activate" tool: an
 		// AI can only create drafts; a human admin activates them on the Sandbox tab.
 		$tools['php_snippets'] = array(
+			'platform' => 'wordpress',
 			'label' => __( 'PHP Snippets (Sandbox)', 'emcp-tools' ),
 			'tools' => array(
 				'emcp-tools/validate-php-snippet' => array(
@@ -1734,40 +1789,48 @@ class EMCP_Tools_Admin {
 		// disabled-by-default (see maybe_apply_default_disabled_tools v2);
 		// users re-enable individual tools here. All five are read-only.
 		if ( function_exists( 'emcp_tools_fs' ) && emcp_tools_fs()->can_use_premium_code() ) {
-			$tools['seo_a11y'] = array(
-				'label' => __( 'SEO & Accessibility', 'emcp-tools' ),
+			$tools['seo'] = array(
+				'platform' => 'wordpress',
+				'label' => __( 'SEO', 'emcp-tools' ),
 				'tools' => array(
-					'emcp-tools/audit-page-seo'                 => array(
+					'emcp-tools/audit-page-seo'                => array(
 						'label'       => __( 'Audit Page SEO', 'emcp-tools' ),
 						'description' => __( 'Scored on-page SEO report (H1, title/meta, canonical, alts, links, word count).', 'emcp-tools' ),
 						'badges'      => array( 'pro', 'read-only' ),
 					),
-					'emcp-tools/extract-keywords-from-content'  => array(
+					'emcp-tools/extract-keywords-from-content' => array(
 						'label'       => __( 'Extract Keywords', 'emcp-tools' ),
 						'description' => __( 'Frequency keyword + phrase extraction from page content.', 'emcp-tools' ),
 						'badges'      => array( 'pro', 'read-only' ),
 					),
-					'emcp-tools/generate-meta-tags'             => array(
+					'emcp-tools/generate-meta-tags'            => array(
 						'label'       => __( 'Generate Meta Tags', 'emcp-tools' ),
 						'description' => __( 'Proposes (apply:true writes to Yoast/Rank Math) an SEO title and meta description. Dry-run by default.', 'emcp-tools' ),
 						'badges'      => array( 'pro' ),
 					),
-					'emcp-tools/generate-schema-markup'         => array(
+					'emcp-tools/generate-schema-markup'        => array(
 						'label'       => __( 'Generate Schema Markup', 'emcp-tools' ),
 						'description' => __( 'Generates (apply:true injects) JSON-LD structured data (Article, LocalBusiness, FAQPage, etc.). Dry-run by default.', 'emcp-tools' ),
 						'badges'      => array( 'pro' ),
 					),
-					'emcp-tools/audit-page-a11y'                => array(
+				),
+			);
+
+			$tools['a11y'] = array(
+				'platform' => 'elementor',
+				'label' => __( 'Accessibility', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/audit-page-a11y'           => array(
 						'label'       => __( 'Audit Page Accessibility', 'emcp-tools' ),
 						'description' => __( 'WCAG-oriented report: contrast, alts, heading order, link text, form labels.', 'emcp-tools' ),
 						'badges'      => array( 'pro', 'read-only' ),
 					),
-					'emcp-tools/fix-color-contrast'             => array(
+					'emcp-tools/fix-color-contrast'        => array(
 						'label'       => __( 'Fix Color Contrast', 'emcp-tools' ),
 						'description' => __( 'Proposes (apply:true to write) adjusted text colors so failing pairs meet WCAG AA. Dry-run by default.', 'emcp-tools' ),
 						'badges'      => array( 'pro', 'destructive' ),
 					),
-					'emcp-tools/add-alt-text-from-context'      => array(
+					'emcp-tools/add-alt-text-from-context' => array(
 						'label'       => __( 'Add Alt Text from Context', 'emcp-tools' ),
 						'description' => __( 'Proposes (apply:true to write) alt text for images lacking it, from filename/heading/title. Dry-run by default.', 'emcp-tools' ),
 						'badges'      => array( 'pro', 'destructive' ),
@@ -1776,6 +1839,7 @@ class EMCP_Tools_Admin {
 			);
 
 			$tools['widget_builder'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Widget Builder (Pro)', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-control-types'   => array(
