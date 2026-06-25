@@ -597,6 +597,35 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'wp_get_attachment_metadata' ) ) {
+		function wp_get_attachment_metadata( $id = 0, $unfiltered = false ) {
+			return $GLOBALS['_wp_attachment_meta'][ (int) $id ] ?? array();
+		}
+	}
+	if ( ! function_exists( 'wp_get_attachment_image_src' ) ) {
+		function wp_get_attachment_image_src( $id, $size = 'thumbnail', $icon = false ) {
+			$map = $GLOBALS['_wp_attachment_src'][ (int) $id ][ is_string( $size ) ? $size : 'full' ] ?? null;
+			return $map ? $map : false; // [ url, width, height, is_intermediate ]
+		}
+	}
+	if ( ! function_exists( 'wp_get_attachment_url' ) ) {
+		function wp_get_attachment_url( $id = 0 ) {
+			return $GLOBALS['_wp_attachment_url'][ (int) $id ] ?? ( 'http://example.com/wp-content/uploads/file-' . (int) $id . '.jpg' );
+		}
+	}
+	if ( ! function_exists( 'get_post_field' ) ) {
+		function get_post_field( $field, $post = 0, $context = 'display' ) {
+			$p = is_object( $post ) ? $post : get_post( $post );
+			return $p && isset( $p->$field ) ? $p->$field : '';
+		}
+	}
+	if ( ! function_exists( 'wp_delete_attachment' ) ) {
+		function wp_delete_attachment( $id, $force_delete = false ) {
+			$GLOBALS['_wp_deleted_attachments'][] = array( 'id' => (int) $id, 'force' => (bool) $force_delete );
+			return get_post( $id ) ?: (object) array( 'ID' => (int) $id );
+		}
+	}
+
 	if ( ! function_exists( 'wp_remove_object_terms' ) ) {
 		function wp_remove_object_terms( int $object_id, $terms, string $taxonomy ) {
 			$GLOBALS['_wp_term_calls'][] = array( 'object_id' => $object_id, 'terms' => $terms, 'taxonomy' => $taxonomy, 'remove' => true );
