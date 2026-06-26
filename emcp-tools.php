@@ -6,7 +6,7 @@
  * Version:           3.0.0
  * Requires at least: 6.9
  * Tested up to:      6.9
- * Requires PHP:      8.2
+ * Requires PHP:      8.1
  * Author:            Mian Shahzad Raza
  * Author URI:        https://msrbuilds.com
  * License:           GPL-2.0-or-later
@@ -140,7 +140,7 @@ if ( function_exists( 'emcp_tools_fs' ) ) {
  * @return string
  */
 function emcp_tools_upgrade_url(): string {
-	return 'https://emcp.msrbuilds.com/pricing';
+	return 'https://emcptools.com/pricing';
 }
 
 // Hand off to the bootstrap (loads classes + wires hooks) once dependencies

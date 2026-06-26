@@ -7,7 +7,7 @@
 
 [![Version](https://img.shields.io/github/v/release/msrbuilds/elementor-mcp?label=version&color=blue)](https://github.com/msrbuilds/elementor-mcp/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)](LICENSE)
-[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.0-8892BF.svg)](https://php.net)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-8892BF.svg)](https://php.net)
 [![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.9-21759B.svg)](https://wordpress.org)
 [![Elementor](https://img.shields.io/badge/Elementor-%3E%3D3.20-92003B.svg)](https://elementor.com)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20118-orange.svg)](#available-tools)
@@ -66,7 +66,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 | Dependency | Version |
 |---|---|
 | WordPress | >= 6.9 |
-| PHP | >= 8.0 |
+| PHP | >= 8.1 |
 | Elementor | >= 3.20 (container support required) |
 | WordPress MCP Adapter | Bundled (no separate install) |
 | WordPress Abilities API | Bundled in WP 6.9+, or via Composer |
