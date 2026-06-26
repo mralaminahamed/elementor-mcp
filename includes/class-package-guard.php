@@ -35,17 +35,22 @@ class EMCP_Tools_Package_Guard {
 	 * @return string[]
 	 */
 	public static function protected_plugin_files(): array {
-		$files = array( 'elementor/elementor.php', 'elementor-pro/elementor-pro.php' );
+		// Hardcoded core list — ALWAYS enforced. The filter can only ADD to it,
+		// never remove an entry (a malicious plugin must not be able to empty the
+		// list and then deactivate/delete Elementor or EMCP Tools itself).
+		$core = array( 'elementor/elementor.php', 'elementor-pro/elementor-pro.php' );
 		if ( defined( 'EMCP_TOOLS_BASENAME' ) ) {
-			$files[] = EMCP_TOOLS_BASENAME;
+			$core[] = EMCP_TOOLS_BASENAME;
 		}
 		/**
-		 * Filter the MCP-protected plugin list.
+		 * Filter ADDITIONAL MCP-protected plugin basenames. The hardcoded core
+		 * list above is always enforced regardless of what this filter returns.
 		 *
 		 * @since 3.0.0
-		 * @param string[] $files Protected plugin basenames.
+		 * @param string[] $extra Extra protected plugin basenames (added to the core list).
 		 */
-		return array_values( array_unique( (array) apply_filters( 'emcp_tools_protected_plugins', $files ) ) );
+		$extra = (array) apply_filters( 'emcp_tools_protected_plugins', array() );
+		return array_values( array_unique( array_merge( $core, $extra ) ) );
 	}
 
 	/**

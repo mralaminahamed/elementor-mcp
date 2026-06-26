@@ -58,7 +58,7 @@ $emcp_tools_badge_labels = array(
 );
 ?>
 
-<form method="post" action="options.php" id="elementor-mcp-tools-form" class="<?php echo $emcp_tools_low_mode ? 'is-low-mode' : ''; ?>">
+<form method="post" action="options.php" id="elementor-mcp-tools-form" class="<?php echo esc_attr( $emcp_tools_low_mode ? 'is-low-mode' : '' ); ?>">
 	<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP ); ?>
 
 	<div class="elementor-mcp-low-mode-card">
@@ -121,10 +121,10 @@ $emcp_tools_badge_labels = array(
 		<?php foreach ( $emcp_tools_tabs as $emcp_tools_tab_id => $emcp_tools_tab_label ) : ?>
 			<button
 				type="button"
-				class="elementor-mcp-subtab <?php echo $emcp_tools_first ? 'is-active' : ''; ?>"
+				class="elementor-mcp-subtab <?php echo esc_attr( $emcp_tools_first ? 'is-active' : '' ); ?>"
 				role="tab"
 				data-tab="<?php echo esc_attr( $emcp_tools_tab_id ); ?>"
-				aria-selected="<?php echo $emcp_tools_first ? 'true' : 'false'; ?>"
+				aria-selected="<?php echo esc_attr( $emcp_tools_first ? 'true' : 'false' ); ?>"
 				aria-controls="emcp-tabpanel-<?php echo esc_attr( $emcp_tools_tab_id ); ?>"
 			>
 				<span class="elementor-mcp-subtab-label"><?php echo esc_html( $emcp_tools_tab_label ); ?></span>
@@ -146,7 +146,7 @@ $emcp_tools_badge_labels = array(
 	<?php $emcp_tools_first_panel = true; ?>
 	<?php foreach ( $emcp_tools_buckets as $emcp_tools_tab_id => $emcp_tools_tab_cats ) : ?>
 		<div
-			class="elementor-mcp-tabpanel <?php echo $emcp_tools_first_panel ? 'is-active' : ''; ?>"
+			class="elementor-mcp-tabpanel <?php echo esc_attr( $emcp_tools_first_panel ? 'is-active' : '' ); ?>"
 			id="emcp-tabpanel-<?php echo esc_attr( $emcp_tools_tab_id ); ?>"
 			role="tabpanel"
 			data-tab="<?php echo esc_attr( $emcp_tools_tab_id ); ?>"
@@ -206,8 +206,8 @@ $emcp_tools_badge_labels = array(
 									type="checkbox"
 									name="<?php echo esc_attr( EMCP_Tools_Admin::OPTION_DISABLED_TOOLS ); ?>[]"
 									value="<?php echo esc_attr( $emcp_tools_slug ); ?>"
-									data-essential="<?php echo in_array( $emcp_tools_slug, $emcp_tools_essentials, true ) ? '1' : '0'; ?>"
-									data-stored-enabled="<?php echo in_array( $emcp_tools_slug, $emcp_tools_disabled, true ) ? '0' : '1'; ?>"
+									data-essential="<?php echo esc_attr( in_array( $emcp_tools_slug, $emcp_tools_essentials, true ) ? '1' : '0' ); ?>"
+									data-stored-enabled="<?php echo esc_attr( in_array( $emcp_tools_slug, $emcp_tools_disabled, true ) ? '0' : '1' ); ?>"
 									<?php checked( $emcp_tools_is_enabled ); ?>
 									<?php disabled( $emcp_tools_low_mode ); ?>
 								/>

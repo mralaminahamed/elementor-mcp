@@ -133,6 +133,13 @@ class PluginToolsTest extends Ability_Test_Case {
 	}
 
 	/** @test */
+	public function test_update_refuses_protected(): void {
+		$this->assertWPError( $this->plugins()->execute_update_plugin( array( 'plugin' => 'elementor/elementor.php' ) ), 'protected_plugin' );
+		$this->assertWPError( $this->plugins()->execute_update_plugin( array( 'plugin' => 'elementor-mcp/emcp-tools.php' ) ), 'protected_plugin' );
+		$this->assertSame( array(), $GLOBALS['_wp_upgraded'] );
+	}
+
+	/** @test */
 	public function test_deactivate_allows_normal_plugin(): void {
 		$out = $this->plugins()->execute_deactivate_plugin( array( 'plugin' => 'akismet/akismet.php' ) );
 		$this->assertNotWPError( $out );

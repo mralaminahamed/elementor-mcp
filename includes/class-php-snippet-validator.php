@@ -135,6 +135,22 @@ class EMCP_Tools_PHP_Snippet_Validator {
 		'activate_plugin'   => 'Activates a plugin.',
 		'deactivate_plugins' => 'Deactivates plugins.',
 		'do_action'         => 'Fires arbitrary hooks.',
+		// Functions that take a callback chosen at runtime — a string callback
+		// (e.g. array_map('system', ...)) bypasses the direct-call scan above.
+		// Flagged so the human reviewer inspects the callback argument.
+		'array_map'         => 'Runs a callback (verify the callback is not a dangerous function name).',
+		'array_filter'      => 'Runs a callback (verify the callback is not a dangerous function name).',
+		'array_walk'        => 'Runs a callback (verify the callback is not a dangerous function name).',
+		'array_walk_recursive' => 'Runs a callback (verify the callback is not a dangerous function name).',
+		'array_reduce'      => 'Runs a callback (verify the callback is not a dangerous function name).',
+		'usort'             => 'Runs a comparison callback (verify the callback).',
+		'uasort'            => 'Runs a comparison callback (verify the callback).',
+		'uksort'            => 'Runs a comparison callback (verify the callback).',
+		'ob_start'          => 'Can run an output callback at buffer flush (verify the callback).',
+		'preg_replace_callback' => 'Runs a callback per match (verify the callback).',
+		'preg_replace_callback_array' => 'Runs callbacks per match (verify the callbacks).',
+		'set_exception_handler' => 'Registers a callback that runs on uncaught exceptions.',
+		'iterator_apply'    => 'Runs a callback over an iterator (verify the callback).',
 	);
 
 	/**
@@ -274,6 +290,29 @@ class EMCP_Tools_PHP_Snippet_Validator {
 			// Variable function call: $var( …  or  $var->( …  treated as dynamic call.
 			if ( T_VARIABLE === $id && $next && null === $next['id'] && '(' === $next['text'] ) {
 				$result['findings'][] = self::finding( 'critical', 'variable_function', __( 'Calls a function named by a variable (bypasses static checks).', 'emcp-tools' ), $line );
+				continue;
+			}
+
+			// Dynamic class instantiation: `new $var` — class chosen at runtime.
+			if ( T_NEW === $id && $next && T_VARIABLE === $next['id'] ) {
+				$result['findings'][] = self::finding( 'critical', 'dynamic_instantiation', __( 'Instantiates a class named by a variable (bypasses static checks).', 'emcp-tools' ), $line );
+				continue;
+			}
+
+			// Reflection / closure factories that can invoke arbitrary code.
+			if ( T_NEW === $id && $next && T_STRING === $next['id']
+				&& in_array( strtolower( ltrim( $next['text'], '\\' ) ), array( 'reflectionfunction', 'reflectionmethod', 'reflectionclass', 'reflectionobject', 'closure' ), true ) ) {
+				$result['findings'][] = self::finding( 'critical', 'reflection', sprintf(
+					/* translators: %s: class name */
+					__( 'Uses %s, which can invoke functions/methods chosen at runtime.', 'emcp-tools' ),
+					$next['text']
+				), $line );
+				continue;
+			}
+
+			// die / exit — abruptly terminates the request (can skip recovery logic).
+			if ( defined( 'T_EXIT' ) && T_EXIT === $id ) {
+				$result['findings'][] = self::finding( 'warning', 'exit', __( 'Terminates the request (die/exit).', 'emcp-tools' ), $line );
 				continue;
 			}
 

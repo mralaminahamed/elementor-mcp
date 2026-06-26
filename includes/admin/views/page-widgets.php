@@ -96,12 +96,12 @@ $emcp_tools_wb_url = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_up
 								</td>
 								<td><code><?php echo esc_html( $emcp_tools_w['widget_name'] ); ?></code></td>
 								<td>
-									<span class="elementor-mcp-badge <?php echo $emcp_tools_active ? 'elementor-mcp-badge--pro' : ''; ?>">
+									<span class="elementor-mcp-badge <?php echo esc_attr( $emcp_tools_active ? 'elementor-mcp-badge--pro' : '' ); ?>">
 										<?php echo $emcp_tools_active ? esc_html__( 'Active', 'emcp-tools' ) : esc_html__( 'Inactive', 'emcp-tools' ); ?>
 									</span>
 								</td>
 								<td>
-									<button type="button" class="button elementor-mcp-wb-toggle" data-status="<?php echo $emcp_tools_active ? 'draft' : 'active'; ?>">
+									<button type="button" class="button elementor-mcp-wb-toggle" data-status="<?php echo esc_attr( $emcp_tools_active ? 'draft' : 'active' ); ?>">
 										<?php echo $emcp_tools_active ? esc_html__( 'Deactivate', 'emcp-tools' ) : esc_html__( 'Activate', 'emcp-tools' ); ?>
 									</button>
 									<button type="button" class="button elementor-mcp-wb-delete">
@@ -317,12 +317,12 @@ $emcp_tools_wb_url = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_up
 									<?php endif; ?>
 								</td>
 								<td>
-									<span class="elementor-mcp-badge <?php echo $emcp_tools_sact ? 'elementor-mcp-badge--free' : ''; ?>">
+									<span class="elementor-mcp-badge <?php echo esc_attr( $emcp_tools_sact ? 'elementor-mcp-badge--free' : '' ); ?>">
 										<?php echo $emcp_tools_sact ? esc_html__( 'Active', 'emcp-tools' ) : esc_html__( 'Inactive', 'emcp-tools' ); ?>
 									</span>
 								</td>
 								<td>
-									<button type="button" class="button elementor-mcp-sn-toggle" data-status="<?php echo $emcp_tools_sact ? 'draft' : 'active'; ?>">
+									<button type="button" class="button elementor-mcp-sn-toggle" data-status="<?php echo esc_attr( $emcp_tools_sact ? 'draft' : 'active' ); ?>">
 										<?php echo $emcp_tools_sact ? esc_html__( 'Deactivate', 'emcp-tools' ) : esc_html__( 'Activate', 'emcp-tools' ); ?>
 									</button>
 									<button type="button" class="button elementor-mcp-sn-edit"><?php esc_html_e( 'Edit', 'emcp-tools' ); ?></button>

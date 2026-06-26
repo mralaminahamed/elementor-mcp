@@ -157,7 +157,7 @@ class EMCP_Tools_Performance_Server_Audit {
 	}
 
 	private function count_revisions( $wpdb ): int {
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'revision'" );
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s", 'revision' ) );
 	}
 
 	private function count_overdue_cron(): int {

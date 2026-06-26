@@ -108,6 +108,8 @@ final class PhpSnippetValidatorTest extends TestCase {
 			'ini_set'           => array( "ini_set('disable_functions', '');", 'function:ini_set' ),
 			'putenv'            => array( "putenv('PATH=/x');", 'function:putenv' ),
 			'extract'           => array( "extract(\$_GET);", 'function:extract' ),
+			'dynamic new'       => array( "\$c = 'StdClass'; \$o = new \$c();", 'dynamic_instantiation' ),
+			'reflection func'   => array( "\$r = new ReflectionFunction('system');", 'reflection' ),
 		);
 	}
 
@@ -132,6 +134,8 @@ final class PhpSnippetValidatorTest extends TestCase {
 			'superglobal'   => array( "return isset(\$_GET['x']) ? 1 : 0;", 'superglobal' ),
 			'suppression'   => array( "@trigger_x();", 'suppress' ),
 			'definition'    => array( "function emcp_helper() { return 1; } return emcp_helper();", 'definition' ),
+			'callback func' => array( "return array_map('strtoupper', array('a'));", 'function:array_map' ),
+			'exit'          => array( "\$x = 1; exit;", 'exit' ),
 		);
 	}
 

@@ -409,8 +409,10 @@ class EMCP_Tools_Widget_Store {
 		}
 
 		// CSS file (defensively strip any PHP open tag — assets are served static).
+		// Strip <?php, <?= and bare <? so a .css/.js asset can never be executed as
+		// PHP on a server with short_open_tag enabled.
 		if ( $has_css ) {
-			$css_out = str_ireplace( '<?php', '', $css );
+			$css_out = preg_replace( '/<\?(?:php|=)?/i', '', $css );
 			self::write_file( self::css_path( $post_id ), $css_out );
 			update_post_meta( $post_id, self::META_CSS_HASH, hash( 'sha256', $css_out ) );
 		} else {
@@ -418,9 +420,9 @@ class EMCP_Tools_Widget_Store {
 			delete_post_meta( $post_id, self::META_CSS_HASH );
 		}
 
-		// JS file.
+		// JS file (same defensive PHP-open-tag strip as CSS above).
 		if ( $has_js ) {
-			$js_out = str_ireplace( '<?php', '', $js );
+			$js_out = preg_replace( '/<\?(?:php|=)?/i', '', $js );
 			self::write_file( self::js_path( $post_id ), $js_out );
 			update_post_meta( $post_id, self::META_JS_HASH, hash( 'sha256', $js_out ) );
 		} else {

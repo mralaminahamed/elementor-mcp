@@ -330,6 +330,12 @@ class EMCP_Tools_User_Abilities {
 
 		$user_id = wp_insert_user( $userdata );
 		if ( is_wp_error( $user_id ) ) {
+			// Normalize account-exists errors to a generic message so the tool
+			// cannot be used to enumerate existing usernames/emails.
+			$code = $user_id->get_error_code();
+			if ( in_array( $code, array( 'existing_user_login', 'existing_user_email' ), true ) ) {
+				return new \WP_Error( 'user_unavailable', __( 'That username or email is not available.', 'emcp-tools' ) );
+			}
 			return $user_id;
 		}
 		$user_id = (int) $user_id;

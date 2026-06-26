@@ -366,6 +366,15 @@ class EMCP_Tools_Plugin_Abilities {
 		if ( is_wp_error( $file ) ) {
 			return $file;
 		}
+		// Protected packages (EMCP Tools, Elementor, Elementor Pro) are never
+		// mutated via MCP — including updates — matching deactivate/delete.
+		if ( EMCP_Tools_Package_Guard::is_protected_plugin( $file ) ) {
+			return new \WP_Error(
+				'protected_plugin',
+				/* translators: %s: plugin file */
+				sprintf( __( '"%s" is protected and cannot be updated via MCP.', 'emcp-tools' ), $file )
+			);
+		}
 		$ready = EMCP_Tools_Package_Guard::filesystem_ready();
 		if ( is_wp_error( $ready ) ) {
 			return $ready;

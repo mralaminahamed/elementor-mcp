@@ -97,6 +97,23 @@ class SettingsToolsTest extends Ability_Test_Case {
 	}
 
 	/** @test */
+	public function test_update_rejects_permalink_with_unsafe_chars(): void {
+		// '?' and '=' survive sanitize_text_field but are not allowed in a
+		// permalink base by the pattern guard, so the value must be skipped.
+		$out     = $this->ability->execute_update_settings( array( 'settings' => array( 'permalink_structure' => '/%postname%/?q=1' ) ) );
+		$reasons = array_column( $out['skipped'], 'key' );
+		$this->assertContains( 'permalink_structure', $reasons );
+		$this->assertArrayNotHasKey( 'permalink_structure', $out['updated'] );
+	}
+
+	/** @test */
+	public function test_update_allows_valid_permalink_structure(): void {
+		$out = $this->ability->execute_update_settings( array( 'settings' => array( 'permalink_structure' => '/%category%/%postname%/' ) ) );
+		$this->assertArrayHasKey( 'permalink_structure', $out['updated'] );
+		$this->assertTrue( $out['rewrite_flushed'] );
+	}
+
+	/** @test */
 	public function test_update_skips_non_allowlisted_key(): void {
 		$out     = $this->ability->execute_update_settings( array( 'settings' => array( 'siteurl' => 'http://evil' ) ) );
 		$reasons = array_column( $out['skipped'], 'key' );

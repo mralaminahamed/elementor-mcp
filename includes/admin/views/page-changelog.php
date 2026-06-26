@@ -166,7 +166,7 @@ $emcp_tools_latest_version = isset( $emcp_tools_versions[0]['version'] ) ? $emcp
 	<div class="elementor-mcp-changelog-list">
 		<?php foreach ( $emcp_tools_versions as $emcp_tools_entry ) : ?>
 			<?php $emcp_tools_is_latest = ( $emcp_tools_entry['version'] === $emcp_tools_latest_version ); ?>
-			<div class="elementor-mcp-changelog-version <?php echo $emcp_tools_is_latest ? 'is-latest' : ''; ?>">
+			<div class="elementor-mcp-changelog-version <?php echo esc_attr( $emcp_tools_is_latest ? 'is-latest' : '' ); ?>">
 				<div class="elementor-mcp-changelog-version-header">
 					<h3>
 						<?php

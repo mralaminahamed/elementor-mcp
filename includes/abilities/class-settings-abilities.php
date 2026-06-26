@@ -120,9 +120,9 @@ class EMCP_Tools_Settings_Abilities {
 			'large_size_h'                  => array( 'group' => 'media', 'label' => 'Large Height', 'type' => 'int', 'writable' => true, 'min' => 0, 'max' => 9999 ),
 			'uploads_use_yearmonth_folders' => array( 'group' => 'media', 'label' => 'Organize Uploads Into Month/Year Folders', 'type' => 'bool', 'writable' => true ),
 			// Permalinks.
-			'permalink_structure'           => array( 'group' => 'permalinks', 'label' => 'Permalink Structure', 'type' => 'string', 'writable' => true ),
-			'category_base'                 => array( 'group' => 'permalinks', 'label' => 'Category Base', 'type' => 'string', 'writable' => true ),
-			'tag_base'                      => array( 'group' => 'permalinks', 'label' => 'Tag Base', 'type' => 'string', 'writable' => true ),
+			'permalink_structure'           => array( 'group' => 'permalinks', 'label' => 'Permalink Structure', 'type' => 'string', 'writable' => true, 'pattern' => '#^[A-Za-z0-9%/_.\-]*$#' ),
+			'category_base'                 => array( 'group' => 'permalinks', 'label' => 'Category Base', 'type' => 'string', 'writable' => true, 'pattern' => '#^[A-Za-z0-9%/_.\-]*$#' ),
+			'tag_base'                      => array( 'group' => 'permalinks', 'label' => 'Tag Base', 'type' => 'string', 'writable' => true, 'pattern' => '#^[A-Za-z0-9%/_.\-]*$#' ),
 		);
 	}
 
@@ -333,6 +333,9 @@ class EMCP_Tools_Settings_Abilities {
 			case 'string':
 			default:
 				$s = sanitize_text_field( (string) $value );
+				if ( isset( $entry['pattern'] ) && '' !== $s && ! preg_match( $entry['pattern'], $s ) ) {
+					return new \WP_Error( 'invalid', 'value contains characters not allowed for this setting' );
+				}
 				return array( 'store' => $s, 'report' => $s );
 		}
 	}

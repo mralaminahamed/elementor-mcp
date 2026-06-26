@@ -327,19 +327,40 @@ class EMCP_Tools_Content_Abilities {
 				if ( ! current_user_can( 'upload_files' ) ) {
 					$warnings[] = 'featured_image: upload_files capability required to sideload a URL.';
 				} else {
-					// media_sideload_image() and its deps live in wp-admin/includes,
+					// media_handle_sideload() and its deps live in wp-admin/includes,
 					// which are NOT loaded on the REST/WP-CLI requests the MCP server
 					// runs in — load them on demand (matches stock-image-abilities).
-					if ( ! function_exists( 'media_sideload_image' ) ) {
+					if ( ! function_exists( 'media_handle_sideload' ) ) {
 						require_once ABSPATH . 'wp-admin/includes/file.php';
 						require_once ABSPATH . 'wp-admin/includes/media.php';
 						require_once ABSPATH . 'wp-admin/includes/image.php';
 					}
-					$att = media_sideload_image( esc_url_raw( (string) $fi['url'] ), $post_id, '', 'id' );
-					if ( is_wp_error( $att ) ) {
-						$warnings[] = 'featured_image: ' . $att->get_error_message();
+					// SSRF-guarded download: EMCP_Tools_Url_Guard::safe_download blocks
+					// private/reserved/loopback hosts (e.g. cloud metadata
+					// 169.254.169.254) and re-validates every redirect hop, which
+					// plain media_sideload_image()/download_url() do not.
+					$fi_url   = esc_url_raw( (string) $fi['url'] );
+					$tmp_file = $fi_url ? EMCP_Tools_Url_Guard::safe_download( $fi_url, 30 ) : new \WP_Error( 'invalid_url', 'empty url' );
+					if ( is_wp_error( $tmp_file ) ) {
+						$warnings[] = 'featured_image: URL rejected or download failed (' . $tmp_file->get_error_message() . ').';
 					} else {
-						set_post_thumbnail( $post_id, (int) $att );
+						$url_path  = wp_parse_url( $fi_url, PHP_URL_PATH );
+						$fi_name   = $url_path ? basename( $url_path ) : 'image.jpg';
+						if ( ! preg_match( '/\.\w+$/', $fi_name ) ) {
+							$fi_name .= '.jpg';
+						}
+						$att = media_handle_sideload(
+							array( 'name' => sanitize_file_name( $fi_name ), 'tmp_name' => $tmp_file ),
+							$post_id
+						);
+						if ( is_wp_error( $att ) ) {
+							if ( file_exists( $tmp_file ) ) {
+								wp_delete_file( $tmp_file );
+							}
+							$warnings[] = 'featured_image: ' . $att->get_error_message();
+						} else {
+							set_post_thumbnail( $post_id, (int) $att );
+						}
 					}
 				}
 			}
@@ -830,9 +851,20 @@ class EMCP_Tools_Content_Abilities {
 		$orderby  = in_array( $input['orderby'] ?? '', array( 'date', 'modified', 'title', 'menu_order', 'ID' ), true ) ? $input['orderby'] : 'date';
 		$order    = ( isset( $input['order'] ) && 'ASC' === strtoupper( (string) $input['order'] ) ) ? 'ASC' : 'DESC';
 
+		$post_type = isset( $input['post_type'] ) ? sanitize_key( (string) $input['post_type'] ) : 'post';
+		if ( '' === $post_type ) {
+			$post_type = 'post';
+		}
+		$status_in = isset( $input['status'] ) ? (string) $input['status'] : 'any';
+		$status    = in_array(
+			$status_in,
+			array( 'publish', 'future', 'draft', 'pending', 'private', 'trash', 'any' ),
+			true
+		) ? $status_in : 'any';
+
 		$args = array(
-			'post_type'      => $input['post_type'] ?? 'post',
-			'post_status'    => $input['status'] ?? 'any',
+			'post_type'      => $post_type,
+			'post_status'    => $status,
 			'posts_per_page' => $per_page,
 			'paged'          => $page,
 			'orderby'        => $orderby,
