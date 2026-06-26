@@ -428,218 +428,20 @@
 				return;
 			}
 
-			var endpoint = emcpToolsAdmin.mcpEndpoint;
-			var siteUrl = emcpToolsAdmin.siteUrl || '';
-			var proxyPath = emcpToolsAdmin.proxyPath || '';
-
-			// Show the proxy config blocks container.
-			var proxyConfigsDiv = document.getElementById( 'elementor-mcp-proxy-configs' );
-			if ( proxyConfigsDiv ) {
-				proxyConfigsDiv.style.display = '';
-			}
-
-			// The proxy filename only — the user supplies its full local path (or
-			// uses the npx config below). We never receive the server path (F-020).
-			var fullProxyPath = proxyPath;
-
-			// Determine a sensible debug-log path from the admin's browser OS (the
-			// proxy value is just a filename now, so we can't infer OS from it).
-			var isWindows = /win/i.test( navigator.platform || navigator.userAgent || '' );
-			var logFilePath = isWindows ? 'C:\\tmp\\elementor-mcp-debug.log' : '/tmp/elementor-mcp-debug.log';
-
-			// Claude Code proxy config (.mcp.json) — uses type: stdio with Node.js proxy.
-			var claudeCodeProxyConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						type: 'stdio',
-						command: 'node',
-						args: [ fullProxyPath ],
-						env: {
-							WP_URL: siteUrl,
-							WP_USERNAME: rawUsername,
-							WP_APP_PASSWORD: rawAppPassword,
-							MCP_PROTOCOL_VERSION: '2024-11-05',
-							MCP_LOG_FILE: logFilePath
-						}
-					}
-				}
+			// Stash for the client picker (Step 2/3).
+			window.emcpConn = {
+				endpoint: emcpToolsAdmin.mcpEndpoint,
+				siteUrl: emcpToolsAdmin.siteUrl || '',
+				username: rawUsername,
+				appPassword: rawAppPassword,
+				userId: ( document.getElementById( 'elementor-mcp-b64-username' ) || {} ).value || '',
+				b64: btoa( rawUsername + ':' + rawAppPassword )
 			};
-			setConfigBlock(
-				'elementor-mcp-claude-code-proxy-code',
-				'claude-code-proxy',
-				JSON.stringify( claudeCodeProxyConfig, null, 4 )
-			);
-
-			// Claude Desktop proxy config — same but without type field.
-			var claudeDesktopProxyConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						command: 'node',
-						args: [ fullProxyPath ],
-						env: {
-							WP_URL: siteUrl,
-							WP_USERNAME: rawUsername,
-							WP_APP_PASSWORD: rawAppPassword,
-							MCP_PROTOCOL_VERSION: '2024-11-05',
-							MCP_LOG_FILE: logFilePath
-						}
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-claude-desktop-proxy-code',
-				'claude-desktop-proxy',
-				JSON.stringify( claudeDesktopProxyConfig, null, 4 )
-			);
-
-			// Claude Code npx config (.mcp.json) — zero-install runner, best for remote sites.
-			var claudeCodeNpxConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						type: 'stdio',
-						command: 'npx',
-						args: [ '-y', '@msrbuilds/emcp-proxy@latest' ],
-						env: {
-							WP_URL: siteUrl,
-							WP_USERNAME: rawUsername,
-							WP_APP_PASSWORD: rawAppPassword,
-							MCP_PROTOCOL_VERSION: '2024-11-05',
-							MCP_LOG_FILE: logFilePath
-						}
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-claude-code-npx-code',
-				'claude-code-npx',
-				JSON.stringify( claudeCodeNpxConfig, null, 4 )
-			);
-
-			// Claude Desktop npx config — same but without type field.
-			var claudeDesktopNpxConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						command: 'npx',
-						args: [ '-y', '@msrbuilds/emcp-proxy@latest' ],
-						env: {
-							WP_URL: siteUrl,
-							WP_USERNAME: rawUsername,
-							WP_APP_PASSWORD: rawAppPassword,
-							MCP_PROTOCOL_VERSION: '2024-11-05',
-							MCP_LOG_FILE: logFilePath
-						}
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-claude-desktop-npx-code',
-				'claude-desktop-npx',
-				JSON.stringify( claudeDesktopNpxConfig, null, 4 )
-			);
-
-			// Show the HTTP config blocks container.
-			var configsDiv = document.getElementById( 'elementor-mcp-http-configs' );
-			if ( configsDiv ) {
-				configsDiv.style.display = '';
-			}
-
-			// Claude Code (.mcp.json) — uses type: http, url field.
-			var claudeCodeConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						type: 'http',
-						url: endpoint,
-						headers: {
-							Authorization: headerValue
-						}
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-claude-code-http-code',
-				'claude-code-http',
-				JSON.stringify( claudeCodeConfig, null, 4 )
-			);
-
-			// Claude Desktop — same format as Claude Code.
-			setConfigBlock(
-				'elementor-mcp-claude-desktop-http-code',
-				'claude-desktop-http',
-				JSON.stringify( claudeCodeConfig, null, 4 )
-			);
-
-			// Cursor — uses url field, no type needed.
-			var cursorConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						url: endpoint,
-						headers: {
-							Authorization: headerValue
-						}
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-cursor-code',
-				'cursor-config',
-				JSON.stringify( cursorConfig, null, 4 )
-			);
-
-			// Windsurf — uses serverUrl field.
-			var windsurfConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						serverUrl: endpoint,
-						headers: {
-							Authorization: headerValue
-						}
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-windsurf-code',
-				'windsurf-config',
-				JSON.stringify( windsurfConfig, null, 4 )
-			);
-
-			// Antigravity — uses serverUrl field.
-			setConfigBlock(
-				'elementor-mcp-antigravity-code',
-				'antigravity-config',
-				JSON.stringify( windsurfConfig, null, 4 )
-			);
-
-			// Codex — uses TOML format with url and http_headers.
-			var codexConfig = '[mcp_servers.elementor-mcp]\n' +
-				'url = "' + endpoint + '"\n\n' +
-				'[mcp_servers.elementor-mcp.http_headers]\n' +
-				'"Authorization" = "' + headerValue + '"';
-			setConfigBlock(
-				'elementor-mcp-codex-code',
-				'codex-config',
-				codexConfig
-			);
-
-			// npx mcp-remote — bridges HTTP endpoint via stdio.
-			var mcpRemoteConfig = {
-				mcpServers: {
-					'elementor-mcp': {
-						command: 'npx',
-						args: [
-							'-y',
-							'mcp-remote',
-							endpoint,
-							'--header',
-							'Authorization: ' + headerValue
-						]
-					}
-				}
-			};
-			setConfigBlock(
-				'elementor-mcp-mcp-remote-code',
-				'mcp-remote-config',
-				JSON.stringify( mcpRemoteConfig, null, 4 )
-			);
+			var picker = document.getElementById( 'elementor-mcp-client-picker' );
+			if ( picker ) { picker.style.display = ''; }
+			// Re-select a remembered client if any.
+			var saved = window.localStorage.getItem( 'emcpConnClient' );
+			if ( saved ) { emcpSelectClient( saved ); }
 		}
 	}
 
@@ -1374,6 +1176,130 @@
 			}
 		} );
 	}
+
+	// -------------------------------------------------------------------------
+	// Connection tab — client picker helpers
+	// -------------------------------------------------------------------------
+
+	function emcpEscapeHtml( s ) {
+		return String( s ).replace( /[&<>"']/g, function ( c ) {
+			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ];
+		} );
+	}
+
+	function emcpClientById( id ) {
+		var list = ( emcpToolsAdmin.connectionClients || [] );
+		for ( var i = 0; i < list.length; i++ ) { if ( list[ i ].id === id ) { return list[ i ]; } }
+		return null;
+	}
+
+	// Build the JSON config object for a given client + json-variant key.
+	function emcpJsonConfig( variant ) {
+		var c = window.emcpConn;
+		var key = 'elementor-mcp';
+		var npx = { command: 'npx', args: [ '-y', '@msrbuilds/emcp-proxy@latest' ],
+			env: { WP_URL: c.siteUrl, WP_USERNAME: c.username, WP_APP_PASSWORD: c.appPassword, MCP_PROTOCOL_VERSION: '2024-11-05' } };
+		var http = { type: 'http', url: c.endpoint, headers: { Authorization: 'Basic ' + c.b64 } };
+		var servers = {};
+		if ( variant === 'npx' )  { servers[ key ] = Object.assign( { type: 'stdio' }, npx ); return { mcpServers: servers }; }
+		if ( variant === 'http' ) { servers[ key ] = http; return { mcpServers: servers }; }
+		if ( variant === 'remote' ) {
+			servers[ key ] = { command: 'npx', args: [ '-y', 'mcp-remote', c.endpoint, '--header', 'Authorization: Basic ' + c.b64 ] };
+			return { mcpServers: servers };
+		}
+		return { mcpServers: servers };
+	}
+
+	function emcpTomlConfig() {
+		var c = window.emcpConn;
+		return '[mcp_servers.emcp-tools]\nurl = "' + c.endpoint + '"\n' +
+			'[mcp_servers.emcp-tools.headers]\nAuthorization = "Basic ' + c.b64 + '"';
+	}
+
+	// Render one copy/download block.
+	function emcpBlock( title, bodyHtml ) {
+		return '<div class="elementor-mcp-config-card"><div class="elementor-mcp-config-card-header">' +
+			'<span class="elementor-mcp-config-card-title">' + emcpEscapeHtml( title ) + '</span></div>' + bodyHtml + '</div>';
+	}
+
+	function emcpCopyBlock( title, text ) {
+		var id = 'emcp-opt-' + Math.abs( ( title + text ).length );
+		return '<div class="elementor-mcp-config-card"><div class="elementor-mcp-config-card-header">' +
+			'<span class="elementor-mcp-config-card-title">' + emcpEscapeHtml( title ) + '</span>' +
+			'<button type="button" class="button elementor-mcp-copy-btn" data-target="' + id + '">Copy</button></div>' +
+			'<pre><code>' + emcpEscapeHtml( text ) + '</code></pre>' +
+			'<textarea id="' + id + '" class="elementor-mcp-copy-source">' + emcpEscapeHtml( text ) + '</textarea></div>';
+	}
+
+	function emcpSelectClient( id ) {
+		var client = emcpClientById( id );
+		if ( ! client || ! window.emcpConn ) { return; }
+		window.localStorage.setItem( 'emcpConnClient', id );
+
+		// toggle card selected state
+		var cards = document.querySelectorAll( '.elementor-mcp-client-card' );
+		for ( var i = 0; i < cards.length; i++ ) {
+			var on = cards[ i ].getAttribute( 'data-client' ) === id;
+			cards[ i ].classList.toggle( 'is-selected', on );
+			cards[ i ].setAttribute( 'aria-selected', on ? 'true' : 'false' );
+		}
+
+		var heading = document.getElementById( 'elementor-mcp-connect-heading' );
+		var nameEl = document.getElementById( 'elementor-mcp-connect-client-name' );
+		if ( heading ) { heading.style.display = ''; }
+		if ( nameEl ) { nameEl.textContent = client.label; }
+
+		var html = '';
+		var m = client.methods;
+
+		// 1) Bundle (.mcpb)
+		if ( m.bundle ) {
+			html += emcpBlock( 'One-click bundle (.mcpb)',
+				'<p class="description">Download and double-click to install in Claude Desktop — no config files to edit. ' +
+				'<strong>The file contains a live password — delete it after importing.</strong></p>' +
+				'<p><button type="button" class="button button-primary" id="elementor-mcp-mcpb-download">Download .mcpb bundle</button></p>' );
+		}
+		// 2) CLI command
+		if ( m.cli ) {
+			var cli = m.cli.replace( /%ENDPOINT%/g, window.emcpConn.endpoint ).replace( /%B64%/g, window.emcpConn.b64 );
+			html += emcpCopyBlock( 'Terminal command', cli );
+		}
+		// 3) AI setup prompt
+		if ( m.ai_prompt ) {
+			var prompt = 'Add an MCP server named "emcp-tools" at ' + window.emcpConn.endpoint +
+				' using the HTTP transport with header  Authorization: Basic ' + window.emcpConn.b64;
+			html += emcpCopyBlock( 'Ask your AI to set it up (paste into chat)', prompt );
+		}
+		// 4) Manual JSON / TOML
+		( m.json || [] ).forEach( function ( variant ) {
+			if ( variant === 'toml' ) { html += emcpCopyBlock( 'Manual config (config.toml)', emcpTomlConfig() ); }
+			else {
+				var label = variant === 'npx' ? 'Manual config — Node proxy (npx)'
+					: variant === 'http' ? 'Manual config — direct HTTP'
+					: 'Manual config — npx mcp-remote';
+				html += emcpCopyBlock( label, JSON.stringify( emcpJsonConfig( variant ), null, 4 ) );
+			}
+		} );
+
+		var host = document.getElementById( 'elementor-mcp-client-options' );
+		if ( host ) { host.innerHTML = html; }
+
+		// Wire the .mcpb download button (if present) to submit the hidden form.
+		var dl = document.getElementById( 'elementor-mcp-mcpb-download' );
+		if ( dl ) {
+			dl.addEventListener( 'click', function () {
+				document.getElementById( 'elementor-mcp-mcpb-user-id' ).value = window.emcpConn.userId;
+				document.getElementById( 'elementor-mcp-mcpb-app-password' ).value = window.emcpConn.appPassword;
+				document.getElementById( 'elementor-mcp-mcpb-form' ).submit();
+			} );
+		}
+	}
+
+	// Delegate card clicks.
+	document.addEventListener( 'click', function ( e ) {
+		var card = e.target.closest ? e.target.closest( '.elementor-mcp-client-card' ) : null;
+		if ( card ) { emcpSelectClient( card.getAttribute( 'data-client' ) ); }
+	} );
 
 	// Initialize on DOM ready.
 	function initAll() {
