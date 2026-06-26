@@ -1124,6 +1124,7 @@ namespace {
 			'EMCP_Tools_Performance_Analyzer'    => 'includes/performance/class-performance-analyzer.php',
 			'EMCP_Tools_Performance_Abilities'   => 'includes/abilities/class-performance-abilities.php',
 		// Admin class (loaded standalone for static-method unit tests)
+		'EMCP_Tools_Site_Context'           => 'includes/class-site-context.php',
 		'EMCP_Tools_Admin'                  => 'includes/admin/class-admin.php',
 			'EMCP_Tools_Mcpb_Builder'           => 'includes/admin/class-mcpb-builder.php',
 		];
