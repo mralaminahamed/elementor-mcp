@@ -971,7 +971,7 @@ class EMCP_Tools_Admin {
 						<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
 						<?php esc_html_e( 'Watch Tutorial', 'emcp-tools' ); ?>
 					</a>
-					<a href="https://emcp.msrbuilds.com/docs" class="elementor-mcp-header-btn elementor-mcp-header-btn--secondary" target="_blank" rel="noopener noreferrer">
+					<a href="https://emcptools.com/docs" class="elementor-mcp-header-btn elementor-mcp-header-btn--secondary" target="_blank" rel="noopener noreferrer">
 						<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
 						<?php esc_html_e( 'Read the Docs', 'emcp-tools' ); ?>
 					</a>
@@ -1257,6 +1257,17 @@ class EMCP_Tools_Admin {
 						'label'       => __( 'Update Settings', 'emcp-tools' ),
 						'description' => __( 'Updates curated site settings; auto-flushes rewrite rules on permalink changes.', 'emcp-tools' ),
 						'badges'      => array(),
+					),
+				),
+			),
+			'performance'      => array(
+				'platform' => 'wordpress',
+				'label' => __( 'Performance', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/analyze-performance' => array(
+						'label'       => __( 'Analyze Performance', 'emcp-tools' ),
+						'description' => __( 'Audits server config, WordPress internals, and a target page; returns a scored report with recommendations.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
 					),
 				),
 			),

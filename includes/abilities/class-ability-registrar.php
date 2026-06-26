@@ -157,6 +157,12 @@ class EMCP_Tools_Ability_Registrar {
 		$users->register();
 		$this->ability_names = array_merge( $this->ability_names, $users->get_ability_names() );
 
+		// Performance Analyzer abilities (read-only server/WP/page audit).
+		// Unconditional — pure WordPress, always available.
+		$performance = new EMCP_Tools_Performance_Abilities();
+		$performance->register();
+		$this->ability_names = array_merge( $this->ability_names, $performance->get_ability_names() );
+
 		// SVG icon abilities (upload SVG for use as Elementor icons).
 		$svg_icons = new EMCP_Tools_Svg_Icon_Abilities( $this->data, $this->factory );
 		$svg_icons->register();

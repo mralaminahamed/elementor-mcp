@@ -94,6 +94,12 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-plugin-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-theme-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-user-abilities.php';
+		// Performance Analyzer (v3.0.0) — read-only server/WP/page audit.
+		require_once EMCP_TOOLS_DIR . 'includes/performance/class-performance-finding.php';
+		require_once EMCP_TOOLS_DIR . 'includes/performance/class-performance-server-audit.php';
+		require_once EMCP_TOOLS_DIR . 'includes/performance/class-performance-page-audit.php';
+		require_once EMCP_TOOLS_DIR . 'includes/performance/class-performance-analyzer.php';
+		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-performance-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-svg-icon-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-custom-code-abilities.php';
 		// Brand Kits (Pro). The writer + backup store + fetcher + abilities load
