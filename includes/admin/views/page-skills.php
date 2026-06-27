@@ -21,7 +21,7 @@ $emcp_tools_download_url = $emcp_tools_has_pro ? EMCP_Tools_Pro_Skills::download
 
 $emcp_tools_upgrade_url = function_exists( 'emcp_tools_upgrade_url' )
 	? emcp_tools_upgrade_url()
-	: 'https://emcp.msrbuilds.com/pricing';
+	: 'https://emcptools.com/pricing';
 
 /*
  * Bundled industry vertical packs. Read the labels straight from the shipped
@@ -63,7 +63,7 @@ if ( $emcp_tools_has_pro && defined( 'EMCP_TOOLS_DIR' ) ) {
 				<span class="elementor-mcp-badge elementor-mcp-badge--pro">PRO</span>
 			</h2>
 			<p class="description">
-				<?php esc_html_e( 'A pre-written Agent Skill that teaches Claude (and any compatible AI client) exactly how to build, edit, and style Elementor pages through the MCP tools — now with industry skill packs that tailor the build to the site\'s trade. Install once per machine — every future session that loads this skill knows your workflow.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'Pre-written Agent Skills that teach Claude (and any compatible AI client) exactly how to use the EMCP Tools MCP. The bundle includes three skills: Elementor page building (with industry skill packs), a Performance Analyzer skill, and a Security & Malware Scanner skill (which pairs the security scanner with the filesystem tools to confirm and clean findings). Install once per machine — every future session that loads them knows your workflow.', 'emcp-tools' ); ?>
 			</p>
 		</div>
 		<?php if ( $emcp_tools_has_pro ) : ?>
@@ -84,7 +84,7 @@ if ( $emcp_tools_has_pro && defined( 'EMCP_TOOLS_DIR' ) ) {
 			</span>
 			<div class="elementor-mcp-coming-soon__text">
 				<strong><?php esc_html_e( 'Quick install:', 'emcp-tools' ); ?></strong>
-				<?php esc_html_e( 'Click the download button above, then follow the guide for your AI client below. The skill folder goes into your client\'s skills/rules directory — paths listed per platform.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'Click the download button above, then follow the guide for your AI client below. The zip contains three skill folders (emcp-skills, emcp-performance, emcp-security) — copy each into your client\'s skills/rules directory the same way; paths listed per platform.', 'emcp-tools' ); ?>
 			</div>
 		</div>
 
@@ -120,10 +120,10 @@ if ( $emcp_tools_has_pro && defined( 'EMCP_TOOLS_DIR' ) ) {
 					<p><?php esc_html_e( 'Claude Code reads skills from two locations — project-scoped or user-global. Use whichever fits your workflow:', 'emcp-tools' ); ?></p>
 					<ol>
 						<li>
-							<?php esc_html_e( 'Extract emcp-skills.zip — you\'ll get a folder named "emcp-skills/".', 'emcp-tools' ); ?>
+							<?php esc_html_e( 'Extract emcp-skills.zip — you\'ll get three folders: "emcp-skills/", "emcp-performance/", and "emcp-security/".', 'emcp-tools' ); ?>
 						</li>
 						<li>
-							<?php esc_html_e( 'Move the folder to one of these locations:', 'emcp-tools' ); ?>
+							<?php esc_html_e( 'Move each folder into one of these locations (same parent dir for all three):', 'emcp-tools' ); ?>
 							<ul>
 								<li><strong><?php esc_html_e( 'Per-project (recommended):', 'emcp-tools' ); ?></strong> <code>&lt;project-root&gt;/.claude/skills/emcp-skills/</code></li>
 								<li><strong><?php esc_html_e( 'Global (all projects):', 'emcp-tools' ); ?></strong>
@@ -166,7 +166,7 @@ if ( $emcp_tools_has_pro && defined( 'EMCP_TOOLS_DIR' ) ) {
 					<p><?php esc_html_e( 'Cursor uses Project Rules rather than skills folders. Wire the EMCP skill in via:', 'emcp-tools' ); ?></p>
 					<ol>
 						<li><?php esc_html_e( 'Extract emcp-skills.zip on your machine.', 'emcp-tools' ); ?></li>
-						<li><?php esc_html_e( 'Copy emcp-skills/ to your project at:', 'emcp-tools' ); ?> <code>&lt;project-root&gt;/.cursor/rules/emcp-skills/</code></li>
+						<li><?php esc_html_e( 'Copy each skill folder (emcp-skills, emcp-performance, emcp-security) to your project under:', 'emcp-tools' ); ?> <code>&lt;project-root&gt;/.cursor/rules/</code></li>
 						<li><?php esc_html_e( 'Open Cursor → Settings → Rules → Project Rules. Add a new rule referencing the SKILL.md file. Set the rule type to "Agent Requested" so it loads when your agent uses MCP tools.', 'emcp-tools' ); ?></li>
 					</ol>
 				</div>
@@ -182,7 +182,7 @@ if ( $emcp_tools_has_pro && defined( 'EMCP_TOOLS_DIR' ) ) {
 					<p><?php esc_html_e( 'Windsurf\'s Cascade supports custom rules per workspace:', 'emcp-tools' ); ?></p>
 					<ol>
 						<li><?php esc_html_e( 'Extract emcp-skills.zip.', 'emcp-tools' ); ?></li>
-						<li><?php esc_html_e( 'Copy the folder to your workspace at:', 'emcp-tools' ); ?> <code>&lt;workspace&gt;/.windsurf/rules/emcp-skills/</code></li>
+						<li><?php esc_html_e( 'Copy each skill folder (emcp-skills, emcp-performance, emcp-security) to your workspace under:', 'emcp-tools' ); ?> <code>&lt;workspace&gt;/.windsurf/rules/</code></li>
 						<li><?php esc_html_e( 'In Windsurf, open Cascade → Customize → Rules. Enable the new rule and set it to load when MCP tools matching elementor-mcp-* are present.', 'emcp-tools' ); ?></li>
 					</ol>
 				</div>
@@ -198,7 +198,7 @@ if ( $emcp_tools_has_pro && defined( 'EMCP_TOOLS_DIR' ) ) {
 					<p><?php esc_html_e( 'Antigravity surfaces custom knowledge through its Knowledge Manager:', 'emcp-tools' ); ?></p>
 					<ol>
 						<li><?php esc_html_e( 'Extract emcp-skills.zip and locate the SKILL.md file inside.', 'emcp-tools' ); ?></li>
-						<li><?php esc_html_e( 'In Antigravity, open Knowledge Manager and create a new knowledge source. Point it at the extracted emcp-skills folder, or paste the SKILL.md contents directly.', 'emcp-tools' ); ?></li>
+						<li><?php esc_html_e( 'In Antigravity, open Knowledge Manager and create a knowledge source for each extracted skill folder (emcp-skills, emcp-performance, emcp-security), or paste each SKILL.md\'s contents directly.', 'emcp-tools' ); ?></li>
 						<li><?php esc_html_e( 'Tag the knowledge with "emcp-tools" so it auto-loads on sessions where the EMCP MCP server is connected.', 'emcp-tools' ); ?></li>
 					</ol>
 				</div>
