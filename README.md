@@ -10,7 +10,7 @@
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-8892BF.svg)](https://php.net)
 [![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.9-21759B.svg)](https://wordpress.org)
 [![Elementor](https://img.shields.io/badge/Elementor-%3E%3D3.20-92003B.svg)](https://elementor.com)
-[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20124-orange.svg)](#available-tools)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20130-orange.svg)](#available-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub Issues](https://img.shields.io/github/issues/msrbuilds/elementor-mcp)](https://github.com/msrbuilds/elementor-mcp/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/msrbuilds/elementor-mcp?style=social)](https://github.com/msrbuilds/elementor-mcp)
@@ -29,12 +29,12 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 ## Features
 
-- **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress management across five domains: content, settings, plugins & themes, media library, and users. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (registered counts, live-verified on Elementor 4.1.4):
-  - **100 tools** — free Elementor only (79 active by default)
-  - **114 tools** — free Elementor + Elementor 4.0 atomic elements (93 active)
-  - **110 tools** — with Elementor Pro (74 active)
-  - **124 tools** — with Elementor Pro + Elementor 4.0 (88 active; + WooCommerce adds no new tools)
-  - **36 of these ship disabled-by-default** (SEO & Accessibility, Widget Builder, PHP Snippets, the 9 Plugins & Themes write tools, `delete-media`, the 2 Users write tools, and the 3 Filesystem write tools), so the typical active surface is smaller until you opt in on the Tools tab
+- **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress management across multiple domains: content, settings, plugins & themes, media library, users, performance, filesystem, and database. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (registered counts, live-verified on Elementor 4.1.4):
+  - **106 tools** — free Elementor only (82 active by default)
+  - **120 tools** — free Elementor + Elementor 4.0 atomic elements (96 active)
+  - **116 tools** — with Elementor Pro (77 active)
+  - **130 tools** — with Elementor Pro + Elementor 4.0 (91 active; + WooCommerce adds no new tools)
+  - **39 of these ship disabled-by-default** (SEO & Accessibility, Widget Builder, PHP Snippets, the 9 Plugins & Themes write tools, `delete-media`, the 2 Users write tools, the 3 Filesystem write tools, and the 3 Database write tools), so the typical active surface is smaller until you opt in on the Tools tab
 - **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages
 - **WordPress Settings (beyond Elementor, domain 2)** — Read and batch-update core WordPress settings (general/reading/writing/discussion/media/permalinks) over MCP. Curated allowlist only — no arbitrary option access; `admin_email` is read-only; permalink changes auto-flush rewrite rules. `manage_options`. (v3.0.0)
 - **Plugins & Themes (beyond Elementor, domain 3)** — Discover, install (wordpress.org only), update, activate/deactivate, and delete plugins and themes over MCP. Strong guardrails (EMCP Tools + Elementor protected; per-op capability gating; direct-filesystem-only); the 9 mutation tools ship disabled-by-default. `manage_options`-class capabilities. (v3.0.0)
@@ -42,6 +42,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 - **Users (beyond Elementor, domain 5)** — List and read WordPress users, and safely create/edit non-admin profiles over MCP. Hard guardrails: no delete-user and no role-change tool; `create-user` assigns only non-admin roles and auto-generates a strong password (emailed to the new user — never returned); `update-user` edits profile fields only and refuses any user with admin-level capabilities (administrators are off-limits). `list-users`/`get-user` are enabled by default; `create-user`/`update-user` are disabled-by-default. (v3.0.0)
 - **Performance Analyzer (beyond Elementor, domain 6)** — Audit server config, WordPress internals (database size, autoloaded options, post revisions, cron backlog, persistent object cache, OPcache, plugin count), and a target page (defaults to the frontpage; optional `url`/`post_id`) for performance bottlenecks. Returns a scored report (0-100 + A–F grade) with severity-tagged findings (`server`/`database`/`config`/`page`/`assets`) and ranked recommendations. Read-only, self-contained (no external API), same-host-enforced loopback fetch, enabled by default. (v3.0.0)
 - **Filesystem (beyond Elementor)** — Read and scan any file inside the WordPress install (`read-file`, `list-directory`, `search-files` — enabled by default). Modify and delete files (`write-file`, `edit-file`, `delete-file`) are disabled-by-default: every path is confined to ABSPATH (no traversal/symlink escape), writes auto-back up the original, `wp-config.php`/`.htaccess` are refused, the `edit_files` capability is enforced (honoring `DISALLOW_FILE_EDIT`), and all writes are audit-logged. `delete-file` requires `confirm:true`. `manage_options`. (v3.0.0)
+- **Database (beyond Elementor)** — Inspect the database with flexible read-only SQL (`list-tables`, `describe-table`, `query` — SELECT/SHOW/DESCRIBE/EXPLAIN only; writes, DDL, stacked statements, MySQL `/*!` executable comments, and file-access SQL are rejected; results capped; enabled by default). Structured parameterized writes (`insert-row`, `update-rows`, `delete-rows`) are disabled-by-default: uses `$wpdb` throughout (no raw write-SQL/DDL), forces a non-empty WHERE on update/delete, refuses `wp_users`/`wp_usermeta`, captures a before-image snapshot to an audit log, and `delete-rows` requires `confirm:true`. `manage_options`. (v3.0.0)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
@@ -345,6 +346,21 @@ Read and scan any file inside the WordPress installation — core, plugins, them
 | `write-file` | Write (create or overwrite) a file inside ABSPATH; auto-backs up the original; refuses `wp-config.php`/`.htaccess`; audit-logged (`edit_files` + `manage_options`; disabled-by-default) |
 | `edit-file` | Apply a targeted find-and-replace or line-range edit to a file inside ABSPATH; auto-backs up the original; refuses `wp-config.php`/`.htaccess`; audit-logged (`edit_files` + `manage_options`; disabled-by-default) |
 | `delete-file` | Delete a file inside ABSPATH; requires `confirm:true`; refuses `wp-config.php`/`.htaccess`; audit-logged (`edit_files` + `manage_options`; disabled-by-default) |
+
+### Database — beyond Elementor (6 tools, v3.0.0)
+
+Inspect and manage the WordPress database over MCP. The 3 read tools are **enabled by default**; the **3 write tools ship disabled-by-default** and use `$wpdb` (no raw write-SQL, so no DDL). Writes force a non-empty WHERE clause on update/delete, refuse `wp_users`/`wp_usermeta`, snapshot a before-image into an audit log, and `delete-rows` requires an explicit `confirm:true`. `manage_options`.
+
+> **Direct DB access.** The read path (`query`) is bounded by a read-only-SQL validator that rejects writes/DDL/stacked statements, MySQL `/*!` executable comments, and file-access SQL. Writes are structured/parameterized via `$wpdb` (no raw write-SQL/DDL), disabled-by-default, admin-gated, refuse `wp_users`/`wp_usermeta`, force a WHERE clause, snapshot a before-image, and confirm on delete. Arbitrary DB access is contrary to WordPress.org plugin guidelines — included per an explicit project decision.
+
+| Tool | Description |
+|---|---|
+| `list-tables` | List all tables in the WordPress database with row counts and sizes (read-only, `manage_options`) |
+| `describe-table` | Return the column definitions and indexes for a table (read-only, `manage_options`) |
+| `query` | Run a read-only SQL query (SELECT/SHOW/DESCRIBE/EXPLAIN only); results capped (read-only, `manage_options`) |
+| `insert-row` | Insert a row into a table using `$wpdb`; refuses `wp_users`/`wp_usermeta`; audit-logged (`manage_options`; disabled-by-default) |
+| `update-rows` | Update rows matching a WHERE clause; forced non-empty WHERE; before-image snapshot; audit-logged (`manage_options`; disabled-by-default) |
+| `delete-rows` | Delete rows matching a WHERE clause; requires `confirm:true`; forced non-empty WHERE; before-image snapshot; audit-logged (`manage_options`; disabled-by-default) |
 
 ### Page Management (5 tools)
 
