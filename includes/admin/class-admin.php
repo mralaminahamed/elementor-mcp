@@ -171,7 +171,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 9;
+	const DEFAULTS_VERSION = 10;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -290,6 +290,17 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * Database mutation tool slugs that ship disabled-by-default. The reads
+	 * (list-tables/describe-table/query) stay enabled.
+	 *
+	 * @since 3.0.0
+	 * @return string[]
+	 */
+	public static function database_write_tool_slugs(): array {
+		return array( 'emcp-tools/insert-row', 'emcp-tools/update-rows', 'emcp-tools/delete-rows' );
+	}
+
+	/**
 	 * Seeds default disabled-tools on install/upgrade so new Pro tool batches
 	 * ship off-by-default (keeping sites under client tool caps), then records
 	 * the applied version. Each version step adds ONLY its newly-introduced
@@ -365,6 +376,11 @@ class EMCP_Tools_Admin {
 		// v9 — Filesystem mutation tools ship disabled-by-default (write/edit/delete).
 		if ( $applied < 9 ) {
 			$add = array_merge( $add, self::filesystem_write_tool_slugs() );
+		}
+
+		// v10 — Database mutation tools ship disabled-by-default (insert/update/delete).
+		if ( $applied < 10 ) {
+			$add = array_merge( $add, self::database_write_tool_slugs() );
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -1466,6 +1482,18 @@ class EMCP_Tools_Admin {
 					'emcp-tools/write-file'     => array( 'label' => __( 'Write File', 'emcp-tools' ),     'description' => __( 'Create/overwrite a file (backs up first). Disabled by default.', 'emcp-tools' ), 'badges' => array() ),
 					'emcp-tools/edit-file'      => array( 'label' => __( 'Edit File', 'emcp-tools' ),      'description' => __( 'Replace a string in a file (backs up first). Disabled by default.', 'emcp-tools' ),  'badges' => array() ),
 					'emcp-tools/delete-file'    => array( 'label' => __( 'Delete File', 'emcp-tools' ),    'description' => __( 'Delete a file (backs up; needs confirm). Disabled by default.', 'emcp-tools' ),     'badges' => array() ),
+				),
+			),
+			'database'         => array(
+				'platform' => 'wordpress',
+				'label' => __( 'Database', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/list-tables'    => array( 'label' => __( 'List Tables', 'emcp-tools' ),    'description' => __( 'List database tables with sizes.', 'emcp-tools' ),                'badges' => array( 'read-only' ) ),
+					'emcp-tools/describe-table' => array( 'label' => __( 'Describe Table', 'emcp-tools' ), 'description' => __( 'Show a table\'s columns and keys.', 'emcp-tools' ),               'badges' => array( 'read-only' ) ),
+					'emcp-tools/query'          => array( 'label' => __( 'Query (read-only)', 'emcp-tools' ), 'description' => __( 'Run a read-only SQL query (SELECT/SHOW/etc.).', 'emcp-tools' ), 'badges' => array( 'read-only' ) ),
+					'emcp-tools/insert-row'     => array( 'label' => __( 'Insert Row', 'emcp-tools' ),     'description' => __( 'Insert a row (parameterized). Disabled by default.', 'emcp-tools' ),   'badges' => array() ),
+					'emcp-tools/update-rows'    => array( 'label' => __( 'Update Rows', 'emcp-tools' ),    'description' => __( 'Update rows matching a WHERE. Disabled by default.', 'emcp-tools' ),   'badges' => array() ),
+					'emcp-tools/delete-rows'    => array( 'label' => __( 'Delete Rows', 'emcp-tools' ),    'description' => __( 'Delete rows matching a WHERE (confirm). Disabled by default.', 'emcp-tools' ), 'badges' => array() ),
 				),
 			),
 			'wp_packages'      => array(

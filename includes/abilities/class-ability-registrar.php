@@ -168,6 +168,11 @@ class EMCP_Tools_Ability_Registrar {
 		$filesystem->register();
 		$this->ability_names = array_merge( $this->ability_names, $filesystem->get_ability_names() );
 
+		// Database abilities (read-only query + structured writes; writes disabled-by-default).
+		$database = new EMCP_Tools_Database_Abilities();
+		$database->register();
+		$this->ability_names = array_merge( $this->ability_names, $database->get_ability_names() );
+
 		// SVG icon abilities (upload SVG for use as Elementor icons).
 		$svg_icons = new EMCP_Tools_Svg_Icon_Abilities( $this->data, $this->factory );
 		$svg_icons->register();

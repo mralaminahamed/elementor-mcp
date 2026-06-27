@@ -50,6 +50,9 @@
         <testsuite name="Filesystem">
             <directory>tests/unit/Filesystem</directory>
         </testsuite>
+        <testsuite name="Database">
+            <directory>tests/unit/Database</directory>
+        </testsuite>
     </testsuites>
 
     <source>
