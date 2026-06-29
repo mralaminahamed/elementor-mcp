@@ -82,28 +82,44 @@ class EMCP_Tools_Mcpb_Builder {
 			return new \WP_Error( 'no_open', __( 'Could not open the bundle archive for writing.', 'emcp-tools' ) );
 		}
 		$zip->addFromString( 'manifest.json', (string) wp_json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
-		// Minimal launcher so server.entry_point resolves to a real file. The
-		// host normally runs the mcp_config command (npx) directly; this is a
-		// fallback that spawns the same proxy, inheriting the injected env.
-		$zip->addFromString( self::ENTRY_POINT, self::launcher_js() );
+		// Launcher that also works when Claude Desktop runs entry_point directly
+		// without injecting mcp_config.env — credentials are embedded so the proxy
+		// always gets them regardless of which path the host takes.
+		$env = $manifest['server']['mcp_config']['env'] ?? array();
+		$zip->addFromString( self::ENTRY_POINT, self::launcher_js( $env ) );
 		$zip->close();
 		return $tmp;
 	}
 
 	/**
-	 * The bundled entry-point launcher (Node). Spawns the npx proxy with the
-	 * environment the host injects from mcp_config.env.
+	 * The bundled entry-point launcher (Node). Spawns the npx proxy with
+	 * credentials embedded directly so the proxy starts correctly even when
+	 * Claude Desktop runs entry_point without injecting mcp_config.env.
 	 *
+	 * @param array $env Key→value env vars from the manifest's mcp_config.env.
 	 * @return string
 	 */
-	private static function launcher_js(): string {
+	private static function launcher_js( array $env = array() ): string {
+		// Build a JS object literal of the env vars to merge into process.env.
+		$entries = array();
+		foreach ( $env as $key => $value ) {
+			$entries[] = sprintf(
+				'  %s: %s',
+				wp_json_encode( (string) $key ),
+				wp_json_encode( (string) $value )
+			);
+		}
+		$env_object = "{\n" . implode( ",\n", $entries ) . "\n}";
+
 		return "#!/usr/bin/env node\n"
-			. "// EMCP Tools MCPB launcher. The host normally uses manifest.json's\n"
-			. "// server.mcp_config (npx) directly; this fallback spawns the same proxy.\n"
 			. "'use strict';\n"
+			. "// EMCP Tools MCPB launcher — credentials embedded so the proxy\n"
+			. "// starts correctly even when mcp_config.env is not injected.\n"
 			. "const { spawn } = require('child_process');\n"
+			. "const injected = " . $env_object . ";\n"
+			. "const env = Object.assign({}, process.env, injected);\n"
 			. "const child = spawn('npx', ['-y', '@msrbuilds/emcp-proxy@latest'], {\n"
-			. "  stdio: 'inherit', env: process.env, shell: process.platform === 'win32',\n"
+			. "  stdio: 'inherit', env: env, shell: process.platform === 'win32',\n"
 			. "});\n"
 			. "child.on('exit', (code) => process.exit(code == null ? 0 : code));\n";
 	}
