@@ -81,6 +81,11 @@ class EMCP_Tools_Ability_Registrar {
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param bool $elementor_active Whether Elementor is active. When false, only
+	 *                               pure-WordPress tool groups are registered.
+	 *                               Default true (preserves prior behavior for any
+	 *                               caller that does not pass the flag).
+	 *
 	 * @return string[] Array of registered ability names.
 	 */
 	public function register_all( bool $elementor_active = true ): array {
