@@ -544,8 +544,11 @@ namespace {
 	}
 
 	if ( ! function_exists( 'did_action' ) ) {
+		// Note: do_action() in this harness does not record to _did_actions;
+		// seed $GLOBALS['_did_actions'] directly in test setUp() to control did_action().
 		function did_action( string $hook_name ): int {
-			return (int) ( $GLOBALS['_did_actions'][ $hook_name ] ?? 0 );
+			$actions = $GLOBALS['_did_actions'] ?? array();
+			return (int) ( $actions[ $hook_name ] ?? 0 );
 		}
 	}
 
