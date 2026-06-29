@@ -48,9 +48,12 @@ As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so
 **Requires:**
 
 * WordPress 6.9 or later
-* Elementor 3.20 or later (container support required)
 * WordPress Abilities API — included in WordPress core 6.9+ (and 7.0)
 * WordPress MCP Adapter — bundled with the plugin (no separate install needed; an active standalone MCP Adapter plugin is used instead when present)
+
+**Recommended (optional):**
+
+* Elementor 3.20 or later — enables the full Elementor tool family (query, pages, layout, widgets, templates, globals, composite, stock images, SVG icons, custom code, atomic elements, global classes, brand kits, widget builder, SEO/A11y). The plugin and all beyond-Elementor tools work without it; the admin shows a warning when Elementor is not active.
 
 **Connection Methods:**
 
@@ -60,10 +63,10 @@ As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so
 
 == Installation ==
 
-1. Install and activate [Elementor](https://wordpress.org/plugins/elementor/) (version 3.20+).
-2. Upload the `emcp-tools` folder to `/wp-content/plugins/`.
-3. Activate the plugin through the 'Plugins' menu in WordPress. The MCP Adapter is bundled — no separate install is required (WordPress 6.9+/7.0 already includes the Abilities API).
-4. Open the new **EMCP Tools** top-level menu, go to the **Connection** tab, and confirm **Activate Abilities API for EMCP** is enabled (on by default) to expose the MCP server.
+1. Upload the `emcp-tools` folder to `/wp-content/plugins/`.
+2. Activate the plugin through the 'Plugins' menu in WordPress. The MCP Adapter is bundled — no separate install is required (WordPress 6.9+/7.0 already includes the Abilities API).
+3. Open the new **EMCP Tools** top-level menu, go to the **Connection** tab, and confirm **Activate Abilities API for EMCP** is enabled (on by default) to expose the MCP server.
+4. (Optional) Install and activate [Elementor](https://wordpress.org/plugins/elementor/) (version 3.20+) to enable the Elementor tool family (page design, widgets, layout, templates, brand kits, and more). All beyond-Elementor tools are fully functional without it.
 
 = WP-CLI Connection (Local) =
 
@@ -169,6 +172,7 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 The first major release of the rebranded EMCP Tools — a step beyond Elementor into general WordPress management, plus a leaner catalog-backed widget surface. This single 3.0.0 release bundles the MCP namespace rename, the widget consolidation, and beyond-Elementor domains: WordPress Content (domain 1), Settings (domain 2), Plugins & Themes (domain 3), Media Library (domain 4), Users (domain 5), Performance & Security (domain 6 — a Performance Analyzer plus a Security & Malware Scanner), Filesystem (domain 7), and Database (domain 8). (Previous release: 2.2.0.)
 * Changed (BREAKING): MCP namespace + server route renamed elementor-mcp -> emcp-tools. Every tool is now under the emcp-tools/ ability namespace (tool names become emcp-tools-<tool>), and the server route moved from /wp-json/mcp/elementor-mcp-server to /wp-json/mcp/emcp-tools-server (WP-CLI --server=emcp-tools-server). Every existing AI-client connection must be reconnected with the new route — regenerate configs from EMCP Tools > Connection. Stored per-tool toggles migrate automatically to the new slugs.
 * Changed (BREAKING): Widget tools consolidated. The 62 per-widget convenience tools (add-heading, add-button, add-form, ...) and the universal add-widget are removed, replaced by 5 catalog-backed tools: list-widgets (now with tier/category/search filters), get-widget-schema (curated params by default, types[] batch, full:true escape hatch), add-free-widget, add-pro-widget, and update-widget. No capability is lost — every widget and every curated parameter is still reachable via discover -> inspect -> act. AI scripts that hardcoded an old tool name must switch to add-free-widget / add-pro-widget with a widget_type.
+* Changed: Elementor is now OPTIONAL. The plugin and all beyond-Elementor tools (WordPress content, plugins & themes, users, media, performance, security, filesystem, database) work without Elementor. The Elementor tool family registers only when Elementor is active; otherwise the admin shows a warning, and the Brand Kits / Templates tabs show a notice.
 * Changed: Tools admin page reorganized into Elementor / WordPress sub-tabs. Tool categories are now grouped under two tabs — Elementor (page-building tools + Accessibility) and WordPress (Content, Settings, Plugins & Themes, Users, Stock & Media, PHP Snippets, SEO) — so the growing tool set is easier to manage. Presentation only; no change to which tools are enabled or how they're gated.
 * Added: WordPress Content tools — the first step beyond Elementor (domain 1). Eight new MCP tools to manage general WordPress content: list-post-types, list-taxonomies, create-post, get-post, update-post, list-posts, delete-post, and set-post-terms. Create and edit posts, pages, and any custom post type — title, content (classic HTML or block markup), status, slug, author, taxonomy terms, custom fields, and featured image — without touching Elementor data (an is_elementor flag steers you to the Elementor tools for builder pages). Capability-gated and enabled by default; delete-post trashes by default (pass force to permanently delete).
 * Added: WordPress Settings tools — beyond Elementor, domain 2. Two new MCP tools over a curated, typed allowlist of core WordPress settings: get-settings (read general/reading/writing/discussion/media/permalinks settings; doubles as discovery — returns each setting's type, label, enum options, and writable flag; manage_options, read-only) and update-settings (batch-update allowlisted settings; non-allowlisted, read-only, or invalid values are reported in skipped[] without aborting the batch; changing a permalink setting auto-flushes rewrite rules; manage_options). Safety: curated allowlist only — no arbitrary option access; siteurl/home and users_can_register/default_role are excluded; admin_email is read-only.

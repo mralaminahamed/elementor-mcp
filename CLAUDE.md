@@ -36,8 +36,8 @@ See `PLAN.md` for the full architectural specification.
 ## Dependencies & Requirements
 
 - WordPress >= 6.9 (the Abilities API — `wp_register_ability()` — is core in 6.9+/7.0)
-- Elementor >= 3.20 (container support required; >= 4.0 for atomic elements)
-- WordPress Abilities API — core in WP 6.9+/7.0 (the only hard external dep is Elementor)
+- Elementor — **optional**. The plugin and every beyond-Elementor tool (WordPress Content, Settings, Plugins & Themes, Users, Media, Performance, Security, Filesystem, Database, PHP Snippets) load and work without it. Installing/activating Elementor (>= 3.20; >= 4.0 for atomic elements) enables the Elementor tool family (query, pages, layout, widgets, templates, globals, composite, stock images, SVG icons, custom code, atomic, global classes, brand kits, widget builder, SEO/A11y). When Elementor is inactive those groups don't register and the admin shows a warning. The only hard dependencies are PHP 8.1+, the WordPress Abilities API (core in WP 6.9+), and the bundled MCP Adapter.
+- WordPress Abilities API — core in WP 6.9+/7.0
 - WordPress MCP Adapter — **bundled** with the plugin since v1.7.4 (`includes/vendors/mcp-adapter/`); no separate install needed. If a standalone MCP Adapter plugin is active, the plugin defers to it (see `Elementor_MCP_Adapter_Bootstrap`).
 - PHP >= 8.1
 
