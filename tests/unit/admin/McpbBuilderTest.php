@@ -56,4 +56,27 @@ class McpbBuilderTest extends TestCase {
 	public function display_name_includes_the_site_host(): void {
 		$this->assertStringContainsString( 'example.com', (string) $this->manifest()['display_name'] );
 	}
+
+	/** @test */
+	public function build_server_js_converts_esm_to_cjs_and_embeds_credentials(): void {
+		$fake_esm = "import { createInterface } from 'node:readline';\n"
+			. "import { request as httpRequest } from 'node:http';\n"
+			. "import { request as httpsRequest } from 'node:https';\n"
+			. "import { appendFileSync } from 'node:fs';\n"
+			. "const MCP_REST_PATH = '/mcp/emcp-tools-server';\n";
+
+		$out = \EMCP_Tools_Mcpb_Builder::build_server_js(
+			$fake_esm,
+			array( 'WP_URL' => 'https://example.com', 'WP_USERNAME' => 'admin' )
+		);
+
+		$this->assertStringContainsString( "require('readline')", $out );
+		$this->assertStringContainsString( "require('http')", $out );
+		$this->assertStringContainsString( "require('https')", $out );
+		$this->assertStringContainsString( "require('fs')", $out );
+		$this->assertStringNotContainsString( 'import {', $out );
+		$this->assertStringContainsString( 'process.env["WP_URL"]', $out );
+		$this->assertStringContainsString( 'emcp-tools-server', $out );
+		$this->assertStringStartsWith( "'use strict';", $out );
+	}
 }

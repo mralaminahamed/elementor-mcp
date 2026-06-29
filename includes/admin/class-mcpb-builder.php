@@ -1,12 +1,15 @@
 <?php
 /**
- * Builds a Claude Desktop .mcpb bundle that installs the EMCP MCP server
- * using the bundled proxy — no npx, no internet, no PATH issues.
+ * Builds a Claude Desktop .mcpb bundle that installs the EMCP MCP server.
  *
- * The bundle contains:
+ * The bundle contains two files:
  *   manifest.json      — MCPB 0.3 manifest
- *   server/index.js    — entry-point: runs the bundled proxy via process.execPath
- *   server/proxy.mjs   — the self-contained stdio↔HTTP proxy (copied from bin/)
+ *   server/index.js    — self-contained CJS proxy (credentials embedded,
+ *                        ESM imports converted, no spawn, no npx, no PATH)
+ *
+ * server/index.js IS the MCP server — it reads JSON-RPC from stdin, forwards
+ * it to the WordPress REST endpoint, and writes responses to stdout. Running
+ * it requires nothing beyond the Node.js binary Claude Desktop already has.
  *
  * @package EMCP_Tools
  * @since   3.0.0
@@ -25,9 +28,6 @@ class EMCP_Tools_Mcpb_Builder {
 
 	/** Relative path of the entry-point inside the bundle. */
 	const ENTRY_POINT = 'server/index.js';
-
-	/** Relative path of the bundled proxy inside the bundle. */
-	const PROXY_PATH = 'server/proxy.mjs';
 
 	/**
 	 * Build the MCPB manifest array. Pure — no I/O.
@@ -51,9 +51,8 @@ class EMCP_Tools_Mcpb_Builder {
 			'server'           => array(
 				'type'        => 'node',
 				'entry_point' => self::ENTRY_POINT,
-				// mcp_config is included as a hint for hosts that support it;
-				// server/index.js is the authoritative execution path and does
-				// not rely on mcp_config being injected.
+				// mcp_config mirrors the entry-point command so the manifest
+				// is valid regardless of which path Claude Desktop takes.
 				'mcp_config'  => array(
 					'command' => 'node',
 					'args'    => array( self::ENTRY_POINT ),
@@ -69,8 +68,7 @@ class EMCP_Tools_Mcpb_Builder {
 	}
 
 	/**
-	 * Write the manifest + entry-point + bundled proxy into a temp .mcpb (zip)
-	 * file and return its path, or WP_Error on failure.
+	 * Write the manifest + self-contained proxy into a temp .mcpb (zip) file.
 	 *
 	 * @param array $manifest
 	 * @return string|\WP_Error Temp file path.
@@ -80,11 +78,18 @@ class EMCP_Tools_Mcpb_Builder {
 			return new \WP_Error( 'no_zip', __( 'The ZipArchive PHP extension is required to build the bundle.', 'emcp-tools' ) );
 		}
 
-		// Read the bundled proxy source that ships with the plugin.
+		// Convert the ESM proxy source to a self-contained CJS server file.
 		$proxy_source_path = EMCP_TOOLS_DIR . 'bin/mcp-proxy.mjs';
 		$proxy_source      = @file_get_contents( $proxy_source_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
 		if ( false === $proxy_source ) {
 			return new \WP_Error( 'no_proxy', __( 'Could not read the bundled proxy file (bin/mcp-proxy.mjs). Please reinstall the plugin.', 'emcp-tools' ) );
+		}
+
+		$env           = $manifest['server']['mcp_config']['env'] ?? array();
+		$server_js     = self::build_server_js( $proxy_source, $env );
+		$server_js_err = self::validate_server_js( $server_js );
+		if ( null !== $server_js_err ) {
+			return new \WP_Error( 'bad_server_js', $server_js_err );
 		}
 
 		$tmp = wp_tempnam( 'emcp-tools.mcpb' );
@@ -98,58 +103,89 @@ class EMCP_Tools_Mcpb_Builder {
 			return new \WP_Error( 'no_open', __( 'Could not open the bundle archive for writing.', 'emcp-tools' ) );
 		}
 
-		$env = $manifest['server']['mcp_config']['env'] ?? array();
-
 		$zip->addFromString( 'manifest.json', (string) wp_json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
-		// Entry-point: runs the bundled proxy.mjs via the same Node binary.
-		// Credentials are embedded so this works whether the host runs it via
-		// entry_point or mcp_config — no npx, no network, no PATH dependency.
-		$zip->addFromString( self::ENTRY_POINT, self::launcher_js( $env ) );
-		// The self-contained stdio↔HTTP proxy (pure Node.js built-ins only).
-		$zip->addFromString( self::PROXY_PATH, $proxy_source );
+		$zip->addFromString( self::ENTRY_POINT, $server_js );
 
 		$zip->close();
 		return $tmp;
 	}
 
 	/**
-	 * The entry-point launcher (CJS). Runs server/proxy.mjs via process.execPath
-	 * (the Node binary Claude Desktop already has) with credentials embedded.
+	 * Converts the ESM proxy source into a self-contained CJS server file with
+	 * credentials embedded. No spawn, no npx, no PATH — just Node.js built-ins.
 	 *
-	 * Why not npx? When Claude Desktop uses its built-in Node.js to run entry_point,
-	 * the child process environment has no user PATH, so npx is unreachable.
-	 * Running the bundled proxy.mjs directly via process.execPath needs nothing
-	 * beyond the Node binary that is already executing this file.
+	 * The conversion is minimal: replace the four ESM import lines with their
+	 * CJS require() equivalents, remove the shebang, and prepend a credential
+	 * override block so the file works even when the host does not inject env vars.
 	 *
-	 * @param array $env Key→value credentials from mcp_config.env.
-	 * @return string
+	 * @param string $esm_source The raw content of bin/mcp-proxy.mjs.
+	 * @param array  $env        Credential env vars to embed (key → value).
+	 * @return string CJS source ready to run with `node`.
 	 */
-	private static function launcher_js( array $env = array() ): string {
-		// Build a JS object literal of credentials to overlay on process.env.
-		$entries = array();
+	public static function build_server_js( string $esm_source, array $env = array() ): string {
+		// 1. Remove the shebang line if present.
+		$source = preg_replace( '/^#![^\n]*\n/', '', $esm_source );
+
+		// 2. Replace the four ESM import lines with CJS require() equivalents.
+		//    The proxy only imports from Node built-ins so this is exhaustive.
+		$esm_to_cjs = array(
+			"/import\s*\{\s*createInterface\s*\}\s*from\s*'node:readline'\s*;/"
+				=> "const { createInterface } = require('readline');",
+			"/import\s*\{\s*request\s*as\s*httpRequest\s*\}\s*from\s*'node:http'\s*;/"
+				=> "const { request: httpRequest } = require('http');",
+			"/import\s*\{\s*request\s*as\s*httpsRequest\s*\}\s*from\s*'node:https'\s*;/"
+				=> "const { request: httpsRequest } = require('https');",
+			"/import\s*\{\s*appendFileSync\s*\}\s*from\s*'node:fs'\s*;/"
+				=> "const { appendFileSync } = require('fs');",
+		);
+		foreach ( $esm_to_cjs as $pattern => $replacement ) {
+			$source = (string) preg_replace( $pattern, $replacement, $source );
+		}
+
+		// 3. Build the credential preamble: overrides process.env BEFORE any
+		//    code reads from it, so the file works whether or not the host
+		//    injects the mcp_config.env values.
+		$lines = array(
+			"'use strict';",
+			'// EMCP Tools — self-contained MCP proxy (credentials embedded).',
+			'// Credentials are set here so this works even when the host does',
+			'// not inject mcp_config.env into the process environment.',
+		);
 		foreach ( $env as $key => $value ) {
-			$entries[] = sprintf(
-				'  %s: %s',
+			$lines[] = sprintf(
+				"process.env[%s] = process.env[%s] || %s;",
+				wp_json_encode( (string) $key ),
 				wp_json_encode( (string) $key ),
 				wp_json_encode( (string) $value )
 			);
 		}
-		$env_object = "{\n" . implode( ",\n", $entries ) . "\n}";
+		$preamble = implode( "\n", $lines ) . "\n\n";
 
-		// CJS wrapper (require/module.exports available in any Node.js version).
-		// Uses --input-type=module via execFileSync to run the ESM proxy.mjs.
-		return "'use strict';\n"
-			. "// EMCP Tools MCPB entry-point — runs the bundled proxy via Node.\n"
-			. "// No npx, no npm, no internet connection needed.\n"
-			. "const path = require('path');\n"
-			. "const { spawnSync } = require('child_process');\n"
-			. "const proxyPath = path.join(__dirname, 'proxy.mjs');\n"
-			. "const injected = " . $env_object . ";\n"
-			. "const env = Object.assign({}, process.env, injected);\n"
-			. "const result = spawnSync(process.execPath, [proxyPath], {\n"
-			. "  stdio: 'inherit',\n"
-			. "  env: env,\n"
-			. "});\n"
-			. "process.exit(result.status == null ? 0 : result.status);\n";
+		return $preamble . ltrim( $source );
+	}
+
+	/**
+	 * Basic sanity check: ensure the key CJS require() lines are present
+	 * and no ESM import statements remain.
+	 *
+	 * @param string $source
+	 * @return string|null Error message, or null if valid.
+	 */
+	private static function validate_server_js( string $source ): ?string {
+		$required = array(
+			"require('readline')",
+			"require('http')",
+			"require('https')",
+			"require('fs')",
+		);
+		foreach ( $required as $needle ) {
+			if ( false === strpos( $source, $needle ) ) {
+				return "Built server/index.js is missing expected require: {$needle}";
+			}
+		}
+		if ( preg_match( "/\bimport\s+[{*]/", $source ) ) {
+			return 'Built server/index.js still contains ESM import statements.';
+		}
+		return null;
 	}
 }
