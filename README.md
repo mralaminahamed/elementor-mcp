@@ -612,4 +612,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on how to get sta
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is licensed under the [GNU General Public License v2.0 or later](LICENSE).
