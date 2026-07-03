@@ -96,7 +96,10 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-template-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-global-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-composite-abilities.php';
-		require_once EMCP_TOOLS_DIR . 'includes/class-openverse-client.php';
+		require_once EMCP_TOOLS_DIR . 'includes/class-unsplash-client.php';
+		require_once EMCP_TOOLS_DIR . 'includes/class-pexels-client.php';
+		require_once EMCP_TOOLS_DIR . 'includes/class-pixabay-client.php';
+		require_once EMCP_TOOLS_DIR . 'includes/class-stock-image-providers.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-stock-image-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-media-library-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-content-abilities.php';
@@ -155,6 +158,15 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-global-classes-abilities.php';
 		// Background library refresh.
 		require_once EMCP_TOOLS_DIR . 'includes/class-library-refresher.php';
+		// Modules framework (free) + built-in modules. The registry boots active
+		// modules on `init`; each module self-gates on its options + availability.
+		require_once EMCP_TOOLS_DIR . 'includes/modules/class-module.php';
+		require_once EMCP_TOOLS_DIR . 'includes/modules/class-modules-registry.php';
+		require_once EMCP_TOOLS_DIR . 'includes/modules/image-optimization/class-webp-generator.php';
+		require_once EMCP_TOOLS_DIR . 'includes/modules/image-optimization/class-image-optimizer.php';
+		require_once EMCP_TOOLS_DIR . 'includes/modules/image-optimization/class-webp-rewriter.php';
+		require_once EMCP_TOOLS_DIR . 'includes/modules/image-optimization/class-bulk-optimizer.php';
+		require_once EMCP_TOOLS_DIR . 'includes/modules/image-optimization/class-image-optimization-module.php';
 		// Pro-tier units (SEO/a11y helpers + abilities, widget generator + builder
 		// abilities, system-kit abilities, Pro brand kits, AI Chat). These ship in
 		// the private Pro overlay (pro/) and are absent from the free build; the
@@ -183,6 +195,14 @@ class EMCP_Tools_Bootstrap {
 		// unconditionally (cron runs in a non-admin context) so an expired 24h
 		// cache self-heals without the user clicking "Sync Library".
 		EMCP_Tools_Library_Refresher::register();
+		// Modules: register built-ins + Pro modules, seed defaults once, boot the
+		// active ones on `init` (after registration, before most feature hooks).
+		$emcp_modules = EMCP_Tools_Modules_Registry::instance();
+		$emcp_modules->register( new EMCP_Tools_Image_Optimization_Module() );
+		EMCP_Tools_Pro_Loader::register_modules( $emcp_modules );
+		do_action( 'emcp_tools_register_modules', $emcp_modules );
+		$emcp_modules->apply_defaults();
+		add_action( 'init', array( $emcp_modules, 'boot_active' ), 5 );
 		// AI Chat (Pro): REST routes + weekly model-list refresh cron + saved-
 		// conversation CPT. No-op in the free build (classes absent).
 		EMCP_Tools_Pro_Loader::wire_runtime_hooks();

@@ -56,6 +56,12 @@
         <testsuite name="Bootstrap">
             <directory>pro/tests/unit/Bootstrap</directory>
         </testsuite>
+        <testsuite name="AiChat">
+            <directory>pro/tests/unit/AiChat</directory>
+        </testsuite>
+        <testsuite name="Modules">
+            <directory>pro/tests/unit/Modules</directory>
+        </testsuite>
     </testsuites>
 
     <source>

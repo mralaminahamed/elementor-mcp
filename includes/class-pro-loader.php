@@ -34,12 +34,15 @@ final class EMCP_Tools_Pro_Loader {
 		'includes/ai-chat/class-ai-providers.php',
 		'includes/ai-chat/class-ai-chat-provider.php',
 		'includes/ai-chat/class-ai-chat-store.php',
+		'includes/ai-chat/class-ai-chat-tool-groups.php',
+		'includes/ai-chat/class-ai-chat-prompt.php',
 		'includes/ai-chat/class-ai-chat-controller.php',
 	);
 
 	/** Pro admin class files, in load order. Relative to the Pro root. */
 	private const ADMIN_FILES = array(
 		'includes/ai-chat/class-ai-chat-page.php',
+		'includes/ai-chat/class-elementor-editor.php',
 		'includes/admin/class-pro-prompts.php',
 		'includes/admin/class-pro-templates.php',
 		'includes/admin/class-pro-ajax.php',
@@ -125,6 +128,9 @@ final class EMCP_Tools_Pro_Loader {
 		if ( class_exists( 'EMCP_Tools_AI_Chat_Page' ) ) {
 			( new EMCP_Tools_AI_Chat_Page() )->init();
 		}
+		if ( class_exists( 'EMCP_Tools_Elementor_Editor' ) ) {
+			( new EMCP_Tools_Elementor_Editor() )->init();
+		}
 		if ( ! function_exists( 'emcp_tools_fs' ) ) {
 			return;
 		}
@@ -134,5 +140,16 @@ final class EMCP_Tools_Pro_Loader {
 		if ( class_exists( 'EMCP_Tools_Pro_Skills' ) ) {
 			( new EMCP_Tools_Pro_Skills() )->init();
 		}
+	}
+
+	/**
+	 * Let Pro register its modules into the shared registry. No-op today (no Pro
+	 * modules yet); the private overlay will instantiate + register them here,
+	 * each guarded by class_exists, when the first Pro module lands.
+	 *
+	 * @param EMCP_Tools_Modules_Registry $registry The shared registry.
+	 */
+	public static function register_modules( EMCP_Tools_Modules_Registry $registry ): void {
+		unset( $registry );
 	}
 }
