@@ -2884,3 +2884,5 @@
 .elementor-mcp-subtabs--flush { border-bottom: none; margin: 0; }
 .emcp-subtab-actions { display: flex; align-items: center; padding-bottom: 6px; }
 .emcp-subtab-save { margin: 0 !important; }
+/* [hidden] alone loses to WP's .button { display:inline-block } — force it. */
+.emcp-subtab-save[hidden] { display: none !important; }
