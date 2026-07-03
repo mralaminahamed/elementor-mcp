@@ -88,7 +88,7 @@ emcp-tools/
 │   ├── class-elementor-data.php               # Data access layer wrapping Elementor documents, widgets, element tree
 │   ├── class-element-factory.php              # Builds valid Elementor JSON element structures (container, widget, section, column)
 │   ├── class-id-generator.php                 # 7-char hex unique IDs via random_bytes()
-│   ├── class-openverse-client.php             # HTTP client for Openverse image search API
+│   ├── class-unsplash-client.php              # Stock-photo client: Unsplash (also class-pexels-client.php, class-pixabay-client.php + class-stock-image-providers.php registry). Each needs a free API key
 │   ├── class-pro-loader.php                   # EMCP_Tools_Pro_Loader — conditional dual-root loader for the private Pro overlay (pro/). Free class; no-op when pro/ absent
 │   ├── widgets/                               # Curated widget catalog (v3.0.0): class-widget-catalog.php + catalog-{free,pro,woo}.php (27/30/5 = 62 widgets as DATA, not tools)
 │   ├── abilities/
@@ -169,6 +169,12 @@ The MCP Adapter converts ability names like `emcp-tools/list-widgets` to tool na
 - **Pro-aware**: Pro widget tools only register when Elementor Pro is active; core tools work with free Elementor
 - **`elementor_mcp_ability_names` filter** lives in `Elementor_MCP_Plugin::filter_disabled_tools()` (always loaded — NOT in the admin class, which only loads on `is_admin()`). It reads two options: `elementor_mcp_disabled_tools` (user toggles) and `elementor_mcp_low_tool_mode` (essentials-only). When low-tools mode is on, every name outside `Elementor_MCP_Plugin::get_essential_tool_slugs()` is excluded — this is the runtime path that keeps the count under client tool caps.
 - **Pro widgets disabled-by-default**: on first admin page load (tracked via `elementor_mcp_defaults_applied` marker option), every Pro-badged slug from `get_all_tools()` is merged into `elementor_mcp_disabled_tools`. Users can re-enable individual Pro widgets from the Tools admin screen.
+
+### Modules Framework (v3.1.0)
+
+A pluggable feature system: substantial features an admin turns on/off from the **Modules** admin tab. `EMCP_Tools_Module` (abstract base) + `EMCP_Tools_Modules_Registry` (singleton) live in `includes/modules/` (free). Active module IDs are stored in the single `emcp_tools_active_modules` option; each module owns `emcp_tools_module_<id>_*` keys. The registry seeds defaults once (marker option `emcp_tools_modules_defaults_applied`) and boots active+available modules on `init` (priority 5). Pro modules register via `EMCP_Tools_Pro_Loader::register_modules()` or the `emcp_tools_register_modules` action. Wired in `EMCP_Tools_Bootstrap::wire_hooks()`.
+
+**Image Optimization module** (`includes/modules/image-optimization/`, free, opt-in — it mutates uploads): compresses generated image sub-sizes on upload and generates `.webp` siblings (`WP_Image_Editor`, no external binaries), then serves WebP by rewriting `wp_get_attachment_*` URLs — frontend gated by `Accept: image/webp`, always in REST/CLI so the MCP media tools (`get-media`/`sideload-image`/`add-stock-image`/etc.) resolve to WebP with no tool changes. Full-size is preserved (trimmed only by an optional max-dimension cap); touched files are backed up under `uploads/emcp-originals/` (reversible). A resumable admin-ajax bulk optimizer (`class-bulk-optimizer.php`, batches of 10, cursor option) processes the existing library, with a Restore-originals companion. Options: `compress`, `webp`, `quality` (40–95, default 82), `max_dimension` (0=off), `keep_originals`. Availability gates on the image editor supporting WebP output; the card disables the toggle + shows a notice when unsupported. Classes: `class-module.php`, `class-modules-registry.php`, `image-optimization/class-{image-optimization-module,image-optimizer,webp-generator,webp-rewriter,bulk-optimizer}.php`. Tests: `pro/tests/unit/Modules/` (phpunit.xml `Modules` suite).
 
 ### Permission Model
 
@@ -386,7 +392,7 @@ Direct database inspection and structured writes over MCP. The 3 read tools are 
 
 | Ability Name | Purpose |
 |---|---|
-| `emcp-tools/search-images` | Search Openverse (WordPress.org) for Creative Commons images by keyword |
+| `emcp-tools/search-images` | Search a stock provider (Unsplash / Pexels / Pixabay) for photos by keyword; optional `provider` param, else first connected. Needs a free API key for ≥1 provider on the Connection tab |
 | `emcp-tools/sideload-image` | Download an external image URL into the WordPress Media Library |
 | `emcp-tools/add-stock-image` | Search + sideload + add image widget to page in one call |
 
