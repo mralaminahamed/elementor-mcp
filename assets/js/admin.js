@@ -200,6 +200,11 @@
 				tab.classList.toggle( 'is-active', on );
 				tab.setAttribute( 'aria-selected', on ? 'true' : 'false' );
 			} );
+			// Per-panel header actions (e.g. a Save button in the sub-tab row that
+			// submits the active panel's form). Only the matching one is shown.
+			document.querySelectorAll( '[data-save-for]' ).forEach( function ( el ) {
+				el.hidden = el.getAttribute( 'data-save-for' ) !== tabId;
+			} );
 			try { window.localStorage.setItem( STORAGE_KEY, tabId ); } catch ( e ) {}
 		}
 

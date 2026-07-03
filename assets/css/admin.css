@@ -2879,3 +2879,8 @@
 .emcp-service-field-head a { font-size: 12px; text-decoration: none; }
 .emcp-service-field input[type="text"] { width: 100%; }
 .emcp-service-field input[type="text"]:disabled { background: var(--mcp-gray-50); color: var(--mcp-gray-600, #50575e); }
+/* Connection sub-tab header: tabs left, Save button right -------------------- */
+.emcp-conn-subhead { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 16px 0 18px; border-bottom: 1px solid var(--mcp-gray-200); }
+.elementor-mcp-subtabs--flush { border-bottom: none; margin: 0; }
+.emcp-subtab-actions { display: flex; align-items: center; padding-bottom: 6px; }
+.emcp-subtab-save { margin: 0 !important; }

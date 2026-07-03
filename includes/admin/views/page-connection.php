@@ -38,19 +38,25 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 
 <div class="elementor-mcp-connection">
 
-	<div class="elementor-mcp-subtabs" data-subtab-key="connection" role="tablist" aria-label="<?php esc_attr_e( 'Connection sections', 'emcp-tools' ); ?>">
-		<button type="button" class="elementor-mcp-subtab is-active" role="tab" data-tab="conn-main" aria-selected="true" aria-controls="emcp-conn-main">
-			<span class="elementor-mcp-subtab-label"><?php esc_html_e( 'Connections', 'emcp-tools' ); ?></span>
-		</button>
-		<button type="button" class="elementor-mcp-subtab" role="tab" data-tab="conn-services" aria-selected="false" aria-controls="emcp-conn-services">
-			<span class="elementor-mcp-subtab-label"><?php esc_html_e( '3rd Party Services', 'emcp-tools' ); ?></span>
-		</button>
+	<div class="emcp-conn-subhead">
+		<div class="elementor-mcp-subtabs elementor-mcp-subtabs--flush" data-subtab-key="connection" role="tablist" aria-label="<?php esc_attr_e( 'Connection sections', 'emcp-tools' ); ?>">
+			<button type="button" class="elementor-mcp-subtab is-active" role="tab" data-tab="conn-main" aria-selected="true" aria-controls="emcp-conn-main">
+				<span class="elementor-mcp-subtab-label"><?php esc_html_e( 'Connections', 'emcp-tools' ); ?></span>
+			</button>
+			<button type="button" class="elementor-mcp-subtab" role="tab" data-tab="conn-services" aria-selected="false" aria-controls="emcp-conn-services">
+				<span class="elementor-mcp-subtab-label"><?php esc_html_e( '3rd Party Services', 'emcp-tools' ); ?></span>
+			</button>
+		</div>
+		<div class="emcp-subtab-actions">
+			<button type="submit" form="emcp-conn-form" class="button button-primary emcp-subtab-save" data-save-for="conn-main"><?php esc_html_e( 'Save Settings', 'emcp-tools' ); ?></button>
+			<button type="submit" form="emcp-conn-services-form" class="button button-primary emcp-subtab-save" data-save-for="conn-services" hidden><?php esc_html_e( 'Save Settings', 'emcp-tools' ); ?></button>
+		</div>
 	</div>
 
 	<?php // ===== Sub-tab: Connections ===== ?>
 	<div class="elementor-mcp-tabpanel is-active" id="emcp-conn-main" role="tabpanel" data-tab="conn-main">
 
-		<form method="post" action="options.php" class="elementor-mcp-activate-form">
+		<form method="post" action="options.php" id="emcp-conn-form" class="elementor-mcp-activate-form">
 			<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP_SERVER ); ?>
 
 			<div class="emcp-conn-cards">
@@ -112,8 +118,6 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 				</div>
 
 			</div>
-
-			<?php submit_button( __( 'Save Settings', 'emcp-tools' ), 'primary', 'submit', false ); ?>
 		</form>
 
 		<!-- Server Status -->
@@ -379,7 +383,7 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 			<h2><?php esc_html_e( '3rd Party Services', 'emcp-tools' ); ?></h2>
 			<p class="description"><?php esc_html_e( 'Connect external services EMCP tools can use. Stock-image providers power the search-images / add-stock-image tools — add at least one free key; the tools use the first connected provider unless a specific one is requested.', 'emcp-tools' ); ?></p>
 
-			<form method="post" action="options.php" class="emcp-services-form">
+			<form method="post" action="options.php" id="emcp-conn-services-form" class="emcp-services-form">
 				<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP_SERVICES ); ?>
 
 				<div class="emcp-services-grid">
@@ -422,8 +426,6 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 						</div>
 					<?php endforeach; ?>
 				</div>
-
-				<?php submit_button( __( 'Save Settings', 'emcp-tools' ), 'primary', 'submit', false ); ?>
 			</form>
 		</div>
 	</div><?php // /#emcp-conn-services ?>
