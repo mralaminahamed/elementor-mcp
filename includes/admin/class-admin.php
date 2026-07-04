@@ -98,6 +98,24 @@ class EMCP_Tools_Admin {
 	 *
 	 * @return array<string, string>
 	 */
+	/**
+	 * Whether the AI Chat submenu tab should show. Visible when the AI Chat
+	 * module is not registered (free / no Pro overlay → keep the upsell page) or
+	 * when it is active; hidden when a Pro user has turned the module off.
+	 *
+	 * @return bool
+	 */
+	private function ai_chat_tab_visible(): bool {
+		if ( ! class_exists( 'EMCP_Tools_Modules_Registry' ) ) {
+			return true;
+		}
+		$module = EMCP_Tools_Modules_Registry::instance()->get( 'ai-chat' );
+		if ( ! $module ) {
+			return true;
+		}
+		return $module->is_active();
+	}
+
 	private function get_submenus(): array {
 		if ( null === $this->submenus ) {
 			$this->submenus = array(
@@ -113,6 +131,9 @@ class EMCP_Tools_Admin {
 				self::PAGE_SLUG . '-widgets'    => __( 'Sandbox', 'emcp-tools' ),
 				self::PAGE_SLUG . '-changelog'  => __( 'Changelog', 'emcp-tools' ),
 			);
+			if ( ! $this->ai_chat_tab_visible() ) {
+				unset( $this->submenus[ self::PAGE_SLUG . '-ai-chat' ] );
+			}
 		}
 		return $this->submenus;
 	}
@@ -1295,7 +1316,7 @@ class EMCP_Tools_Admin {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-modules.php';
 				} elseif ( 'connection' === $active_tab ) {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-connection.php';
-				} elseif ( 'ai-chat' === $active_tab ) {
+				} elseif ( 'ai-chat' === $active_tab && $this->ai_chat_tab_visible() ) {
 					$emcp_pro_view = EMCP_Tools_Pro_Loader::path( 'includes/admin/views/page-ai-chat.php' );
 					if ( '' !== $emcp_pro_view ) {
 						include $emcp_pro_view;
