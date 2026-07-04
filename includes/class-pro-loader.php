@@ -109,28 +109,13 @@ final class EMCP_Tools_Pro_Loader {
 
 	/** Wire Pro runtime hooks, each guarded by class_exists. */
 	public static function wire_runtime_hooks(): void {
-		if ( class_exists( 'EMCP_Tools_AI_Chat_Controller' ) ) {
-			( new EMCP_Tools_AI_Chat_Controller() )->register_hooks();
-		}
-		if ( class_exists( 'EMCP_Tools_AI_Chat_Provider' ) ) {
-			add_action(
-				EMCP_Tools_AI_Chat_Provider::REFRESH_HOOK,
-				array( 'EMCP_Tools_AI_Chat_Provider', 'cron_refresh' )
-			);
-		}
-		if ( class_exists( 'EMCP_Tools_AI_Chat_Store' ) ) {
-			add_action( 'init', array( 'EMCP_Tools_AI_Chat_Store', 'register_post_type' ) );
-		}
+		// AI Chat runtime wiring now lives in EMCP_Tools_AI_Chat_Module::register(),
+		// booted by the modules registry only when the module is active.
 	}
 
-	/** Wire Pro admin hooks, each guarded by class_exists (mirrors the old bootstrap order). */
+	/** Wire Pro admin hooks, each guarded by class_exists. */
 	public static function wire_admin_hooks(): void {
-		if ( class_exists( 'EMCP_Tools_AI_Chat_Page' ) ) {
-			( new EMCP_Tools_AI_Chat_Page() )->init();
-		}
-		if ( class_exists( 'EMCP_Tools_Elementor_Editor' ) ) {
-			( new EMCP_Tools_Elementor_Editor() )->init();
-		}
+		// AI Chat admin page + Elementor editor are wired by the AI Chat module.
 		if ( ! function_exists( 'emcp_tools_fs' ) ) {
 			return;
 		}
@@ -150,6 +135,12 @@ final class EMCP_Tools_Pro_Loader {
 	 * @param EMCP_Tools_Modules_Registry $registry The shared registry.
 	 */
 	public static function register_modules( EMCP_Tools_Modules_Registry $registry ): void {
-		unset( $registry );
+		$path = self::path( 'includes/modules/class-ai-chat-module.php' );
+		if ( '' !== $path ) {
+			require_once $path;
+			if ( class_exists( 'EMCP_Tools_AI_Chat_Module' ) ) {
+				$registry->register( new EMCP_Tools_AI_Chat_Module() );
+			}
+		}
 	}
 }
