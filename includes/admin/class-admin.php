@@ -1281,7 +1281,7 @@ class EMCP_Tools_Admin {
 					<?php if ( function_exists( 'emcp_tools_fs' ) ) : ?>
 						<a class="emcp-appbar-changelog" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-affiliation' ) ); ?>">
 							<span class="dashicons dashicons-money-alt" aria-hidden="true"></span>
-							<?php esc_html_e( 'Affiliation', 'emcp-tools' ); ?>
+							<?php esc_html_e( 'Affiliate Program', 'emcp-tools' ); ?>
 						</a>
 					<?php endif; ?>
 					<?php if ( $emcp_tools_show_upgrade ) : ?>
