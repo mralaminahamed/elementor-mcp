@@ -2974,3 +2974,25 @@ body.emcp-modal-open { overflow: hidden; }
 .emcp-appbar-changelog { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--mcp-white); border: 1px solid var(--mcp-gray-200); border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--mcp-gray-800, #1d2327); text-decoration: none; }
 .emcp-appbar-changelog:hover, .emcp-appbar-changelog.is-active { border-color: var(--mcp-primary); color: var(--mcp-primary); }
 .emcp-appbar-changelog .dashicons { font-size: 16px; width: 16px; height: 16px; }
+/* =========================================================================
+ * Focus reset (utility) — remove the default WP/browser outline + box-shadow
+ * that flashes on click for our themed anchors/buttons; show a subtle indigo
+ * (theme) ring only on real keyboard focus (:focus-visible) for a11y. Inputs,
+ * selects and the toggle switches keep their own focus styling.
+ * Order matters: :focus (reset) first, :focus-visible (ring) second.
+ * ========================================================================= */
+.elementor-mcp-admin a:focus,
+.elementor-mcp-admin button:focus,
+.elementor-mcp-admin .button:focus,
+.elementor-mcp-admin [role="menuitem"]:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+.elementor-mcp-admin a:focus-visible,
+.elementor-mcp-admin button:focus-visible,
+.elementor-mcp-admin .button:focus-visible,
+.elementor-mcp-admin [role="menuitem"]:focus-visible {
+	outline: 2px solid var(--mcp-primary) !important;
+	outline-offset: 2px;
+	box-shadow: none !important;
+}
