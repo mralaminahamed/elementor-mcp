@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class EMCP_Tools_Modules_Registry {
 
-	/** One-time seed marker so user toggles are never overwritten. */
-	const OPTION_DEFAULTS_MARKER = 'emcp_tools_modules_defaults_applied';
+	/** Option holding the list of module ids already considered for seeding. */
+	const OPTION_SEEDED = 'emcp_tools_modules_seeded';
 
 	/** @var self|null */
 	private static $instance = null;
@@ -79,21 +79,31 @@ class EMCP_Tools_Modules_Registry {
 	}
 
 	/**
-	 * Seed the active-modules option from each module's default_active(), once.
-	 * A marker option guards against re-seeding after the user edits toggles.
+	 * Seed the active-modules option from each module's default_active(), once
+	 * per module. A per-module "seeded" list (not a single boolean marker) means
+	 * a module added in a later version is seeded on the next load without
+	 * re-seeding — or removing — anything the user has already set.
 	 */
 	public function apply_defaults(): void {
-		if ( get_option( self::OPTION_DEFAULTS_MARKER ) ) {
-			return;
-		}
-		$defaults = array();
+		$seeded  = (array) get_option( self::OPTION_SEEDED, array() );
+		$active  = (array) get_option( EMCP_Tools_Module::OPTION_ACTIVE, array() );
+		$changed = false;
+
 		foreach ( $this->modules as $module ) {
-			if ( $module->default_active() ) {
-				$defaults[] = $module->id();
+			if ( in_array( $module->id(), $seeded, true ) ) {
+				continue;
 			}
+			$seeded[] = $module->id();
+			if ( $module->default_active() && ! in_array( $module->id(), $active, true ) ) {
+				$active[] = $module->id();
+			}
+			$changed = true;
 		}
-		update_option( EMCP_Tools_Module::OPTION_ACTIVE, $defaults );
-		update_option( self::OPTION_DEFAULTS_MARKER, '1' );
+
+		if ( $changed ) {
+			update_option( EMCP_Tools_Module::OPTION_ACTIVE, array_values( $active ) );
+			update_option( self::OPTION_SEEDED, array_values( $seeded ) );
+		}
 	}
 
 	/** Call register() on every active + available module. Hooked to `init`. */
