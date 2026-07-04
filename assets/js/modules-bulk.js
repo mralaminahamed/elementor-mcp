@@ -1,6 +1,14 @@
 /* global emcpToolsModules */
 ( function () {
 	'use strict';
+
+	// Live value bubble for the Image Optimization quality slider.
+	document.querySelectorAll( '.emcp-io-range' ).forEach( function ( range ) {
+		var out = document.querySelector( '.emcp-io-range-out[for="' + range.id + '"]' );
+		if ( ! out ) { return; }
+		range.addEventListener( 'input', function () { out.textContent = range.value; } );
+	} );
+
 	var cfg = window.emcpToolsModules;
 	if ( ! cfg ) { return; }
 

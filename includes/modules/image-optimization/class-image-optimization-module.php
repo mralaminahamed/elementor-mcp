@@ -73,6 +73,11 @@ class EMCP_Tools_Image_Optimization_Module extends EMCP_Tools_Module {
 				'default'           => '1',
 				'sanitize_callback' => $bool,
 			),
+			self::PREFIX . 'webp_serve'     => array(
+				'type'              => 'string',
+				'default'           => '1',
+				'sanitize_callback' => $bool,
+			),
 			self::PREFIX . 'quality'        => array(
 				'type'              => 'string',
 				'default'           => '82',
@@ -94,12 +99,13 @@ class EMCP_Tools_Image_Optimization_Module extends EMCP_Tools_Module {
 	/**
 	 * Resolve the current settings into a typed array for the optimizer.
 	 *
-	 * @return array{compress:bool,webp:bool,quality:int,max_dimension:int,keep_originals:bool}
+	 * @return array{compress:bool,webp:bool,webp_serve:bool,quality:int,max_dimension:int,keep_originals:bool}
 	 */
 	public function current_settings(): array {
 		return array(
 			'compress'       => '1' === (string) get_option( self::PREFIX . 'compress', '1' ),
 			'webp'           => '1' === (string) get_option( self::PREFIX . 'webp', '1' ),
+			'webp_serve'     => '1' === (string) get_option( self::PREFIX . 'webp_serve', '1' ),
 			'quality'        => EMCP_Tools_Image_Optimizer::clamp_quality( (int) get_option( self::PREFIX . 'quality', 82 ) ),
 			'max_dimension'  => max( 0, (int) get_option( self::PREFIX . 'max_dimension', 0 ) ),
 			'keep_originals' => '1' === (string) get_option( self::PREFIX . 'keep_originals', '1' ),
@@ -120,7 +126,9 @@ class EMCP_Tools_Image_Optimization_Module extends EMCP_Tools_Module {
 			);
 		}
 		if ( $settings['webp'] ) {
-			( new EMCP_Tools_Webp_Rewriter() )->register();
+			// REST/CLI (MCP media tools) always resolve to WebP; the frontend
+			// rewrite is gated by the separate "serve on frontend" toggle.
+			( new EMCP_Tools_Webp_Rewriter( $settings['webp_serve'] ) )->register();
 		}
 		if ( is_admin() ) {
 			( new EMCP_Tools_Bulk_Optimizer( $settings ) )->register();

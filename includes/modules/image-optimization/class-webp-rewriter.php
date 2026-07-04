@@ -29,10 +29,17 @@ class EMCP_Tools_Webp_Rewriter {
 	/** @var string Uploads base URL. */
 	private $baseurl;
 
-	public function __construct() {
-		$upload        = wp_upload_dir();
-		$this->basedir = rtrim( $upload['basedir'] ?? '', '/\\' );
-		$this->baseurl = rtrim( $upload['baseurl'] ?? '', '/' );
+	/** @var bool Whether to rewrite frontend (Accept-header) requests. */
+	private $serve_frontend;
+
+	/**
+	 * @param bool $serve_frontend Rewrite frontend requests too (REST/CLI is always on).
+	 */
+	public function __construct( bool $serve_frontend = true ) {
+		$upload               = wp_upload_dir();
+		$this->basedir        = rtrim( $upload['basedir'] ?? '', '/\\' );
+		$this->baseurl        = rtrim( $upload['baseurl'] ?? '', '/' );
+		$this->serve_frontend = $serve_frontend;
 	}
 
 	/** Wire the URL filters. Called by the module's register(). */
@@ -45,15 +52,20 @@ class EMCP_Tools_Webp_Rewriter {
 	/**
 	 * Whether the current request may be served WebP.
 	 *
-	 * @param string $accept  The request Accept header.
-	 * @param bool   $is_rest Whether we're in a REST/CLI/cron context.
+	 * REST/CLI/cron always qualifies (so the MCP media tools resolve to WebP).
+	 * Frontend requests additionally require the "serve on frontend" toggle and
+	 * an `Accept: image/webp` header.
+	 *
+	 * @param string $accept         The request Accept header.
+	 * @param bool   $is_rest        Whether we're in a REST/CLI/cron context.
+	 * @param bool   $serve_frontend Whether frontend rewriting is enabled.
 	 * @return bool
 	 */
-	public static function should_rewrite( string $accept, bool $is_rest ): bool {
+	public static function should_rewrite( string $accept, bool $is_rest, bool $serve_frontend = true ): bool {
 		if ( $is_rest ) {
 			return true;
 		}
-		return false !== strpos( $accept, 'image/webp' );
+		return $serve_frontend && false !== strpos( $accept, 'image/webp' );
 	}
 
 	/**
@@ -80,7 +92,7 @@ class EMCP_Tools_Webp_Rewriter {
 	/** @return bool Whether the current request should get WebP. */
 	private function allowed(): bool {
 		$accept = isset( $_SERVER['HTTP_ACCEPT'] ) ? (string) $_SERVER['HTTP_ACCEPT'] : '';
-		return self::should_rewrite( $accept, $this->is_rest_context() );
+		return self::should_rewrite( $accept, $this->is_rest_context(), $this->serve_frontend );
 	}
 
 	/**
