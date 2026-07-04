@@ -2915,7 +2915,7 @@
 .emcp-io-range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--mcp-primary); border: 2px solid var(--mcp-white); box-shadow: 0 1px 3px rgba(0,0,0,.2); cursor: pointer; }
 .emcp-io-range:focus-visible { box-shadow: 0 0 0 2px var(--mcp-white), 0 0 0 4px var(--mcp-primary); }
 /* Module card action row + settings overlay --------------------------------- */
-.emcp-module-card-actions { margin: 14px 0 0 50px; }
+.emcp-module-card-actions { margin: auto 0 0 50px; padding-top: 14px; }
 .emcp-module-settings-btn { display: inline-flex; align-items: center; }
 
 .emcp-modal[hidden] { display: none; }
