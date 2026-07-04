@@ -70,4 +70,20 @@ abstract class EMCP_Tools_Module {
 		$active = get_option( self::OPTION_ACTIVE, array() );
 		return is_array( $active ) && in_array( $this->id(), $active, true );
 	}
+
+	/**
+	 * Settings-API group for this module's own option keys. Each module gets a
+	 * dedicated group so its settings form saves independently of the active-
+	 * modules toggles and of other modules' forms.
+	 *
+	 * @return string
+	 */
+	public function settings_group(): string {
+		return 'emcp_tools_module_' . str_replace( '-', '_', $this->id() ) . '_settings';
+	}
+
+	/** Whether this module exposes any settings (drives the "Show Settings" UI). */
+	public function has_settings(): bool {
+		return array() !== $this->settings_fields();
+	}
 }

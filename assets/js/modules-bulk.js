@@ -9,6 +9,27 @@
 		range.addEventListener( 'input', function () { out.textContent = range.value; } );
 	} );
 
+	// Module settings overlays: open on "Show Settings", close on backdrop /
+	// close button / Escape.
+	function closeModals() {
+		document.querySelectorAll( '.emcp-modal' ).forEach( function ( m ) { m.hidden = true; } );
+		document.body.classList.remove( 'emcp-modal-open' );
+	}
+	document.querySelectorAll( '[data-modal]' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			var modal = document.getElementById( btn.getAttribute( 'data-modal' ) );
+			if ( ! modal ) { return; }
+			modal.hidden = false;
+			document.body.classList.add( 'emcp-modal-open' );
+		} );
+	} );
+	document.querySelectorAll( '.emcp-modal [data-close]' ).forEach( function ( el ) {
+		el.addEventListener( 'click', closeModals );
+	} );
+	document.addEventListener( 'keydown', function ( e ) {
+		if ( 'Escape' === e.key ) { closeModals(); }
+	} );
+
 	var cfg = window.emcpToolsModules;
 	if ( ! cfg ) { return; }
 

@@ -2914,3 +2914,22 @@
 .emcp-io-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--mcp-primary); border: 2px solid var(--mcp-white); box-shadow: 0 1px 3px rgba(0,0,0,.2); cursor: pointer; }
 .emcp-io-range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--mcp-primary); border: 2px solid var(--mcp-white); box-shadow: 0 1px 3px rgba(0,0,0,.2); cursor: pointer; }
 .emcp-io-range:focus-visible { box-shadow: 0 0 0 2px var(--mcp-white), 0 0 0 4px var(--mcp-primary); }
+/* Module card action row + settings overlay --------------------------------- */
+.emcp-module-card-actions { margin: 14px 0 0 50px; }
+.emcp-module-settings-btn { display: inline-flex; align-items: center; }
+
+.emcp-modal[hidden] { display: none; }
+.emcp-modal { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px; }
+.emcp-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); }
+.emcp-modal-panel { position: relative; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; background: var(--mcp-white); border-radius: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.3); }
+.emcp-modal-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--mcp-gray-200); background: var(--mcp-white); }
+.emcp-modal-head h2 { margin: 0; font-size: 16px; }
+.emcp-modal-close { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; color: var(--mcp-gray-600, #50575e); border-radius: 6px; cursor: pointer; }
+.emcp-modal-close:hover { background: var(--mcp-gray-100); color: var(--mcp-gray-800, #1d2327); }
+.emcp-modal-body { padding: 20px; }
+.emcp-modal-foot { padding: 0 20px 20px; }
+.emcp-modal-foot .button { margin: 0 !important; }
+.emcp-modal-bulk { padding: 16px 20px 20px; border-top: 1px solid var(--mcp-gray-200); }
+.emcp-modal-bulk-title { margin: 0 0 10px; font-weight: 600; font-size: 13px; }
+.emcp-modal-bulk .emcp-module-bulk { margin: 0; padding: 0; border: none; }
+body.emcp-modal-open { overflow: hidden; }

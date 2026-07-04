@@ -629,8 +629,11 @@ class EMCP_Tools_Admin {
 		);
 		if ( class_exists( 'EMCP_Tools_Modules_Registry' ) ) {
 			foreach ( EMCP_Tools_Modules_Registry::instance()->all() as $emcp_module ) {
+				// Each module's keys live in the module's own group so its overlay
+				// settings form saves independently of the active-modules toggles.
+				$emcp_group = $emcp_module->settings_group();
 				foreach ( $emcp_module->settings_fields() as $emcp_key => $emcp_args ) {
-					register_setting( self::SETTINGS_GROUP_MODULES, $emcp_key, $emcp_args );
+					register_setting( $emcp_group, $emcp_key, $emcp_args );
 				}
 			}
 		}
