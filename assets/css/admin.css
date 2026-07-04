@@ -2934,3 +2934,7 @@
 .emcp-modal-bulk .emcp-module-bulk { margin: 0; padding: 0; border: none; }
 body.emcp-modal-open { overflow: hidden; }
 .emcp-modules-unsaved { margin-left: 12px; font-size: 12px; font-weight: 600; color: #a15c00; }
+/* Module card buttons (Show Settings / Configure) — match the theme primary. */
+.button.emcp-module-settings-btn { border: 1px solid var(--mcp-primary); color: var(--mcp-primary); background: var(--mcp-white); box-shadow: none; font-weight: 600; text-decoration: none; }
+.button.emcp-module-settings-btn:hover, .button.emcp-module-settings-btn:focus { background: var(--mcp-primary); color: var(--mcp-white); border-color: var(--mcp-primary); box-shadow: none; }
+.button.emcp-module-settings-btn:focus-visible { outline: 2px solid var(--mcp-primary); outline-offset: 1px; }
