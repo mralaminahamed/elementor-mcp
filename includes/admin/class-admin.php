@@ -99,21 +99,31 @@ class EMCP_Tools_Admin {
 	 * @return array<string, string>
 	 */
 	/**
-	 * Whether the AI Chat submenu tab should show. Visible when the AI Chat
-	 * module is not registered (free / no Pro overlay → keep the upsell page) or
-	 * when it is active; hidden when a Pro user has turned the module off.
+	 * Whether a module-backed admin tab should show. Visible when the module is
+	 * not registered (free build / no overlay → keep the tab, e.g. an upsell) or
+	 * it is active and available; hidden when registered but off or unavailable.
+	 *
+	 * @param string $module_id Module id.
+	 * @return bool
+	 */
+	private function module_tab_visible( string $module_id ): bool {
+		if ( ! class_exists( 'EMCP_Tools_Modules_Registry' ) ) {
+			return true;
+		}
+		$module = EMCP_Tools_Modules_Registry::instance()->get( $module_id );
+		if ( ! $module ) {
+			return true;
+		}
+		return $module->is_active() && $module->is_available();
+	}
+
+	/**
+	 * Whether the AI Chat submenu tab should show.
 	 *
 	 * @return bool
 	 */
 	private function ai_chat_tab_visible(): bool {
-		if ( ! class_exists( 'EMCP_Tools_Modules_Registry' ) ) {
-			return true;
-		}
-		$module = EMCP_Tools_Modules_Registry::instance()->get( 'ai-chat' );
-		if ( ! $module ) {
-			return true;
-		}
-		return $module->is_active();
+		return $this->module_tab_visible( 'ai-chat' );
 	}
 
 	/**
@@ -157,6 +167,12 @@ class EMCP_Tools_Admin {
 			);
 			if ( ! $this->ai_chat_tab_visible() ) {
 				unset( $this->submenus[ self::PAGE_SLUG . '-ai-chat' ] );
+			}
+			// Module-backed tabs: drop each when its module is off/unavailable.
+			foreach ( array( 'prompts', 'templates', 'brand-kits' ) as $emcp_mod_id ) {
+				if ( ! $this->module_tab_visible( $emcp_mod_id ) ) {
+					unset( $this->submenus[ self::PAGE_SLUG . '-' . $emcp_mod_id ] );
+				}
 			}
 		}
 		return $this->submenus;
@@ -1241,6 +1257,11 @@ class EMCP_Tools_Admin {
 			$show_templates = $template_count > 0;
 		}
 
+		// A module's stat card only shows when its module is on.
+		$show_templates  = $show_templates && $this->module_tab_visible( 'templates' );
+		$show_brand_kits = $show_brand_kits && $this->module_tab_visible( 'brand-kits' );
+		$show_prompts    = $this->module_tab_visible( 'prompts' );
+
 		?>
 		<div class="wrap elementor-mcp-admin">
 			<h1><?php esc_html_e( 'MCP Tools for WordPress & Page Builders', 'emcp-tools' ); ?></h1>
@@ -1359,7 +1380,8 @@ class EMCP_Tools_Admin {
 						<span class="elementor-mcp-stat-label"><?php esc_html_e( 'Pro Tools', 'emcp-tools' ); ?></span>
 					</span>
 				</div>
-				<div class="elementor-mcp-stat">
+									<?php if ( $show_prompts ) : ?>
+					<div class="elementor-mcp-stat">
 					<span class="elementor-mcp-stat-icon elementor-mcp-stat-icon--prompts">
 						<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
 					</span>
@@ -1368,6 +1390,7 @@ class EMCP_Tools_Admin {
 						<span class="elementor-mcp-stat-label"><?php esc_html_e( 'Prompts', 'emcp-tools' ); ?></span>
 					</span>
 				</div>
+					<?php endif; ?>
 				<?php if ( $show_brand_kits ) : ?>
 					<div class="elementor-mcp-stat">
 						<span class="elementor-mcp-stat-icon elementor-mcp-stat-icon--brand-kits">
@@ -1408,11 +1431,11 @@ class EMCP_Tools_Admin {
 					}
 				} elseif ( 'context' === $active_tab ) {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-context.php';
-				} elseif ( 'prompts' === $active_tab ) {
+				} elseif ( 'prompts' === $active_tab && $this->module_tab_visible( 'prompts' ) ) {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-prompts.php';
-				} elseif ( 'templates' === $active_tab ) {
+				} elseif ( 'templates' === $active_tab && $this->module_tab_visible( 'templates' ) ) {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-templates.php';
-				} elseif ( 'brand-kits' === $active_tab ) {
+				} elseif ( 'brand-kits' === $active_tab && $this->module_tab_visible( 'brand-kits' ) ) {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-brand-kits.php';
 				} elseif ( 'skills' === $active_tab ) {
 					$emcp_pro_view = EMCP_Tools_Pro_Loader::path( 'includes/admin/views/page-skills.php' );
