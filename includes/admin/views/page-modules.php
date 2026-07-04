@@ -30,10 +30,12 @@ $modules  = $registry ? $registry->all() : array();
 				$active    = $module->is_active();
 				$available = $module->is_available();
 				$is_pro    = 'pro' === $module->tier();
-				$state     = $active ? 'is-enabled' : 'is-disabled';
-				if ( ! $available ) {
-					$state .= ' is-unavailable';
-				}
+				// NOTE: deliberately no is-enabled/is-disabled here. Those classes
+				// drive the Tools-grid toggle visuals via JS; on this page there's
+				// no such JS, so a stale is-enabled would pin the switch "on" even
+				// after unchecking. The switch is driven purely by :checked (the
+				// .emcp-switch CSS), which reflects clicks live.
+				$state = $available ? '' : 'is-unavailable';
 				?>
 				<div class="elementor-mcp-tool-card emcp-module-card <?php echo esc_attr( $state ); ?>">
 					<label class="emcp-module-head emcp-switch">
