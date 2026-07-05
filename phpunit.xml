@@ -62,6 +62,12 @@
         <testsuite name="Modules">
             <directory>pro/tests/unit/Modules</directory>
         </testsuite>
+        <testsuite name="Gutenberg">
+            <directory>pro/tests/unit/Gutenberg</directory>
+        </testsuite>
+        <testsuite name="Themer">
+            <directory>pro/tests/unit/Themer</directory>
+        </testsuite>
     </testsuites>
 
     <source>
