@@ -31,11 +31,6 @@ class EMCP_Tools_Stock_Image_Abilities {
 	private $factory;
 
 	/**
-	 * @var EMCP_Tools_Openverse_Client
-	 */
-	private $openverse;
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 1.1.0
@@ -44,9 +39,8 @@ class EMCP_Tools_Stock_Image_Abilities {
 	 * @param EMCP_Tools_Element_Factory $factory The element factory.
 	 */
 	public function __construct( EMCP_Tools_Data $data, EMCP_Tools_Element_Factory $factory ) {
-		$this->data      = $data;
-		$this->factory   = $factory;
-		$this->openverse = new EMCP_Tools_Openverse_Client();
+		$this->data    = $data;
+		$this->factory = $factory;
 	}
 
 	/**
@@ -131,7 +125,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'emcp-tools/search-images',
 			array(
 				'label'               => __( 'Search Images', 'emcp-tools' ),
-				'description'         => __( 'Searches Openverse (WordPress.org) for Creative Commons licensed images. Returns image URLs, thumbnails, licensing info, and attribution. Use the returned URLs with sideload-image or add-stock-image.', 'emcp-tools' ),
+				'description'         => __( 'Searches a stock-photo provider (Unsplash, Pexels, or Pixabay) for high-quality images. Returns image URLs, thumbnails, dimensions, and attribution. Use the returned URLs with sideload-image or add-stock-image. Requires a free API key for at least one provider (set on EMCP Tools → Connection).', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_search_images' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),
@@ -142,37 +136,23 @@ class EMCP_Tools_Stock_Image_Abilities {
 							'type'        => 'string',
 							'description' => __( 'Search keywords (e.g. "mountain landscape", "modern office").', 'emcp-tools' ),
 						),
+						'provider'     => array(
+							'type'        => 'string',
+							'enum'        => array( 'unsplash', 'pexels', 'pixabay' ),
+							'description' => __( 'Which stock provider to search. Omit to use the first one you have connected.', 'emcp-tools' ),
+						),
 						'page'         => array(
 							'type'        => 'integer',
 							'description' => __( 'Page number. Default: 1.', 'emcp-tools' ),
 						),
 						'page_size'    => array(
 							'type'        => 'integer',
-							'description' => __( 'Results per page (1-20). Default: 5.', 'emcp-tools' ),
-						),
-						'license'      => array(
-							'type'        => 'string',
-							'enum'        => array( 'by', 'by-sa', 'by-nc', 'cc0', 'pdm' ),
-							'description' => __( 'Filter by Creative Commons license type.', 'emcp-tools' ),
-						),
-						'source'       => array(
-							'type'        => 'string',
-							'description' => __( 'Filter by source (e.g. "flickr", "wikimedia", "wordpress").', 'emcp-tools' ),
+							'description' => __( 'Results per page. Default: 5.', 'emcp-tools' ),
 						),
 						'aspect_ratio' => array(
 							'type'        => 'string',
 							'enum'        => array( 'tall', 'wide', 'square' ),
-							'description' => __( 'Filter by aspect ratio. Use "wide" for landscape images (recommended for hero banners, cards, and most page layouts). Use "tall" for portrait/sidebar images. Use "square" for avatars and thumbnails.', 'emcp-tools' ),
-						),
-						'size'         => array(
-							'type'        => 'string',
-							'enum'        => array( 'small', 'medium', 'large' ),
-							'description' => __( 'Filter by image size.', 'emcp-tools' ),
-						),
-						'category'     => array(
-							'type'        => 'string',
-							'enum'        => array( 'photograph', 'illustration', 'digitized_artwork' ),
-							'description' => __( 'Filter by image category.', 'emcp-tools' ),
+							'description' => __( 'Filter by orientation. Use "wide" (landscape) for hero banners, cards, and most page layouts. Use "tall" (portrait) for sidebar images. Use "square" for avatars and thumbnails.', 'emcp-tools' ),
 						),
 					),
 					'required'   => array( 'query' ),
@@ -180,6 +160,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
+						'provider'     => array( 'type' => 'string' ),
 						'result_count' => array( 'type' => 'integer' ),
 						'page'         => array( 'type' => 'integer' ),
 						'page_count'   => array( 'type' => 'integer' ),
@@ -228,27 +209,47 @@ class EMCP_Tools_Stock_Image_Abilities {
 	 */
 	public function execute_search_images( $input ) {
 		$query = sanitize_text_field( $input['query'] ?? '' );
-
 		if ( empty( $query ) ) {
 			return new \WP_Error( 'missing_query', __( 'The query parameter is required.', 'emcp-tools' ) );
 		}
 
-		$params = array( 'q' => $query );
+		$resolved = EMCP_Tools_Stock_Image_Providers::resolve( sanitize_key( $input['provider'] ?? '' ) );
+		if ( is_wp_error( $resolved ) ) {
+			return $resolved;
+		}
+		list( $provider_id, $client ) = $resolved;
 
-		$optional = array( 'page', 'page_size', 'license', 'source', 'aspect_ratio', 'size', 'category' );
-		foreach ( $optional as $key ) {
+		$result = $this->run_search( $client, $input );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		$result['provider'] = $provider_id;
+		return $result;
+	}
+
+	/**
+	 * Run a search against a resolved provider client and map to the tool's stable
+	 * output shape. `download_location` is kept on each result (not in the output
+	 * schema) so add-stock-image can fire the provider's download trigger.
+	 *
+	 * @since 3.1.0
+	 * @param object $client Provider client (search_images()).
+	 * @param array  $input  Tool input.
+	 * @return array|\WP_Error
+	 */
+	private function run_search( $client, $input ) {
+		$params = array( 'q' => sanitize_text_field( $input['query'] ?? '' ) );
+		foreach ( array( 'page', 'page_size', 'aspect_ratio' ) as $key ) {
 			if ( isset( $input[ $key ] ) ) {
 				$params[ $key ] = $input[ $key ];
 			}
 		}
 
-		$response = $this->openverse->search_images( $params );
-
+		$response = $client->search_images( $params );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 
-		// Filter response to only include useful fields.
 		$results = array();
 		if ( ! empty( $response['results'] ) && is_array( $response['results'] ) ) {
 			foreach ( $response['results'] as $image ) {
@@ -266,14 +267,17 @@ class EMCP_Tools_Stock_Image_Abilities {
 					'attribution'         => $image['attribution'] ?? '',
 					'source'              => $image['source'] ?? '',
 					'foreign_landing_url' => $image['foreign_landing_url'] ?? '',
+					'download_location'   => $image['download_location'] ?? '',
 				);
 			}
 		}
 
+		$page = isset( $input['page'] ) ? max( absint( $input['page'] ), 1 ) : 1;
+
 		return array(
-			'result_count' => intval( $response['result_count'] ?? 0 ),
-			'page'         => intval( $response['page'] ?? 1 ),
-			'page_count'   => intval( $response['page_count'] ?? 0 ),
+			'result_count' => intval( $response['total'] ?? count( $results ) ),
+			'page'         => $page,
+			'page_count'   => intval( $response['total_pages'] ?? 0 ),
 			'results'      => $results,
 		);
 	}
@@ -456,7 +460,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'emcp-tools/add-stock-image',
 			array(
 				'label'               => __( 'Add Stock Image', 'emcp-tools' ),
-				'description'         => __( 'Searches Openverse for an image, downloads it to the Media Library, and adds it as an image widget to the page — all in one step. Defaults to landscape (wide) images for consistent layouts. Combines search-images + sideload-image + add-free-widget.', 'emcp-tools' ),
+				'description'         => __( 'Searches a stock provider (Unsplash, Pexels, or Pixabay) for a photo, downloads it to the Media Library, and adds it as an image widget to the page — all in one step. Defaults to landscape (wide) images for consistent layouts. Combines search-images + sideload-image + add-free-widget. Requires a free API key for at least one provider (EMCP Tools → Connection).', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_add_stock_image' ),
 				'permission_callback' => array( $this, 'check_combined_permission' ),
@@ -474,6 +478,11 @@ class EMCP_Tools_Stock_Image_Abilities {
 						'query'      => array(
 							'type'        => 'string',
 							'description' => __( 'Image search keywords (e.g. "hero banner technology", "team photo office").', 'emcp-tools' ),
+						),
+						'provider'   => array(
+							'type'        => 'string',
+							'enum'        => array( 'unsplash', 'pexels', 'pixabay' ),
+							'description' => __( 'Which stock provider to use. Omit to use the first one you have connected.', 'emcp-tools' ),
 						),
 						'index'      => array(
 							'type'        => 'integer',
@@ -495,7 +504,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 						),
 						'caption'    => array(
 							'type'        => 'string',
-							'description' => __( 'Caption override. Defaults to Openverse attribution.', 'emcp-tools' ),
+							'description' => __( 'Caption override. Defaults to the Unsplash photographer attribution.', 'emcp-tools' ),
 						),
 						'aspect_ratio' => array(
 							'type'        => 'string',
@@ -522,6 +531,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 						'element_id'    => array( 'type' => 'string' ),
 						'original_url'  => array( 'type' => 'string' ),
 						'attribution'   => array( 'type' => 'string' ),
+						'provider'      => array( 'type' => 'string' ),
 					),
 				),
 				'meta'                => array(
@@ -557,6 +567,13 @@ class EMCP_Tools_Stock_Image_Abilities {
 			return new \WP_Error( 'missing_params', __( 'post_id, parent_id, and query are required.', 'emcp-tools' ) );
 		}
 
+		// Resolve the stock provider (requested one, else first connected).
+		$resolved = EMCP_Tools_Stock_Image_Providers::resolve( sanitize_key( $input['provider'] ?? '' ) );
+		if ( is_wp_error( $resolved ) ) {
+			return $resolved;
+		}
+		list( $provider_id, $client ) = $resolved;
+
 		// Default to wide/landscape images for better layout compatibility.
 		$aspect_ratio = sanitize_key( $input['aspect_ratio'] ?? 'wide' );
 
@@ -570,8 +587,8 @@ class EMCP_Tools_Stock_Image_Abilities {
 			$search_params['aspect_ratio'] = $aspect_ratio;
 		}
 
-		// Step 1: Search for images.
-		$search_result = $this->execute_search_images( $search_params );
+		// Step 1: Search for images with the resolved provider.
+		$search_result = $this->run_search( $client, $search_params );
 
 		if ( is_wp_error( $search_result ) ) {
 			return $search_result;
@@ -601,6 +618,12 @@ class EMCP_Tools_Stock_Image_Abilities {
 		}
 
 		$image = $search_result['results'][ $index ];
+
+		// Unsplash API guideline: fire the download-tracking endpoint when a photo is
+		// selected for use (no-op on providers that don't have one). Best-effort.
+		if ( ! empty( $image['download_location'] ) ) {
+			$client->trigger_download( (string) $image['download_location'] );
+		}
 
 		// Step 2: Sideload the image into the Media Library.
 		$alt_text    = sanitize_text_field( $input['alt_text'] ?? '' );
@@ -676,6 +699,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'element_id'    => $widget['id'],
 			'original_url'  => $image['url'] ?? '',
 			'attribution'   => $attribution,
+			'provider'      => $provider_id,
 		);
 	}
 }

@@ -56,70 +56,6 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 	<?php // ===== Sub-tab: Connections ===== ?>
 	<div class="elementor-mcp-tabpanel is-active" id="emcp-conn-main" role="tabpanel" data-tab="conn-main">
 
-		<form method="post" action="options.php" id="emcp-conn-form" class="elementor-mcp-activate-form">
-			<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP_SERVER ); ?>
-
-			<div class="emcp-conn-cards">
-
-				<?php // Card A: server gate. ?>
-				<div class="emcp-conn-card">
-					<h2 class="emcp-conn-card-title"><?php esc_html_e( 'Activate Abilities API for EMCP', 'emcp-tools' ); ?></h2>
-
-					<label class="emcp-switch emcp-conn-toggle">
-						<input
-							type="checkbox"
-							name="<?php echo esc_attr( EMCP_Tools_Plugin::OPTION_SERVER_ENABLED ); ?>"
-							value="1"
-							<?php checked( $emcp_tools_server_enabled ); ?>
-						/>
-						<span class="elementor-mcp-toggle" aria-hidden="true"><span class="elementor-mcp-toggle-track"></span></span>
-						<span class="emcp-switch-label"><?php esc_html_e( 'Expose EMCP tools to AI agents on this site', 'emcp-tools' ); ?></span>
-					</label>
-
-					<p class="elementor-mcp-activate-note elementor-mcp-activate-note--security">
-						<strong><?php esc_html_e( 'Security note:', 'emcp-tools' ); ?></strong>
-						<?php esc_html_e( 'When enabled, connected AI agents can create, edit, and delete Elementor pages and content on this site through the MCP server. Use a capable AI model and set your client to ask for confirmation before every action — read what the agent is about to do before approving.', 'emcp-tools' ); ?>
-					</p>
-					<p class="elementor-mcp-activate-note">
-						<?php
-						if ( $emcp_tools_has_abilities ) {
-							printf(
-								/* translators: %s: how the MCP Adapter is provided. */
-								esc_html__( 'WordPress Abilities API: core (no separate plugin needed). MCP Adapter: %s.', 'emcp-tools' ),
-								'bundled' === $emcp_tools_adapter_source
-									? esc_html__( 'bundled with EMCP', 'emcp-tools' )
-									: ( 'external' === $emcp_tools_adapter_source ? esc_html__( 'provided by an active MCP Adapter plugin', 'emcp-tools' ) : esc_html__( 'unavailable', 'emcp-tools' ) )
-							);
-						} else {
-							esc_html_e( 'WordPress Abilities API is unavailable — WordPress 6.9 or newer is required.', 'emcp-tools' );
-						}
-						?>
-					</p>
-				</div>
-
-				<?php // Card B: strict schemas. ?>
-				<div class="emcp-conn-card">
-					<h2 class="emcp-conn-card-title"><?php esc_html_e( 'OpenAI-strict tool schemas', 'emcp-tools' ); ?></h2>
-
-					<label class="emcp-switch emcp-conn-toggle">
-						<input
-							type="checkbox"
-							name="emcp_tools_strict_schemas"
-							value="1"
-							<?php checked( '1' === (string) get_option( 'emcp_tools_strict_schemas', '0' ) ); ?>
-						/>
-						<span class="elementor-mcp-toggle" aria-hidden="true"><span class="elementor-mcp-toggle-track"></span></span>
-						<span class="emcp-switch-label"><?php esc_html_e( 'Enable strict function-calling schemas', 'emcp-tools' ); ?></span>
-					</label>
-
-					<p class="elementor-mcp-activate-note">
-						<?php esc_html_e( 'Enable only for OpenAI-compatible strict function-calling clients (e.g. CrewAI) that reject the default tool schemas. It lists every property as required (optional ones become nullable) and sets additionalProperties:false. Leave this OFF for Claude, Gemini, and Antigravity — they work with the default schemas, and strict mode can break Gemini/Antigravity.', 'emcp-tools' ); ?>
-					</p>
-				</div>
-
-			</div>
-		</form>
-
 		<!-- Server Status -->
 		<div class="elementor-mcp-section">
 			<h2><?php esc_html_e( 'Server Status', 'emcp-tools' ); ?></h2>
@@ -190,6 +126,70 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 				<textarea id="elementor-mcp-endpoint-copy" class="elementor-mcp-copy-source"><?php echo esc_html( $emcp_tools_endpoint ); ?></textarea>
 			</div>
 		</div>
+
+		<form method="post" action="options.php" id="emcp-conn-form" class="elementor-mcp-activate-form">
+			<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP_SERVER ); ?>
+
+			<div class="emcp-conn-cards">
+
+				<?php // Card A: server gate. ?>
+				<div class="emcp-conn-card">
+					<h2 class="emcp-conn-card-title"><?php esc_html_e( 'Activate Abilities API for EMCP', 'emcp-tools' ); ?></h2>
+
+					<label class="emcp-switch emcp-conn-toggle">
+						<input
+							type="checkbox"
+							name="<?php echo esc_attr( EMCP_Tools_Plugin::OPTION_SERVER_ENABLED ); ?>"
+							value="1"
+							<?php checked( $emcp_tools_server_enabled ); ?>
+						/>
+						<span class="elementor-mcp-toggle" aria-hidden="true"><span class="elementor-mcp-toggle-track"></span></span>
+						<span class="emcp-switch-label"><?php esc_html_e( 'Expose EMCP tools to AI agents on this site', 'emcp-tools' ); ?></span>
+					</label>
+
+					<p class="elementor-mcp-activate-note elementor-mcp-activate-note--security">
+						<strong><?php esc_html_e( 'Security note:', 'emcp-tools' ); ?></strong>
+						<?php esc_html_e( 'When enabled, connected AI agents can create, edit, and delete Elementor pages and content on this site through the MCP server. Use a capable AI model and set your client to ask for confirmation before every action — read what the agent is about to do before approving.', 'emcp-tools' ); ?>
+					</p>
+					<p class="elementor-mcp-activate-note">
+						<?php
+						if ( $emcp_tools_has_abilities ) {
+							printf(
+								/* translators: %s: how the MCP Adapter is provided. */
+								esc_html__( 'WordPress Abilities API: core (no separate plugin needed). MCP Adapter: %s.', 'emcp-tools' ),
+								'bundled' === $emcp_tools_adapter_source
+									? esc_html__( 'bundled with EMCP', 'emcp-tools' )
+									: ( 'external' === $emcp_tools_adapter_source ? esc_html__( 'provided by an active MCP Adapter plugin', 'emcp-tools' ) : esc_html__( 'unavailable', 'emcp-tools' ) )
+							);
+						} else {
+							esc_html_e( 'WordPress Abilities API is unavailable — WordPress 6.9 or newer is required.', 'emcp-tools' );
+						}
+						?>
+					</p>
+				</div>
+
+				<?php // Card B: strict schemas. ?>
+				<div class="emcp-conn-card">
+					<h2 class="emcp-conn-card-title"><?php esc_html_e( 'OpenAI-strict tool schemas', 'emcp-tools' ); ?></h2>
+
+					<label class="emcp-switch emcp-conn-toggle">
+						<input
+							type="checkbox"
+							name="emcp_tools_strict_schemas"
+							value="1"
+							<?php checked( '1' === (string) get_option( 'emcp_tools_strict_schemas', '0' ) ); ?>
+						/>
+						<span class="elementor-mcp-toggle" aria-hidden="true"><span class="elementor-mcp-toggle-track"></span></span>
+						<span class="emcp-switch-label"><?php esc_html_e( 'Enable strict function-calling schemas', 'emcp-tools' ); ?></span>
+					</label>
+
+					<p class="elementor-mcp-activate-note">
+						<?php esc_html_e( 'Enable only for OpenAI-compatible strict function-calling clients (e.g. CrewAI) that reject the default tool schemas. It lists every property as required (optional ones become nullable) and sets additionalProperties:false. Leave this OFF for Claude, Gemini, and Antigravity — they work with the default schemas, and strict mode can break Gemini/Antigravity.', 'emcp-tools' ); ?>
+					</p>
+				</div>
+
+			</div>
+		</form>
 
 		<!-- HTTP Connection -->
 		<div class="elementor-mcp-section">
@@ -347,7 +347,16 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 							aria-selected="false"
 							data-client="<?php echo esc_attr( $emcp_tools_client['id'] ); ?>"
 						>
-							<span class="dashicons dashicons-<?php echo esc_attr( $emcp_tools_client['icon'] ); ?>" aria-hidden="true"></span>
+							<?php if ( ! empty( $emcp_tools_client['image'] ) ) : ?>
+								<img
+									class="elementor-mcp-client-card-logo"
+									src="<?php echo esc_url( EMCP_TOOLS_URL . 'assets/img/' . $emcp_tools_client['image'] ); ?>"
+									alt=""
+									aria-hidden="true"
+								/>
+							<?php else : ?>
+								<span class="dashicons dashicons-<?php echo esc_attr( $emcp_tools_client['icon'] ); ?>" aria-hidden="true"></span>
+							<?php endif; ?>
 							<span class="elementor-mcp-client-card-label"><?php echo esc_html( $emcp_tools_client['label'] ); ?></span>
 						</button>
 					<?php endforeach; ?>

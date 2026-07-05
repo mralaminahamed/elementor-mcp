@@ -2803,6 +2803,7 @@
 }
 .elementor-mcp-client-card .dashicons { font-size: 28px; width: 28px; height: 28px; color: var( --mcp-gray-600, #4b5563 ); }
 .elementor-mcp-client-card.is-selected .dashicons { color: var( --mcp-primary, #6366f1 ); }
+.elementor-mcp-client-card-logo { width: 32px; height: 32px; object-fit: contain; display: block; }
 
 /* Context page */
 .elementor-mcp-context-toolbar {

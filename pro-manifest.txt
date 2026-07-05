@@ -20,7 +20,9 @@ includes/admin/views/ai-chat-panel.php
 includes/admin/views/ai-chat-panel-editor.php
 includes/admin/views/page-skills.php
 assets/js/ai-chat.js
+assets/js/editor-window.js
 assets/js/editor-elementor.js
+assets/js/editor-gutenberg.js
 assets/css/ai-chat.css
 assets/css/editor.css
 tests

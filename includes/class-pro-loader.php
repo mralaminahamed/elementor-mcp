@@ -43,6 +43,7 @@ final class EMCP_Tools_Pro_Loader {
 	private const ADMIN_FILES = array(
 		'includes/ai-chat/class-ai-chat-page.php',
 		'includes/ai-chat/class-elementor-editor.php',
+		'includes/ai-chat/class-gutenberg-editor.php',
 		'includes/admin/class-pro-prompts.php',
 		'includes/admin/class-pro-templates.php',
 		'includes/admin/class-pro-ajax.php',

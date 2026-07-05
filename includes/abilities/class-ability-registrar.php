@@ -101,6 +101,11 @@ class EMCP_Tools_Ability_Registrar {
 		$content->register();
 		$this->ability_names = array_merge( $this->ability_names, $content->get_ability_names() );
 
+		// Gutenberg block abilities (discover blocks/patterns + incremental block-tree edits).
+		$gutenberg = new EMCP_Tools_Gutenberg_Abilities();
+		$gutenberg->register();
+		$this->ability_names = array_merge( $this->ability_names, $gutenberg->get_ability_names() );
+
 		// WordPress Settings abilities (curated site-settings read/update).
 		$settings = new EMCP_Tools_Settings_Abilities();
 		$settings->register();

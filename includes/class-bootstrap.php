@@ -103,6 +103,9 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/class-stock-image-providers.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-stock-image-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-media-library-abilities.php';
+		require_once EMCP_TOOLS_DIR . 'includes/class-block-tree.php';
+		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-gutenberg-abilities.php';
+		require_once EMCP_TOOLS_DIR . 'includes/class-admin-bar.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-content-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-settings-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/class-package-guard.php';
@@ -213,6 +216,10 @@ class EMCP_Tools_Bootstrap {
 		// AI Chat (Pro): REST routes + weekly model-list refresh cron + saved-
 		// conversation CPT. No-op in the free build (classes absent).
 		EMCP_Tools_Pro_Loader::wire_runtime_hooks();
+
+		// Admin-bar MCP status + exposure toggle (front-end + wp-admin; the class
+		// self-gates on capability + is_admin_bar_showing()).
+		( new EMCP_Tools_Admin_Bar() )->init();
 	}
 
 	/**

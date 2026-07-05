@@ -1471,6 +1471,7 @@ class EMCP_Tools_Admin {
 		return array(
 			'elementor' => __( 'Elementor', 'emcp-tools' ),
 			'wordpress' => __( 'WordPress', 'emcp-tools' ),
+			'gutenberg' => __( 'Gutenberg', 'emcp-tools' ),
 		);
 	}
 
@@ -1495,36 +1496,35 @@ class EMCP_Tools_Admin {
 				'id'      => 'claude-desktop',
 				'label'   => __( 'Claude Desktop', 'emcp-tools' ),
 				'icon'    => 'desktop',
+				'image'   => 'claude.png',
 				'methods' => array( 'bundle' => true, 'cli' => null, 'ai_prompt' => true, 'json' => array( 'npx', 'http' ) ),
 			),
 			array(
 				'id'      => 'claude-code',
 				'label'   => __( 'Claude Code', 'emcp-tools' ),
 				'icon'    => 'editor-code',
+				'image'   => 'claude.png',
 				'methods' => array( 'bundle' => false, 'cli' => $claude_cli, 'ai_prompt' => false, 'json' => array( 'npx', 'http' ) ),
 			),
 			array(
 				'id'      => 'cursor',
 				'label'   => __( 'Cursor', 'emcp-tools' ),
 				'icon'    => 'editor-code',
+				'image'   => 'cursor.png',
 				'methods' => array( 'bundle' => false, 'cli' => null, 'ai_prompt' => true, 'json' => array( 'http' ) ),
 			),
 			array(
 				'id'      => 'codex',
 				'label'   => __( 'Codex', 'emcp-tools' ),
 				'icon'    => 'editor-code',
+				'image'   => 'gpt.png',
 				'methods' => array( 'bundle' => false, 'cli' => $codex_cli, 'ai_prompt' => false, 'json' => array( 'toml' ) ),
-			),
-			array(
-				'id'      => 'windsurf',
-				'label'   => __( 'Windsurf', 'emcp-tools' ),
-				'icon'    => 'editor-code',
-				'methods' => array( 'bundle' => false, 'cli' => null, 'ai_prompt' => false, 'json' => array( 'http' ) ),
 			),
 			array(
 				'id'      => 'antigravity',
 				'label'   => __( 'Antigravity', 'emcp-tools' ),
 				'icon'    => 'editor-code',
+				'image'   => 'antigravity.png',
 				'methods' => array( 'bundle' => false, 'cli' => null, 'ai_prompt' => false, 'json' => array( 'http' ) ),
 			),
 			array(
@@ -1687,6 +1687,62 @@ class EMCP_Tools_Admin {
 						'label'       => __( 'Get Global Settings', 'emcp-tools' ),
 						'description' => __( 'Returns global colors, typography, and theme settings.', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
+					),
+				),
+			),
+			'gutenberg_blocks' => array(
+				'platform' => 'gutenberg',
+				'label' => __( 'Gutenberg Blocks', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/list-blocks'      => array(
+						'label'       => __( 'List Blocks', 'emcp-tools' ),
+						'description' => __( 'Lists registered block types (name, title, category).', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/get-block-schema' => array(
+						'label'       => __( 'Get Block Schema', 'emcp-tools' ),
+						'description' => __( 'Returns a block\'s attributes, supports, and a markup example.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/get-post-blocks'  => array(
+						'label'       => __( 'Get Post Blocks', 'emcp-tools' ),
+						'description' => __( 'Returns a post\'s block tree with an index path per block.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/list-patterns'    => array(
+						'label'       => __( 'List Patterns', 'emcp-tools' ),
+						'description' => __( 'Lists registered block patterns.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/add-block'        => array(
+						'label'       => __( 'Add Block', 'emcp-tools' ),
+						'description' => __( 'Inserts block markup into a post at a position.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/update-block'     => array(
+						'label'       => __( 'Update Block', 'emcp-tools' ),
+						'description' => __( 'Replaces the block at an index path with new markup.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/remove-block'     => array(
+						'label'       => __( 'Remove Block', 'emcp-tools' ),
+						'description' => __( 'Deletes the block at an index path.', 'emcp-tools' ),
+						'badges'      => array( 'destructive' ),
+					),
+					'emcp-tools/move-block'       => array(
+						'label'       => __( 'Move Block', 'emcp-tools' ),
+						'description' => __( 'Moves a block to a new position.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/duplicate-block'  => array(
+						'label'       => __( 'Duplicate Block', 'emcp-tools' ),
+						'description' => __( 'Clones the block at a path and inserts the copy after it.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/insert-pattern'   => array(
+						'label'       => __( 'Insert Pattern', 'emcp-tools' ),
+						'description' => __( 'Inserts a registered block pattern into a post.', 'emcp-tools' ),
+						'badges'      => array(),
 					),
 				),
 			),

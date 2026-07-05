@@ -1,6 +1,6 @@
 <h1 align="center">
   <img src="assets/img/icon-sm.png" width="72" alt="EMCP Tools logo"><br>
-  MCP Tools for Elementor
+  MCP Tools for WordPress & Page Builders
 </h1>
 
 <div align="center">
