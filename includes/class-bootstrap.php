@@ -180,6 +180,7 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-context.php';
 		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-index.php';
 		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-resolver.php';
+		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-condition-schema.php';
 		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-cpt.php';
 		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-content-renderer.php';
 		require_once EMCP_TOOLS_DIR . 'includes/themer/class-themer-theme-adapters.php';
