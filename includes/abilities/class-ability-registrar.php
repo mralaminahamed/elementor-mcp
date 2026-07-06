@@ -116,6 +116,16 @@ class EMCP_Tools_Ability_Registrar {
 			$this->ability_names = array_merge( $this->ability_names, $themer->get_ability_names() );
 		}
 
+		// EMCP Themer PHP-Template MCP tools — only when the feature toggle is on
+		// (its own option, independent of the base Themer tools above).
+		if ( class_exists( 'EMCP_Tools_Themer_PHP_Abilities' )
+			&& class_exists( 'EMCP_Tools_Themer_PHP' )
+			&& EMCP_Tools_Themer_PHP::enabled() ) {
+			$themer_php = new EMCP_Tools_Themer_PHP_Abilities();
+			$themer_php->register();
+			$this->ability_names = array_merge( $this->ability_names, $themer_php->get_ability_names() );
+		}
+
 		// WordPress Settings abilities (curated site-settings read/update).
 		$settings = new EMCP_Tools_Settings_Abilities();
 		$settings->register();
