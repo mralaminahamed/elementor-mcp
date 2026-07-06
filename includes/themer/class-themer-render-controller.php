@@ -163,21 +163,26 @@ class EMCP_Tools_Themer_Render_Controller {
 			return;
 		}
 		if ( ! empty( $slots['header'] ) ) {
+			// Replace the theme's header: drop its callbacks on the render hook,
+			// then print ours in their place (so the theme header doesn't ALSO
+			// render alongside/behind the Themer one).
+			remove_all_actions( $map[ $adapter ]['header'] );
 			add_action(
 				$map[ $adapter ]['header'],
 				static function () use ( $slots ) {
 					echo EMCP_Tools_Themer_Content_Renderer::render( (int) $slots['header'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				},
-				5
+				10
 			);
 		}
 		if ( ! empty( $slots['footer'] ) ) {
+			remove_all_actions( $map[ $adapter ]['footer'] );
 			add_action(
 				$map[ $adapter ]['footer'],
 				static function () use ( $slots ) {
 					echo EMCP_Tools_Themer_Content_Renderer::render( (int) $slots['footer'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				},
-				5
+				10
 			);
 		}
 	}

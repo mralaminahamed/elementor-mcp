@@ -116,18 +116,34 @@ class EMCP_Tools_Themer_Metabox {
 		wp_nonce_field( self::NONCE, self::NONCE );
 		$type = (string) get_post_meta( $post->ID, '_emcp_themer_type', true );
 		if ( '' === $type ) {
+			// New template: seed from ?emcp_themer_type= if present, otherwise leave
+			// UNSET so the user must consciously choose. Do NOT default to a real
+			// type ('header') — that silently mistyped templates (e.g. a template
+			// named "Single Page" saved as a header, which then renders in the
+			// header slot instead of the body).
 			$req  = isset( $_GET['emcp_themer_type'] ) ? sanitize_key( wp_unslash( $_GET['emcp_themer_type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$type = in_array( $req, EMCP_Tools_Themer_CPT::TYPES, true ) ? $req : 'header';
+			$type = in_array( $req, EMCP_Tools_Themer_CPT::TYPES, true ) ? $req : '';
 		}
 		$cond = get_post_meta( $post->ID, '_emcp_themer_conditions', true );
 		$cond = is_array( $cond ) ? $cond : array( 'include' => array(), 'exclude' => array(), 'priority' => 0 );
 
-		echo '<p><label for="emcp-themer-type"><strong>' . esc_html__( 'Template type', 'emcp-tools' ) . '</strong></label><br>';
-		echo '<select id="emcp-themer-type" name="emcp_themer_type" class="emcp-themer-type-select">';
+		$type_labels = array(
+			'header'  => __( 'Header', 'emcp-tools' ),
+			'footer'  => __( 'Footer', 'emcp-tools' ),
+			'single'  => __( 'Single (post/page)', 'emcp-tools' ),
+			'archive' => __( 'Archive', 'emcp-tools' ),
+			'search'  => __( 'Search results', 'emcp-tools' ),
+			'404'     => __( '404 (not found)', 'emcp-tools' ),
+		);
+
+		echo '<p><label for="emcp-themer-type"><strong>' . esc_html__( 'Template type', 'emcp-tools' ) . '</strong> <span style="color:#d63638">*</span></label><br>';
+		echo '<select id="emcp-themer-type" name="emcp_themer_type" class="emcp-themer-type-select" required>';
+		printf( '<option value="" %s>%s</option>', selected( $type, '', false ), esc_html__( '— Choose a template type —', 'emcp-tools' ) );
 		foreach ( EMCP_Tools_Themer_CPT::TYPES as $t ) {
-			printf( '<option value="%1$s" %2$s>%3$s</option>', esc_attr( $t ), selected( $type, $t, false ), esc_html( ucfirst( $t ) ) );
+			printf( '<option value="%1$s" %2$s>%3$s</option>', esc_attr( $t ), selected( $type, $t, false ), esc_html( $type_labels[ $t ] ?? ucfirst( $t ) ) );
 		}
-		echo '</select></p>';
+		echo '</select>';
+		echo '<br><span class="description">' . esc_html__( 'What this template replaces on the front end. A Single template renders in the content area (keeping your theme header/footer); a Header/Footer template replaces the theme\'s header/footer.', 'emcp-tools' ) . '</span></p>';
 
 		// Mount point for the JS cascading builder + the serialized value it writes.
 		echo '<div id="emcp-themer-conditions-app" class="emcp-themer-conditions"></div>';

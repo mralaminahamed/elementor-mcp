@@ -71,7 +71,10 @@ class EMCP_Tools_Themer_Index {
 		$query = new WP_Query(
 			array(
 				'post_type'      => self::POST_TYPE,
-				'post_status'    => array( 'publish', 'draft' ),
+				// Only published templates apply on the front end — a draft is
+				// work-in-progress and must not render for visitors (it's still
+				// previewable from the edit screen).
+				'post_status'    => 'publish',
 				'posts_per_page' => 500,
 				'no_found_rows'  => true,
 				'fields'         => 'ids',
