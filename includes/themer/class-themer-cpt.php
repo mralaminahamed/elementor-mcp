@@ -34,7 +34,11 @@ class EMCP_Tools_Themer_CPT {
 			self::POST_TYPE,
 			array(
 				'public'              => false,
-				'publicly_queryable'  => false,
+				// Queryable (but not `public`) so Elementor's editor preview iframe
+				// can render the template's own singular view — the render
+				// controller serves a the_content canvas for it. Kept out of menus,
+				// search, and archives via the flags below.
+				'publicly_queryable'  => true,
 				'show_ui'             => true,
 				// Its own top-level dashboard menu (not buried in the EMCP Tools page).
 				'show_in_menu'        => true,
@@ -65,6 +69,12 @@ class EMCP_Tools_Themer_CPT {
 				),
 			)
 		);
+
+		// Make the CPT editable with Elementor. Elementor gates its editor on
+		// post_type_supports( $type, 'elementor' ) — without this it redirects out
+		// of the editor ("Edit with Elementor" does nothing). Themer templates are
+		// builder-agnostic, so both Gutenberg and Elementor must be able to edit them.
+		add_post_type_support( self::POST_TYPE, 'elementor' );
 
 		// Native CPT-screen niceties: a Type column + the theme-adapter status notice.
 		add_filter( 'manage_' . self::POST_TYPE . '_posts_columns', array( $this, 'admin_columns' ) );

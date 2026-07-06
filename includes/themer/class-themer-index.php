@@ -99,7 +99,11 @@ class EMCP_Tools_Themer_Index {
 	 * Rebuild the index whenever a template is saved, trashed, or deleted.
 	 */
 	public static function register_hooks(): void {
-		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'rebuild' ) );
+		// Priority 99: the metabox and the MCP abilities write the type/conditions
+		// meta on save_post_{type} at priority 10, so the rebuild must run AFTER
+		// them or it reads stale/absent meta and produces an empty index (which
+		// makes the front end fall back to the theme's own templates).
+		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'rebuild' ), 99 );
 		add_action( 'deleted_post', array( __CLASS__, 'on_deleted_post' ) );
 		add_action( 'trashed_post', array( __CLASS__, 'on_deleted_post' ) );
 		add_action( 'untrashed_post', array( __CLASS__, 'on_deleted_post' ) );

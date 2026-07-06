@@ -65,6 +65,13 @@ class EMCP_Tools_Themer_Render_Controller {
 	 * @return string
 	 */
 	public function maybe_take_over( $template ) {
+		// Editing/viewing a Themer template's OWN singular view: serve a blank
+		// the_content canvas so Elementor's editor can attach and the template
+		// renders standalone. Never apply Themer resolution to our own CPT.
+		if ( is_singular( EMCP_Tools_Themer_CPT::POST_TYPE ) ) {
+			$edit = EMCP_TOOLS_DIR . 'includes/themer/templates/template-edit-canvas.php';
+			return is_readable( $edit ) ? $edit : $template;
+		}
 		// Defer to an existing Elementor Pro Theme Builder body match (avoid double-takeover).
 		if ( self::elementor_theme_builder_owns_body() ) {
 			return $template;
@@ -81,6 +88,10 @@ class EMCP_Tools_Themer_Render_Controller {
 	 * Inject a standalone header/footer on a normal theme page.
 	 */
 	public function maybe_inject_parts(): void {
+		// Don't inject header/footer when previewing a Themer template itself.
+		if ( is_singular( EMCP_Tools_Themer_CPT::POST_TYPE ) ) {
+			return;
+		}
 		$slots = self::slots();
 		if ( ! empty( $slots['body'] ) ) {
 			return; // canvas already renders header/footer.

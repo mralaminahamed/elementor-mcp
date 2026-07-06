@@ -2,8 +2,9 @@
 /**
  * Full-document canvas for a Themer body template takeover.
  *
- * Expects $emcp_themer_slots = array( 'header'=>?id, 'body'=>?id, 'footer'=>?id )
- * to be set by the render controller before including this file.
+ * WordPress includes this via the `template_include` filter in the template
+ * loader's scope, so it pulls the resolved slots from the render controller's
+ * memoized resolver rather than a local variable.
  *
  * @package EMCP_Tools
  */
@@ -12,7 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$slots = isset( $emcp_themer_slots ) && is_array( $emcp_themer_slots ) ? $emcp_themer_slots : array();
+$slots = class_exists( 'EMCP_Tools_Themer_Render_Controller' )
+	? EMCP_Tools_Themer_Render_Controller::slots()
+	: array();
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
