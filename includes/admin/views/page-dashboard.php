@@ -136,6 +136,11 @@ $emcp_videos = array(
 		'channel' => 'WPDev',
 		'id'      => 'tCRt5m4jsY8',
 	),
+	array(
+		'title'   => 'Create Elementor Websites with AI Agents | Urdu & Hindi Tutorial',
+		'channel' => 'WP Academy',
+		'id'      => 'B0K-9I4v5zc',
+	),
 );
 ?>
 
