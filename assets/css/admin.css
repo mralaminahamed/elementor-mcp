@@ -3055,8 +3055,42 @@ body.emcp-modal-open { overflow: hidden; }
 	background: var(--mcp-white);
 	border: 1px solid var(--mcp-gray-200);
 	border-radius: var(--mcp-radius-lg);
-	box-shadow: var(--mcp-shadow-sm);
 	padding: 22px 24px;
+}
+
+/* ---- Video guides + Help, side by side (70 / 30) ------------------------- */
+
+.emcp-dash-row {
+	display: flex;
+	gap: 20px;
+	align-items: stretch;
+}
+
+.emcp-dash-section--videos {
+	flex: 7 1 0;
+	min-width: 0;
+}
+
+.emcp-dash-section--help {
+	flex: 3 1 0;
+	min-width: 0;
+}
+
+/* Two videos per row inside the 70% column. */
+.emcp-dash-section--videos .emcp-dash-videos {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Help links stack in a single column inside the 30% column. */
+.emcp-dash-section--help .emcp-dash-help {
+	grid-template-columns: 1fr;
+}
+
+/* Stack the row on narrower screens. */
+@media screen and (max-width: 1200px) {
+	.emcp-dash-row {
+		flex-direction: column;
+	}
 }
 
 /* ---- Headline stats ------------------------------------------------------ */

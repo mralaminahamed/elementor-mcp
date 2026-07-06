@@ -192,8 +192,11 @@ $emcp_videos = array(
 		</div>
 	</section>
 
+	<!-- Video guides + help, side by side (70/30) -->
+	<div class="emcp-dash-row">
+
 	<!-- Featured video guides -->
-	<section class="emcp-dash-section" aria-labelledby="emcp-dash-videos-h">
+	<section class="emcp-dash-section emcp-dash-section--videos" aria-labelledby="emcp-dash-videos-h">
 		<div class="emcp-dash-section-head">
 			<h2 id="emcp-dash-videos-h" class="emcp-dash-section-title"><?php esc_html_e( 'Featured video guides', 'emcp-tools' ); ?></h2>
 			<p class="emcp-dash-section-sub"><?php esc_html_e( 'Watch and learn — from first connection to full-page builds.', 'emcp-tools' ); ?></p>
@@ -219,7 +222,7 @@ $emcp_videos = array(
 	</section>
 
 	<!-- Help & resources -->
-	<section class="emcp-dash-section" aria-labelledby="emcp-dash-help-h">
+	<section class="emcp-dash-section emcp-dash-section--help" aria-labelledby="emcp-dash-help-h">
 		<div class="emcp-dash-section-head">
 			<h2 id="emcp-dash-help-h" class="emcp-dash-section-title"><?php esc_html_e( 'Help &amp; resources', 'emcp-tools' ); ?></h2>
 		</div>
@@ -254,5 +257,7 @@ $emcp_videos = array(
 			</a>
 		</div>
 	</section>
+
+	</div><!-- .emcp-dash-row -->
 
 </div>
