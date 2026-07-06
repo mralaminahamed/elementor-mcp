@@ -168,6 +168,38 @@ class EMCP_Tools_Themer_Metabox {
 		echo '</select>';
 		echo '<br><span class="description">' . esc_html__( 'What this template replaces on the front end. A Single template renders in the content area (keeping your theme header/footer); a Header/Footer template replaces the theme\'s header/footer.', 'emcp-tools' ) . '</span></p>';
 
+		// Conflict notice: another template of the same type already targets an
+		// overlapping condition. Only one can render a given slot, so warn the admin.
+		$conflicts = self::find_conflicts( (int) $post->ID, $type, $cond );
+		if ( ! empty( $conflicts ) ) {
+			echo '<div class="notice notice-warning inline emcp-themer-conflict" style="margin:4px 0 14px;padding:8px 12px;">';
+			echo '<p style="margin:.35em 0;"><strong>' . esc_html__( 'Conflict', 'emcp-tools' ) . '</strong> — ';
+			echo esc_html(
+				sprintf(
+					/* translators: 1: count, 2: template type label */
+					_n(
+						'%1$d other %2$s template targets an overlapping condition. Only one template can render a given page — the resolver picks the most specific rule, then the highest priority, then the newest.',
+						'%1$d other %2$s templates target overlapping conditions. Only one template can render a given page — the resolver picks the most specific rule, then the highest priority, then the newest.',
+						count( $conflicts ),
+						'emcp-tools'
+					),
+					count( $conflicts ),
+					strtolower( (string) ( $type_labels[ $type ] ?? $type ) )
+				)
+			);
+			echo '</p><ul style="margin:.2em 0 .35em 1.3em;list-style:disc;">';
+			foreach ( $conflicts as $c ) {
+				printf(
+					'<li><a href="%1$s">%2$s</a> <span class="description">(%3$s)</span></li>',
+					esc_url( $c['edit'] ),
+					esc_html( '' !== $c['title'] ? $c['title'] : __( '(untitled)', 'emcp-tools' ) ),
+					/* translators: shared condition selectors */
+					esc_html( sprintf( __( 'shares: %s', 'emcp-tools' ), implode( ', ', $c['shared'] ) ) )
+				);
+			}
+			echo '</ul></div>';
+		}
+
 		// Mount point for the JS cascading builder + the serialized value it writes.
 		echo '<div id="emcp-themer-conditions-app" class="emcp-themer-conditions"></div>';
 		printf(
@@ -258,6 +290,75 @@ class EMCP_Tools_Themer_Metabox {
 		$priority = ( $pro && isset( $cond['priority'] ) ) ? (int) $cond['priority'] : 0;
 
 		return array( 'include' => $include, 'exclude' => $exclude, 'priority' => $priority );
+	}
+
+	// -------------------------------------------------------------------------
+	// Conflict detection (another template of the same type overlaps this one)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The include-condition object keys of a conditions payload (e.g. `all-archives`,
+	 * `post-type:post`, `post:12`).
+	 *
+	 * @param array $cond Conditions { include, exclude, priority }.
+	 * @return string[]
+	 */
+	public static function include_objects( array $cond ): array {
+		$objs = array();
+		foreach ( (array) ( $cond['include'] ?? array() ) as $rule ) {
+			if ( is_array( $rule ) && '' !== (string) ( $rule['object'] ?? '' ) ) {
+				$objs[] = (string) $rule['object'];
+			}
+		}
+		return array_values( array_unique( $objs ) );
+	}
+
+	/**
+	 * Other same-type templates whose include conditions overlap this one's — the
+	 * resolver can only render one per slot, so an overlap is a conflict the admin
+	 * should know about. Matches on shared include-object keys.
+	 *
+	 * @param int    $current_id Template being edited.
+	 * @param string $type       Its type.
+	 * @param array  $cond       Its stored conditions.
+	 * @return array<int,array{id:int,title:string,shared:string[],edit:string}>
+	 */
+	public static function find_conflicts( int $current_id, string $type, array $cond ): array {
+		if ( '' === $type ) {
+			return array();
+		}
+		$mine = self::include_objects( $cond );
+		if ( empty( $mine ) ) {
+			return array();
+		}
+		$q = new WP_Query(
+			array(
+				'post_type'      => EMCP_Tools_Themer_CPT::POST_TYPE,
+				'post_status'    => array( 'publish', 'draft' ),
+				'posts_per_page' => 100,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'post__not_in'   => array( $current_id ),
+				'meta_key'       => '_emcp_themer_type',
+				'meta_value'     => $type,
+			)
+		);
+		$out = array();
+		foreach ( (array) $q->posts as $oid ) {
+			$oid    = (int) $oid;
+			$ocond  = get_post_meta( $oid, '_emcp_themer_conditions', true );
+			$ocond  = is_array( $ocond ) ? $ocond : array();
+			$shared = array_values( array_intersect( $mine, self::include_objects( $ocond ) ) );
+			if ( ! empty( $shared ) ) {
+				$out[] = array(
+					'id'     => $oid,
+					'title'  => (string) get_the_title( $oid ),
+					'shared' => $shared,
+					'edit'   => (string) get_edit_post_link( $oid, 'raw' ),
+				);
+			}
+		}
+		return $out;
 	}
 
 	// -------------------------------------------------------------------------
