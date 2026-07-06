@@ -26,7 +26,7 @@ $supported = null !== $adapter;
 					esc_html( wp_get_theme()->get( 'Name' ) )
 				);
 			} else {
-				esc_html_e( 'Your theme is not directly supported for standalone header/footer replacement. Body templates (single/archive/search/404) still work everywhere. For headers/footers, enable Force Render below or add emcp_themer_location() calls to your theme.', 'emcp-tools' );
+				esc_html_e( 'Your theme is not directly supported for standalone header/footer replacement. Body templates (single/archive/search/404) still work everywhere. For headers/footers, add emcp_themer_location( \'header\' ) / emcp_themer_location( \'footer\' ) calls to your theme, or enable the full-page-takeover fallback (set the emcp_tools_module_themer_force_render option to 1).', 'emcp-tools' );
 			}
 			?>
 		</p>
