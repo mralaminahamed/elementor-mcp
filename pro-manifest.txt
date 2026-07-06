@@ -8,6 +8,9 @@ includes/class-color-contrast.php
 includes/class-content-extractor.php
 includes/class-seo-meta.php
 includes/class-widget-generator.php
+includes/themer/class-themer-pro.php
+includes/themer/class-themer-pro-matchers.php
+includes/themer/class-themer-pro-conditions.php
 includes/ai-chat
 includes/modules/class-ai-chat-module.php
 includes/admin/class-pro-prompts.php
