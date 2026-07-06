@@ -59,6 +59,33 @@ class EMCP_Tools_Themer_Render_Controller {
 	}
 
 	/**
+	 * How the current request should render.
+	 *
+	 * - `none`  — no body template; leave the theme template alone (a standalone
+	 *            Themer header/footer may still inject via the adapter).
+	 * - `body`  — a body template wins but Themer does NOT supply both header and
+	 *            footer: wrap the body in the THEME's header/footer (get_header /
+	 *            get_footer) so the site chrome is kept. Any single Themer header
+	 *            or footer injects via the adapter.
+	 * - `full`  — Themer supplies BOTH header and footer (or the force-render
+	 *            option is on): render a complete standalone document, no theme
+	 *            chrome.
+	 *
+	 * @return string none|body|full
+	 */
+	public static function render_mode(): string {
+		$slots = self::slots();
+		if ( empty( $slots['body'] ) ) {
+			return 'none';
+		}
+		$force = '1' === (string) get_option( 'emcp_tools_module_themer_force_render', '0' );
+		if ( ( ! empty( $slots['header'] ) && ! empty( $slots['footer'] ) ) || $force ) {
+			return 'full';
+		}
+		return 'body';
+	}
+
+	/**
 	 * Take over the page when a body template wins.
 	 *
 	 * @param string $template Resolved theme template path.
@@ -76,12 +103,17 @@ class EMCP_Tools_Themer_Render_Controller {
 		if ( self::elementor_theme_builder_owns_body() ) {
 			return $template;
 		}
-		$slots = self::slots();
-		if ( empty( $slots['body'] ) ) {
-			return $template;
+		$mode = self::render_mode();
+		if ( 'full' === $mode ) {
+			$canvas = EMCP_TOOLS_DIR . 'includes/themer/templates/template-canvas.php';
+			return is_readable( $canvas ) ? $canvas : $template;
 		}
-		$canvas = EMCP_TOOLS_DIR . 'includes/themer/templates/template-canvas.php';
-		return is_readable( $canvas ) ? $canvas : $template;
+		if ( 'body' === $mode ) {
+			// Keep the theme's header/footer; swap only the content area.
+			$body = EMCP_TOOLS_DIR . 'includes/themer/templates/template-body.php';
+			return is_readable( $body ) ? $body : $template;
+		}
+		return $template;
 	}
 
 	/**
@@ -92,10 +124,12 @@ class EMCP_Tools_Themer_Render_Controller {
 		if ( is_singular( EMCP_Tools_Themer_CPT::POST_TYPE ) ) {
 			return;
 		}
-		$slots = self::slots();
-		if ( ! empty( $slots['body'] ) ) {
-			return; // canvas already renders header/footer.
+		// In 'full' mode the standalone canvas renders the Themer header/footer
+		// itself; injecting again would duplicate them.
+		if ( 'full' === self::render_mode() ) {
+			return;
 		}
+		$slots = self::slots();
 		if ( empty( $slots['header'] ) && empty( $slots['footer'] ) ) {
 			return;
 		}
