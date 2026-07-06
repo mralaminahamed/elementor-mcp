@@ -152,6 +152,28 @@ class EMCP_Tools_Themer_Metabox {
 			esc_attr( (string) wp_json_encode( $cond ) )
 		);
 
+		// Optional PHP-template override (only when the feature is enabled).
+		if ( class_exists( 'EMCP_Tools_Themer_PHP' ) && EMCP_Tools_Themer_PHP::enabled() ) {
+			$attached = (int) get_post_meta( $post->ID, '_emcp_themer_php_template', true );
+			echo '<hr><p><label for="emcp-themer-php"><strong>' . esc_html__( 'Render with PHP template', 'emcp-tools' ) . '</strong></label><br>';
+			if ( '' === $type ) {
+				echo '<span class="description">' . esc_html__( 'Choose a template type first to list matching PHP templates.', 'emcp-tools' ) . '</span></p>';
+			} else {
+				echo '<select id="emcp-themer-php" name="emcp_themer_php_template">';
+				printf( '<option value="0">%s</option>', esc_html__( '— None (use builder content) —', 'emcp-tools' ) );
+				foreach ( self::eligible_templates( $type ) as $tpl ) {
+					printf(
+						'<option value="%1$d" %2$s>%3$s</option>',
+						(int) $tpl['template_id'],
+						selected( $attached, (int) $tpl['template_id'], false ),
+						esc_html( $tpl['title'] . ' (' . $tpl['type'] . ')' )
+					);
+				}
+				echo '</select>';
+				echo '<br><span class="description">' . esc_html__( 'If selected, this PHP template renders this region instead of the builder content.', 'emcp-tools' ) . '</span></p>';
+			}
+		}
+
 		if ( ! $this->is_pro() ) {
 			echo '<p class="description emcp-themer-pro-hint">' . esc_html__( 'Free templates support Include rules with broad targeting. Upgrade to EMCP Pro for Exclude rules, per-page / per-category / per-author targeting, priority, and unlimited templates per type.', 'emcp-tools' ) . '</p>';
 		}
@@ -179,6 +201,21 @@ class EMCP_Tools_Themer_Metabox {
 			if ( in_array( $type, EMCP_Tools_Themer_CPT::TYPES, true ) ) {
 				update_post_meta( $post_id, '_emcp_themer_type', $type );
 			}
+		}
+
+		// PHP-template attachment (feature-gated; type-enforced server-side).
+		if ( class_exists( 'EMCP_Tools_Themer_PHP' ) && EMCP_Tools_Themer_PHP::enabled() && isset( $_POST['emcp_themer_php_template'] ) ) {
+			$prev   = (int) get_post_meta( $post_id, '_emcp_themer_php_template', true );
+			$chosen = absint( wp_unslash( $_POST['emcp_themer_php_template'] ) );
+			$ptype  = (string) get_post_meta( $post_id, '_emcp_themer_type', true );
+			if ( $chosen > 0 ) {
+				$ok = self::validate_attachment( $chosen, $ptype );
+				if ( is_wp_error( $ok ) ) {
+					set_transient( 'emcp_themer_php_notice_' . get_current_user_id(), $ok->get_error_message(), 60 );
+					$chosen = $prev; // keep the previous state on rejection
+				}
+			}
+			self::apply_attachment( $post_id, $chosen, $prev );
 		}
 
 		if ( ! isset( $_POST['emcp_themer_conditions_json'] ) ) {
@@ -220,5 +257,68 @@ class EMCP_Tools_Themer_Metabox {
 		$priority = ( $pro && isset( $cond['priority'] ) ) ? (int) $cond['priority'] : 0;
 
 		return array( 'include' => $include, 'exclude' => $exclude, 'priority' => $priority );
+	}
+
+	// -------------------------------------------------------------------------
+	// PHP-template attachment (feature-gated; the human selection is the gate)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Templates attachable to a Themer post of $themer_type (matching type + any).
+	 *
+	 * @param string $themer_type Themer template type.
+	 * @return array<int,array>
+	 */
+	public static function eligible_templates( string $themer_type ): array {
+		if ( ! class_exists( 'EMCP_Tools_Themer_PHP_Store' ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( EMCP_Tools_Themer_PHP_Store::list_templates() as $tpl ) {
+			if ( $tpl['type'] === $themer_type || 'any' === $tpl['type'] ) {
+				$out[] = $tpl;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Validate an attach: template exists + type matches (or any).
+	 *
+	 * @param int    $php_id      PHP-template id.
+	 * @param string $themer_type Themer template type.
+	 * @return true|WP_Error
+	 */
+	public static function validate_attachment( int $php_id, string $themer_type ) {
+		$summary = EMCP_Tools_Themer_PHP_Store::summary( $php_id );
+		if ( is_wp_error( $summary ) ) {
+			return $summary;
+		}
+		if ( $summary['type'] !== $themer_type && 'any' !== $summary['type'] ) {
+			return new WP_Error( 'type_mismatch', __( 'That PHP template is for a different template type.', 'emcp-tools' ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Persist/clear the attachment meta, then reconcile the compiled file for both ids.
+	 *
+	 * @param int $themer_id   Themer template id.
+	 * @param int $new_php_id  Newly-attached PHP-template id (0 = detach).
+	 * @param int $prev_php_id Previously-attached PHP-template id (0 = none).
+	 */
+	public static function apply_attachment( int $themer_id, int $new_php_id, int $prev_php_id ): void {
+		if ( $new_php_id > 0 ) {
+			update_post_meta( $themer_id, '_emcp_themer_php_template', $new_php_id );
+		} else {
+			delete_post_meta( $themer_id, '_emcp_themer_php_template' );
+		}
+		// Reconcile after the meta write so reference_count() reflects the new state.
+		if ( $prev_php_id > 0 && $prev_php_id !== $new_php_id ) {
+			EMCP_Tools_Themer_PHP_Store::sync_reference( $prev_php_id );
+		}
+		if ( $new_php_id > 0 ) {
+			EMCP_Tools_Themer_PHP_Store::sync_reference( $new_php_id );
+		}
 	}
 }
