@@ -136,6 +136,29 @@ class EMCP_Tools_Themer_Metabox {
 			'404'     => __( '404 (not found)', 'emcp-tools' ),
 		);
 
+		// Optional PHP-template override, shown first (before the type selector).
+		if ( class_exists( 'EMCP_Tools_Themer_PHP' ) && EMCP_Tools_Themer_PHP::enabled() ) {
+			$attached = (int) get_post_meta( $post->ID, '_emcp_themer_php_template', true );
+			echo '<p><label for="emcp-themer-php"><strong>' . esc_html__( 'Render with PHP template', 'emcp-tools' ) . '</strong></label><br>';
+			if ( '' === $type ) {
+				echo '<span class="description">' . esc_html__( 'Choose a template type below first to list matching PHP templates.', 'emcp-tools' ) . '</span></p>';
+			} else {
+				echo '<select id="emcp-themer-php" name="emcp_themer_php_template">';
+				printf( '<option value="0">%s</option>', esc_html__( '— None (use builder content) —', 'emcp-tools' ) );
+				foreach ( self::eligible_templates( $type ) as $tpl ) {
+					printf(
+						'<option value="%1$d" %2$s>%3$s</option>',
+						(int) $tpl['template_id'],
+						selected( $attached, (int) $tpl['template_id'], false ),
+						esc_html( $tpl['title'] . ' (' . $tpl['type'] . ')' )
+					);
+				}
+				echo '</select>';
+				echo '<br><span class="description">' . esc_html__( 'If selected, this PHP template renders this region instead of the builder content.', 'emcp-tools' ) . '</span></p>';
+			}
+			echo '<hr>';
+		}
+
 		echo '<p><label for="emcp-themer-type"><strong>' . esc_html__( 'Template type', 'emcp-tools' ) . '</strong> <span style="color:#d63638">*</span></label><br>';
 		echo '<select id="emcp-themer-type" name="emcp_themer_type" class="emcp-themer-type-select" required>';
 		printf( '<option value="" %s>%s</option>', selected( $type, '', false ), esc_html__( '— Choose a template type —', 'emcp-tools' ) );
@@ -151,28 +174,6 @@ class EMCP_Tools_Themer_Metabox {
 			'<input type="hidden" id="emcp-themer-conditions-json" name="emcp_themer_conditions_json" value="%s">',
 			esc_attr( (string) wp_json_encode( $cond ) )
 		);
-
-		// Optional PHP-template override (only when the feature is enabled).
-		if ( class_exists( 'EMCP_Tools_Themer_PHP' ) && EMCP_Tools_Themer_PHP::enabled() ) {
-			$attached = (int) get_post_meta( $post->ID, '_emcp_themer_php_template', true );
-			echo '<hr><p><label for="emcp-themer-php"><strong>' . esc_html__( 'Render with PHP template', 'emcp-tools' ) . '</strong></label><br>';
-			if ( '' === $type ) {
-				echo '<span class="description">' . esc_html__( 'Choose a template type first to list matching PHP templates.', 'emcp-tools' ) . '</span></p>';
-			} else {
-				echo '<select id="emcp-themer-php" name="emcp_themer_php_template">';
-				printf( '<option value="0">%s</option>', esc_html__( '— None (use builder content) —', 'emcp-tools' ) );
-				foreach ( self::eligible_templates( $type ) as $tpl ) {
-					printf(
-						'<option value="%1$d" %2$s>%3$s</option>',
-						(int) $tpl['template_id'],
-						selected( $attached, (int) $tpl['template_id'], false ),
-						esc_html( $tpl['title'] . ' (' . $tpl['type'] . ')' )
-					);
-				}
-				echo '</select>';
-				echo '<br><span class="description">' . esc_html__( 'If selected, this PHP template renders this region instead of the builder content.', 'emcp-tools' ) . '</span></p>';
-			}
-		}
 
 		if ( ! $this->is_pro() ) {
 			echo '<p class="description emcp-themer-pro-hint">' . esc_html__( 'Free templates support Include rules with broad targeting. Upgrade to EMCP Pro for Exclude rules, per-page / per-category / per-author targeting, priority, and unlimited templates per type.', 'emcp-tools' ) . '</p>';
