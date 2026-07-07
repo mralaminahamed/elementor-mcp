@@ -14,10 +14,12 @@ All notable changes to MCP Tools for Elementor are documented in this file.
 
 ### Changed
 - **Per-site MCP server names.** Every generated client config now names the server after the site's domain (e.g. `emcp-your-site-com`) instead of a fixed `emcp-tools`, so connecting several sites in one AI client no longer collides.
+- **Menu order:** **Modules** now sits before **Tools** in both the EMCP Tools sidebar submenu and the page header nav.
 - **Bundled Freemius SDK** updated 2.13.2 → 2.13.3.
 - Smaller download — optimized an oversized bundled admin logo (~700 KB lighter).
 
 ### Fixed
+- **Changelog page access.** Opening the Changelog (from the header app-bar button or its URL) no longer errors (“Sorry, you are not allowed to access this page.” / “Cannot load…”). It was being removed from the sidebar with `remove_submenu_page()`, which also broke both its access check and its render hook; it's now kept as a normal submenu (so it renders and is reachable) and only its sidebar row is hidden with CSS.
 - **Codex `config.toml`** now uses `http_headers` (not `headers`), so the generated Codex config connects.
 - **Themer:** the “Render with PHP template” dropdown now updates live when you change the template type — a new template no longer stays stuck on “choose a template type first.”
 

@@ -155,8 +155,8 @@ class EMCP_Tools_Admin {
 		if ( null === $this->submenus ) {
 			$this->submenus = array(
 				self::PAGE_SLUG                 => __( 'Dashboard', 'emcp-tools' ),
-				self::PAGE_SLUG . '-tools'      => __( 'Tools', 'emcp-tools' ),
 				self::PAGE_SLUG . '-modules'    => __( 'Modules', 'emcp-tools' ),
+				self::PAGE_SLUG . '-tools'      => __( 'Tools', 'emcp-tools' ),
 				self::PAGE_SLUG . '-connection' => __( 'Connection', 'emcp-tools' ),
 				self::PAGE_SLUG . '-ai-chat'    => __( 'AI Chat', 'emcp-tools' ),
 				self::PAGE_SLUG . '-context'    => __( 'Context', 'emcp-tools' ),
@@ -559,9 +559,13 @@ class EMCP_Tools_Admin {
 			);
 		}
 
-		// Changelog is surfaced as an app-bar button in the header; hide its
-		// sidebar entry (the page stays reachable by URL for that button).
-		remove_submenu_page( self::PAGE_SLUG, self::PAGE_SLUG . '-changelog' );
+		// Changelog is surfaced as an app-bar button in the header, not the
+		// sidebar. We deliberately do NOT remove_submenu_page() it: that drops
+		// the page from $submenu, which breaks both user_can_access_admin_page()
+		// (parent no longer resolves) and the render hook (admin.php recomputes
+		// the page hook to a name with no attached callback → "Cannot load").
+		// Instead the sidebar <li> is hidden with CSS in print_menu_icon_style(),
+		// so the page stays a normal, fully-renderable submenu reachable by URL.
 	}
 
 	/**
@@ -586,6 +590,14 @@ class EMCP_Tools_Admin {
 			. '#toplevel_page_' . esc_attr( self::PAGE_SLUG ) . '.current .wp-menu-image img,'
 			. '#toplevel_page_' . esc_attr( self::PAGE_SLUG ) . '.wp-has-current-submenu .wp-menu-image img{'
 			. 'opacity:1;'
+			. '}'
+			// Changelog lives in the header app-bar, not the sidebar. It stays a
+			// real submenu (so it renders + is URL-accessible); we only hide its
+			// sidebar row. :has() hides the whole <li>; the anchor rule is a
+			// fallback for browsers without :has() (collapses the row to 0).
+			. '#toplevel_page_' . esc_attr( self::PAGE_SLUG ) . ' .wp-submenu li:has(> a[href$="page=' . esc_attr( self::PAGE_SLUG ) . '-changelog"]),'
+			. '#toplevel_page_' . esc_attr( self::PAGE_SLUG ) . ' .wp-submenu a[href$="page=' . esc_attr( self::PAGE_SLUG ) . '-changelog"]{'
+			. 'display:none !important;'
 			. '}'
 			. '</style>';
 	}

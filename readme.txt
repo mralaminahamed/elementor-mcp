@@ -176,6 +176,8 @@ A follow-up patch to 3.1.0.
 * Added: EMCP Themer now shows a Free-limits banner (free installs only) on the templates screen — a per-type usage chip for each slot (Header/Footer/Single/Archive/Search/404, used/cap) so the 1-per-type limit is visible before you hit it, with a one-click Upgrade to Pro for unlimited templates and granular conditions.
 * Changed: Generated MCP client configs now name the server after the site's domain (e.g. emcp-your-site-com) instead of a fixed "emcp-tools", so connecting several sites in one AI client no longer collides.
 * Changed: Bundled Freemius SDK updated 2.13.2 -> 2.13.3; optimized an oversized bundled admin logo (~700KB smaller download).
+* Changed: Modules now appears before Tools in both the EMCP Tools sidebar submenu and the page header nav.
+* Fixed: Changelog page no longer errors ("Sorry, you are not allowed to access this page." / "Cannot load...") — removing it from the sidebar had broken both its access check and its render hook; it is now kept as a normal submenu (renders + reachable by URL) with only its sidebar row hidden via CSS.
 * Fixed: Codex config.toml now uses http_headers (not headers) so the generated config connects.
 * Fixed: Themer "Render with PHP template" dropdown updates live when the template type changes (new templates no longer stay on "choose a type first").
 
