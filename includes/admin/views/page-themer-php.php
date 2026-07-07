@@ -60,10 +60,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<input type="hidden" name="template_id" value="<?php echo (int) $detail['template_id']; ?>">
 			<?php wp_nonce_field( 'emcp_themer_php_save_' . (int) $detail['template_id'] ); ?>
 
-			<p>
-				<label for="emcp-themer-php-title"><strong><?php esc_html_e( 'Title', 'emcp-tools' ); ?></strong></label><br>
-				<input type="text" id="emcp-themer-php-title" name="title" class="regular-text" value="<?php echo esc_attr( $detail['title'] ); ?>">
-			</p>
+			<?php
+			$type_labels = array(
+				'header'  => __( 'Header', 'emcp-tools' ),
+				'footer'  => __( 'Footer', 'emcp-tools' ),
+				'single'  => __( 'Single (post/page)', 'emcp-tools' ),
+				'archive' => __( 'Archive', 'emcp-tools' ),
+				'any'     => __( 'Any type', 'emcp-tools' ),
+			);
+			?>
+			<div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;">
+				<p style="margin-top:0;">
+					<label for="emcp-themer-php-title"><strong><?php esc_html_e( 'Title', 'emcp-tools' ); ?></strong></label><br>
+					<input type="text" id="emcp-themer-php-title" name="title" class="regular-text" value="<?php echo esc_attr( $detail['title'] ); ?>">
+				</p>
+				<p style="margin-top:0;">
+					<label for="emcp-themer-php-type"><strong><?php esc_html_e( 'Type', 'emcp-tools' ); ?></strong></label><br>
+					<select id="emcp-themer-php-type" name="type">
+						<?php foreach ( EMCP_Tools_Themer_PHP_Store::TYPES as $t ) : ?>
+							<option value="<?php echo esc_attr( $t ); ?>" <?php selected( $detail['type'], $t ); ?>><?php echo esc_html( $type_labels[ $t ] ?? ucfirst( $t ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<br><span class="description"><?php esc_html_e( 'Which Themer region this can be attached to. “Any type” matches every template type.', 'emcp-tools' ); ?></span>
+				</p>
+			</div>
 
 			<p><label for="emcp-themer-php-code"><strong><?php esc_html_e( 'Template code', 'emcp-tools' ); ?></strong></label></p>
 			<textarea id="emcp-themer-php-code" name="code" rows="20" class="large-text code" spellcheck="false" style="width:100%;font-family:Consolas,Monaco,monospace;"><?php echo esc_textarea( $detail['code'] ); ?></textarea>

@@ -101,6 +101,10 @@ class EMCP_Tools_Themer_PHP_Admin {
 			'code'  => isset( $_POST['code'] ) ? (string) wp_unslash( $_POST['code'] ) : '',
 			'title' => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
 		);
+		if ( isset( $_POST['type'] ) ) {
+			// The store's sanitize_type() validates this against the allowed set.
+			$args['type'] = sanitize_text_field( wp_unslash( $_POST['type'] ) );
+		}
 
 		$result = EMCP_Tools_Themer_PHP_Store::update( $id, $args );
 		if ( is_wp_error( $result ) ) {
