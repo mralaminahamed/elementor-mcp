@@ -14,14 +14,6 @@ return array(
 		'version' => '0.5.0.0',
 		'path'    => array( $vendorDir . '/wordpress/mcp-adapter/includes' )
 	),
-	'PhpParser\\' => array(
-		'version' => '5.7.0.0',
-		'path'    => array( $vendorDir . '/nikic/php-parser/lib/PhpParser' )
-	),
-	'DeepCopy\\' => array(
-		'version' => '1.13.4.0',
-		'path'    => array( $vendorDir . '/myclabs/deep-copy/src/DeepCopy' )
-	),
 	'Automattic\\Jetpack\\Autoloader\\' => array(
 		'version' => '5.0.20',
 		'path'    => array( $vendorDir . '/automattic/jetpack-autoloader/src' )
