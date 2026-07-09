@@ -371,9 +371,16 @@ class EMCP_Tools_Plugin {
 			return;
 		}
 
+		// Compact tool mode: surface only the 3 dispatcher tools instead of every
+		// individual ability (the rest stay registered and reachable via call-tool).
+		if ( self::is_dispatcher_mode() ) {
+			$tools = EMCP_Tools_Dispatcher_Abilities::NAMES;
+		} else {
+			$tools = $this->ability_names;
+		}
+
 		// Also expose WordPress core's read-only context abilities (site/user/
 		// environment info) on our server — registered by core, free to surface.
-		$tools = $this->ability_names;
 		foreach ( array( 'core/get-site-info', 'core/get-user-info', 'core/get-environment-info' ) as $emcp_core_ability ) {
 			if ( function_exists( 'wp_get_ability' ) && wp_get_ability( $emcp_core_ability ) && ! in_array( $emcp_core_ability, $tools, true ) ) {
 				$tools[] = $emcp_core_ability;
@@ -385,7 +392,7 @@ class EMCP_Tools_Plugin {
 			'mcp',                                                    // route_namespace
 			'emcp-tools-server',                                   // route
 			__( 'MCP Tools for Elementor Server', 'emcp-tools' ),            // server_name
-			EMCP_Tools_Site_Context::compose_instructions( EMCP_Tools_Site_Context::default_base() ), // description (base + site context)
+			EMCP_Tools_Site_Context::compose_instructions( EMCP_Tools_Site_Context::default_base() . "\n\n" . EMCP_Tools_Site_Context::environment_summary() ), // description (base + env + site context)
 			'v' . EMCP_TOOLS_VERSION,                              // version
 			array( \WP\MCP\Transport\HttpTransport::class ),          // transports
 			null,                                                     // error_handler (use default)
