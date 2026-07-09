@@ -18,16 +18,14 @@ $emcp_tools_disabled      = get_option( EMCP_Tools_Admin::OPTION_DISABLED_TOOLS,
 $emcp_tools_disabled      = is_array( $emcp_tools_disabled ) ? $emcp_tools_disabled : array();
 $emcp_tools_enabled_count = $this->get_enabled_tool_count();
 $emcp_tools_total_count   = $this->get_total_tool_count();
-$emcp_tools_low_mode      = '1' === (string) get_option( EMCP_Tools_Admin::OPTION_LOW_TOOL_MODE, '0' );
-$emcp_tools_essentials    = EMCP_Tools_Plugin::get_essential_tool_slugs();
+$emcp_tools_compact_mode  = '1' === (string) get_option( EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE, '0' );
 
 $emcp_tools_tabs               = EMCP_Tools_Admin::platform_tabs();
 $emcp_tools_buckets            = EMCP_Tools_Admin::partition_by_platform( $emcp_tools_all_tools );
 $emcp_tools_elementor_active   = EMCP_Tools_Bootstrap::elementor_active();
 
 /**
- * Per-tab enabled/total counts, computed with the same effective-state logic
- * the category headers use (essentials in low-tools mode, else the stored set).
+ * Per-tab enabled/total counts, computed from the stored disabled set.
  */
 $emcp_tools_tab_counts = array();
 foreach ( $emcp_tools_buckets as $emcp_tools_tab_id => $emcp_tools_tab_cats ) {
@@ -36,10 +34,7 @@ foreach ( $emcp_tools_buckets as $emcp_tools_tab_id => $emcp_tools_tab_cats ) {
 	foreach ( $emcp_tools_tab_cats as $emcp_tools_cat ) {
 		foreach ( $emcp_tools_cat['tools'] as $emcp_tools_s => $emcp_tools_unused ) {
 			$emcp_tools_t_total++;
-			$emcp_tools_eff = $emcp_tools_low_mode
-				? in_array( $emcp_tools_s, $emcp_tools_essentials, true )
-				: ! in_array( $emcp_tools_s, $emcp_tools_disabled, true );
-			if ( $emcp_tools_eff ) {
+			if ( ! in_array( $emcp_tools_s, $emcp_tools_disabled, true ) ) {
 				$emcp_tools_t_enabled++;
 			}
 		}
@@ -59,27 +54,27 @@ $emcp_tools_badge_labels = array(
 );
 ?>
 
-<form method="post" action="options.php" id="elementor-mcp-tools-form" class="<?php echo esc_attr( $emcp_tools_low_mode ? 'is-low-mode' : '' ); ?>">
+<form method="post" action="options.php" id="elementor-mcp-tools-form">
 	<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP ); ?>
 
 	<div class="elementor-mcp-low-mode-card">
 		<label class="elementor-mcp-low-mode-toggle">
-			<input type="hidden" name="<?php echo esc_attr( EMCP_Tools_Admin::OPTION_LOW_TOOL_MODE ); ?>" value="0" />
+			<input type="hidden" name="<?php echo esc_attr( EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE ); ?>" value="0" />
 			<input
 				type="checkbox"
-				name="<?php echo esc_attr( EMCP_Tools_Admin::OPTION_LOW_TOOL_MODE ); ?>"
+				name="<?php echo esc_attr( EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE ); ?>"
 				value="1"
-				<?php checked( $emcp_tools_low_mode ); ?>
+				<?php checked( $emcp_tools_compact_mode ); ?>
 			/>
 			<span class="elementor-mcp-toggle" aria-hidden="true">
 				<span class="elementor-mcp-toggle-track"></span>
 			</span>
 			<span class="elementor-mcp-low-mode-info">
 				<span class="elementor-mcp-low-mode-title">
-					<?php esc_html_e( 'Low-tools mode (Antigravity-friendly)', 'emcp-tools' ); ?>
+					<?php esc_html_e( 'Compact tool mode', 'emcp-tools' ); ?>
 				</span>
 				<span class="elementor-mcp-low-mode-desc">
-					<?php esc_html_e( 'Keeps the active tool count under 60 by exposing only a curated set of essential abilities. Use this when your MCP client enforces a strict tool cap. Your individual toggles below are preserved and take effect again when this is turned off.', 'emcp-tools' ); ?>
+					<?php esc_html_e( 'Exposes 3 dispatcher tools (list-tools, get-tool-schema, call-tool) instead of every individual tool, so MCP clients that cap the tool count can still reach the whole surface. Your per-tool toggles below stay in effect — call-tool refuses any tool you disable. Reconnect your client after changing this.', 'emcp-tools' ); ?>
 				</span>
 			</span>
 		</label>
@@ -111,16 +106,10 @@ $emcp_tools_badge_labels = array(
 		</div>
 	<?php endif; ?>
 
-	<?php if ( $emcp_tools_low_mode ) : ?>
-		<div class="elementor-mcp-lowmode-banner">
+	<?php if ( $emcp_tools_compact_mode ) : ?>
+		<div class="elementor-mcp-compact-banner">
 			<p>
-				<?php
-				printf(
-					/* translators: %d: number of essential tools active in low-tools mode */
-					esc_html__( 'Low-tools mode is active — only the %d essential tools (highlighted below) are exposed to your AI client. Your individual toggles are paused and resume when you turn low-tools mode off above.', 'emcp-tools' ),
-					(int) $emcp_tools_enabled_count
-				);
-				?>
+				<?php esc_html_e( 'Compact tool mode is active — your client sees only the 3 dispatcher tools (list-tools, get-tool-schema, call-tool). The per-tool toggles below still control what call-tool is allowed to run.', 'emcp-tools' ); ?>
 			</p>
 		</div>
 	<?php endif; ?>
@@ -194,10 +183,7 @@ $emcp_tools_badge_labels = array(
 					$emcp_tools_cat_total   = count( $emcp_tools_category['tools'] );
 					$emcp_tools_cat_enabled = 0;
 					foreach ( $emcp_tools_category['tools'] as $emcp_tools_slug => $emcp_tools_tool ) {
-						$emcp_tools_eff = $emcp_tools_low_mode
-							? in_array( $emcp_tools_slug, $emcp_tools_essentials, true )
-							: ! in_array( $emcp_tools_slug, $emcp_tools_disabled, true );
-						if ( $emcp_tools_eff ) {
+						if ( ! in_array( $emcp_tools_slug, $emcp_tools_disabled, true ) ) {
 							$emcp_tools_cat_enabled++;
 						}
 					}
@@ -235,19 +221,16 @@ $emcp_tools_badge_labels = array(
 					<div class="elementor-mcp-tools-grid" id="<?php echo esc_attr( $emcp_tools_grid_id ); ?>">
 						<?php foreach ( $emcp_tools_category['tools'] as $emcp_tools_slug => $emcp_tools_tool ) : ?>
 							<?php
-							$emcp_tools_is_enabled = $emcp_tools_low_mode
-								? in_array( $emcp_tools_slug, $emcp_tools_essentials, true )
-								: ! in_array( $emcp_tools_slug, $emcp_tools_disabled, true );
+							$emcp_tools_is_enabled = ! in_array( $emcp_tools_slug, $emcp_tools_disabled, true );
 							?>
 							<label class="elementor-mcp-tool-card <?php echo esc_attr( ( $emcp_tools_is_enabled ? 'is-enabled' : 'is-disabled' ) . ( $emcp_tools_cat_unavailable ? ' is-unavailable' : '' ) ); ?>">
 								<input
 									type="checkbox"
 									name="<?php echo esc_attr( EMCP_Tools_Admin::OPTION_DISABLED_TOOLS ); ?>[]"
 									value="<?php echo esc_attr( $emcp_tools_slug ); ?>"
-									data-essential="<?php echo esc_attr( in_array( $emcp_tools_slug, $emcp_tools_essentials, true ) ? '1' : '0' ); ?>"
 									data-stored-enabled="<?php echo esc_attr( in_array( $emcp_tools_slug, $emcp_tools_disabled, true ) ? '0' : '1' ); ?>"
 									<?php checked( $emcp_tools_is_enabled ); ?>
-									<?php disabled( $emcp_tools_low_mode || $emcp_tools_cat_unavailable ); ?>
+									<?php disabled( $emcp_tools_cat_unavailable ); ?>
 								/>
 								<span class="elementor-mcp-toggle" aria-hidden="true">
 									<span class="elementor-mcp-toggle-track"></span>

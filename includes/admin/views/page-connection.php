@@ -186,25 +186,14 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 					<p class="elementor-mcp-activate-note">
 						<?php esc_html_e( 'Enable only for OpenAI-compatible strict function-calling clients (e.g. CrewAI) that reject the default tool schemas. It lists every property as required (optional ones become nullable) and sets additionalProperties:false. Leave this OFF for Claude, Gemini, and Antigravity — they work with the default schemas, and strict mode can break Gemini/Antigravity.', 'emcp-tools' ); ?>
 					</p>
-				</div>
-
-				<?php // Card C: compact tool mode (dispatcher). ?>
-				<div class="emcp-conn-card">
-					<h2 class="emcp-conn-card-title"><?php esc_html_e( 'Compact tool mode', 'emcp-tools' ); ?></h2>
-
-					<label class="emcp-switch emcp-conn-toggle">
-						<input
-							type="checkbox"
-							name="<?php echo esc_attr( EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE ); ?>"
-							value="1"
-							<?php checked( '1' === (string) get_option( EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE, '0' ) ); ?>
-						/>
-						<span class="elementor-mcp-toggle" aria-hidden="true"><span class="elementor-mcp-toggle-track"></span></span>
-						<span class="emcp-switch-label"><?php esc_html_e( 'Expose 3 dispatcher tools instead of every individual tool', 'emcp-tools' ); ?></span>
-					</label>
-
 					<p class="elementor-mcp-activate-note">
-						<?php esc_html_e( 'Turn this on if your MCP client caps the number of tools (e.g. some Claude Desktop builds). The server then exposes just list-tools, get-tool-schema, and call-tool: the AI discovers tools, fetches a tool\'s inputs, then runs it by name. Every tool\'s own permission still applies. Leave OFF for the full one-tool-per-ability surface.', 'emcp-tools' ); ?>
+						<?php
+						printf(
+							/* translators: %s: link to the Tools tab. */
+							esc_html__( 'Looking for Compact tool mode? It now lives on the %s tab, next to the per-tool toggles it works with.', 'emcp-tools' ),
+							'<a href="' . esc_url( admin_url( 'admin.php?page=emcp-tools-tools' ) ) . '">' . esc_html__( 'Tools', 'emcp-tools' ) . '</a>'
+						);
+						?>
 					</p>
 				</div>
 

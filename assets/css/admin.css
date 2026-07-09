@@ -2821,14 +2821,8 @@
 .elementor-mcp-tabpanel { display: none; }
 .elementor-mcp-tabpanel.is-active { display: block; }
 
-/* Low-tools mode: pause/grey the per-tool grid + bulk selects (Save stays active). */
-#elementor-mcp-tools-form.is-low-mode .elementor-mcp-category,
-#elementor-mcp-tools-form.is-low-mode .elementor-mcp-enable-all,
-#elementor-mcp-tools-form.is-low-mode .elementor-mcp-disable-all {
-	opacity: .55;
-	pointer-events: none;
-}
-.elementor-mcp-lowmode-banner {
+/* Compact tool mode: an info banner above the still-interactive per-tool grid. */
+.elementor-mcp-compact-banner {
 	margin: 0 0 14px;
 	padding: 10px 14px;
 	background: #eef0ff;
@@ -2836,7 +2830,7 @@
 	border-left: 3px solid #5145e5;
 	border-radius: 6px;
 }
-.elementor-mcp-lowmode-banner p { margin: 0; font-size: 13px; color: #2b2f44; }
+.elementor-mcp-compact-banner p { margin: 0; font-size: 13px; color: #2b2f44; }
 
 /* Connection-tab client picker */
 .elementor-mcp-client-grid {

@@ -137,130 +137,12 @@ class EMCP_Tools_Plugin {
 	 * @return string[] Ability names with disabled tools removed.
 	 */
 	public function filter_disabled_tools( array $names ): array {
-		// Low-tools mode is an OVERRIDE preset, not an addition: expose exactly
-		// the curated essentials (intersected with what's actually registered),
-		// regardless of the per-tool toggles. The toggles stay stored and resume
-		// the moment low-tools mode is turned off — which is why turning it on
-		// always yields the essentials even if every tool was previously disabled.
-		if ( '1' === (string) get_option( 'emcp_tools_low_tool_mode', '0' ) ) {
-			return array_values( array_intersect( $names, self::get_essential_tool_slugs() ) );
-		}
-
 		$disabled = get_option( 'emcp_tools_disabled_tools', array() );
 		if ( ! is_array( $disabled ) || empty( $disabled ) ) {
 			return $names;
 		}
 
 		return array_values( array_diff( $names, $disabled ) );
-	}
-
-	/**
-	 * Curated list of essential tool slugs kept active in low-tools mode.
-	 *
-	 * Trimmed to fit under a 60-tool budget while preserving every category
-	 * an AI agent needs to build a page from scratch: discovery, page CRUD,
-	 * layout, the catalog-backed widget tools (add-free-widget / add-pro-widget /
-	 * update-widget), globals, templates, stock images, custom code, and (when
-	 * Elementor 4.0+ is active) the atomic universal + container tools.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @return string[]
-	 */
-	public static function get_essential_tool_slugs(): array {
-		return array(
-			// Query / discovery (7).
-			'emcp-tools/list-widgets',
-			'emcp-tools/get-widget-schema',
-			'emcp-tools/get-page-structure',
-			'emcp-tools/get-element-settings',
-			'emcp-tools/list-pages',
-			'emcp-tools/list-templates',
-			'emcp-tools/get-global-settings',
-
-			// Page CRUD (5).
-			'emcp-tools/create-page',
-			'emcp-tools/update-page-settings',
-			'emcp-tools/delete-page-content',
-			'emcp-tools/import-template',
-			'emcp-tools/export-page',
-
-			// Layout / structure (10).
-			'emcp-tools/add-container',
-			'emcp-tools/move-element',
-			'emcp-tools/remove-element',
-			'emcp-tools/duplicate-element',
-			'emcp-tools/update-container',
-			'emcp-tools/get-container-schema',
-			'emcp-tools/find-element',
-			'emcp-tools/update-element',
-			'emcp-tools/batch-update',
-			'emcp-tools/reorder-elements',
-
-			// Widget tools — catalog-backed (3 insert/update; discovery already
-			// listed in the Query block above).
-			'emcp-tools/add-free-widget',
-			'emcp-tools/add-pro-widget',
-			'emcp-tools/update-widget',
-
-			// Templates (2).
-			'emcp-tools/save-as-template',
-			'emcp-tools/apply-template',
-
-			// Globals (2).
-			'emcp-tools/update-global-colors',
-			'emcp-tools/update-global-typography',
-
-			// Composite (1).
-			'emcp-tools/build-page',
-
-			// Stock images (3).
-			'emcp-tools/search-images',
-			'emcp-tools/sideload-image',
-			'emcp-tools/add-stock-image',
-
-			// SVG icons (1).
-			'emcp-tools/upload-svg-icon',
-
-			// Custom code (4).
-			'emcp-tools/add-custom-css',
-			'emcp-tools/add-custom-js',
-			'emcp-tools/add-code-snippet',
-			'emcp-tools/list-code-snippets',
-
-			// Atomic essentials (5) — only registered when Elementor 4.0+.
-			'emcp-tools/detect-elementor-version',
-			'emcp-tools/add-atomic-widget',
-			'emcp-tools/update-atomic-widget',
-			'emcp-tools/add-flexbox',
-			'emcp-tools/add-div-block',
-
-			// WordPress content (8) — general post/page/CPT management.
-			'emcp-tools/list-post-types',
-			'emcp-tools/list-taxonomies',
-			'emcp-tools/create-post',
-			'emcp-tools/get-post',
-			'emcp-tools/update-post',
-			'emcp-tools/list-posts',
-			'emcp-tools/delete-post',
-			'emcp-tools/set-post-terms',
-
-			// WordPress settings (2) — curated site-settings read/update.
-			'emcp-tools/get-settings',
-			'emcp-tools/update-settings',
-
-			// WordPress plugins & themes (2 reads — writes opt-in only).
-			'emcp-tools/list-plugins',
-			'emcp-tools/list-themes',
-
-			// WordPress media (2 — detail read + metadata edit; delete is opt-in).
-			'emcp-tools/get-media',
-			'emcp-tools/update-media',
-
-			// WordPress users (2 reads — writes opt-in only).
-			'emcp-tools/list-users',
-			'emcp-tools/get-user',
-		);
 	}
 
 	/**
@@ -333,8 +215,8 @@ class EMCP_Tools_Plugin {
 
 	/**
 	 * Returns the active (post-filter) ability names — the exact set exposed to
-	 * the MCP server, with user-disabled tools, Low-tools mode, and
-	 * Pro-disabled-by-default already removed. Used by the AI Chat
+	 * the MCP server, with user-disabled tools and Pro-disabled-by-default
+	 * already removed. Used by the AI Chat
 	 * /execute-ability and /abilities endpoints so the chat can never run a tool
 	 * the admin disabled. Triggers the lazy Abilities API init if it hasn't run.
 	 *

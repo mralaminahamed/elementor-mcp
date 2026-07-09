@@ -57,7 +57,6 @@ class EMCP_Tools_Migration {
 	public static function migrate(): void {
 		$option_map = array(
 			'elementor_mcp_disabled_tools'   => 'emcp_tools_disabled_tools',
-			'elementor_mcp_low_tool_mode'    => 'emcp_tools_low_tool_mode',
 			'elementor_mcp_defaults_applied' => 'emcp_tools_defaults_applied',
 			'elementor_mcp_server_enabled'   => 'emcp_tools_server_enabled',
 		);

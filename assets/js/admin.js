@@ -99,29 +99,6 @@
 				updateCards( form );
 			}
 		} );
-
-		// Low-tools mode — live preview without a save round-trip: pause/grey the
-		// grid and show the effective (essentials-only) state, then restore the
-		// stored toggles when switched back off. The stored + essential state of
-		// each tool is carried in data-* attributes rendered server-side.
-		var lowToggle = form.querySelector( 'input[type="checkbox"][value="1"][name$="low_tool_mode"]' );
-		if ( lowToggle ) {
-			lowToggle.addEventListener( 'change', function () {
-				var on = lowToggle.checked;
-				form.classList.toggle( 'is-low-mode', on );
-				form.querySelectorAll( toolCheckboxSelector ).forEach( function ( cb ) {
-					if ( on ) {
-						cb.checked = ( '1' === cb.dataset.essential );
-						cb.disabled = true;
-					} else {
-						cb.checked = ( '1' === cb.dataset.storedEnabled );
-						cb.disabled = false;
-					}
-				} );
-				updateCards( form );
-				updateToolCounts( form );
-			} );
-		}
 	}
 
 	/**

@@ -36,15 +36,6 @@ class EMCP_Tools_Admin {
 	const OPTION_DISABLED_TOOLS = 'emcp_tools_disabled_tools';
 
 	/**
-	 * Option name for the low-tools-mode toggle. When set to '1', tools
-	 * outside the curated essentials list are filtered out so clients
-	 * with tight tool caps (e.g. Antigravity) stay under their limit.
-	 *
-	 * @var string
-	 */
-	const OPTION_LOW_TOOL_MODE = 'emcp_tools_low_tool_mode';
-
-	/**
 	 * Settings group name.
 	 *
 	 * @var string
@@ -618,9 +609,13 @@ class EMCP_Tools_Admin {
 			)
 		);
 
+		// Compact tool mode (dispatcher) — Tools tab. OFF by default; surfaces 3
+		// meta-tools (list-tools / get-tool-schema / call-tool) instead of every
+		// individual tool for clients that cap the tool count. Registered under the
+		// Tools form group so its toggle lives alongside the per-tool grid.
 		register_setting(
 			self::SETTINGS_GROUP,
-			self::OPTION_LOW_TOOL_MODE,
+			EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE,
 			array(
 				'type'              => 'string',
 				'default'           => '0',
@@ -652,20 +647,6 @@ class EMCP_Tools_Admin {
 			array(
 				'type'              => 'string',
 				'default'           => '1',
-				'sanitize_callback' => static function ( $value ) {
-					return '1' === (string) $value ? '1' : '0';
-				},
-			)
-		);
-
-		// Compact tool mode (dispatcher). OFF by default; surfaces 3 meta-tools
-		// instead of every individual tool for clients that cap the tool count.
-		register_setting(
-			self::SETTINGS_GROUP_SERVER,
-			EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE,
-			array(
-				'type'              => 'string',
-				'default'           => '0',
 				'sanitize_callback' => static function ( $value ) {
 					return '1' === (string) $value ? '1' : '0';
 				},
@@ -801,16 +782,6 @@ class EMCP_Tools_Admin {
 			&& self::SETTINGS_GROUP === sanitize_text_field( wp_unslash( $_POST['option_page'] ) );
 
 		if ( $is_settings_form ) {
-			// When low-tools mode is saved ON, the per-tool grid is paused and
-			// rendered disabled, so its checkboxes don't post. Preserve the user's
-			// stored toggles rather than recomputing them to "all disabled" — the
-			// toggles resume when low-tools mode is turned off again.
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			if ( isset( $_POST[ self::OPTION_LOW_TOOL_MODE ] ) && '1' === (string) wp_unslash( $_POST[ self::OPTION_LOW_TOOL_MODE ] ) ) {
-				$existing = get_option( self::OPTION_DISABLED_TOOLS, array() );
-				return is_array( $existing ) ? array_values( array_intersect( $all_tools, $existing ) ) : array();
-			}
-
 			$enabled = array();
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( isset( $_POST[ self::OPTION_DISABLED_TOOLS ] ) && is_array( $_POST[ self::OPTION_DISABLED_TOOLS ] ) ) {
@@ -2629,12 +2600,6 @@ class EMCP_Tools_Admin {
 	 */
 	public function get_enabled_tool_count(): int {
 		$all = $this->get_available_tool_slugs();
-
-		// Low-tools mode overrides the per-tool toggles (see filter_disabled_tools):
-		// exactly the essentials are active.
-		if ( '1' === (string) get_option( self::OPTION_LOW_TOOL_MODE, '0' ) ) {
-			return count( array_intersect( $all, EMCP_Tools_Plugin::get_essential_tool_slugs() ) );
-		}
 
 		$disabled = get_option( self::OPTION_DISABLED_TOOLS, array() );
 		if ( ! is_array( $disabled ) ) {
