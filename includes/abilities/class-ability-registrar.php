@@ -288,8 +288,11 @@ class EMCP_Tools_Ability_Registrar {
 		}
 
 		// Skills read-side (Pro; self-guards on license). Not Elementor-dependent,
-		// so it registers regardless of whether Elementor is active.
-		if ( class_exists( 'EMCP_Tools_Skill_Abilities' ) ) {
+		// so it registers regardless of whether Elementor is active — but gated by
+		// the Agent Skills module so the admin can switch the runtime exposure off.
+		if ( class_exists( 'EMCP_Tools_Skill_Abilities' )
+			&& class_exists( 'EMCP_Tools_Agent_Skills_Module' )
+			&& EMCP_Tools_Agent_Skills_Module::is_enabled() ) {
 			$skills = new EMCP_Tools_Skill_Abilities();
 			$skills->register();
 			$this->ability_names = array_merge( $this->ability_names, $skills->get_ability_names() );
