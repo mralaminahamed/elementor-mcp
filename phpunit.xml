@@ -26,6 +26,9 @@
         <testsuite name="Dispatcher">
             <directory>pro/tests/unit/dispatcher</directory>
         </testsuite>
+        <testsuite name="Skills">
+            <directory>pro/tests/unit/skills</directory>
+        </testsuite>
         <testsuite name="Widgets">
             <directory>pro/tests/unit/widgets</directory>
         </testsuite>

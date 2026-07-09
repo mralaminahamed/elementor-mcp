@@ -2,6 +2,8 @@
 # the free plugin + free zip. Consumed by build + verify scripts.
 includes/abilities/class-seo-abilities.php
 includes/abilities/class-a11y-abilities.php
+includes/abilities/class-skill-abilities.php
+includes/class-skill-catalog.php
 includes/abilities/class-widget-builder-abilities.php
 includes/abilities/class-system-kit-abilities.php
 includes/class-color-contrast.php

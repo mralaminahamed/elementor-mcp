@@ -122,6 +122,14 @@ class EMCP_Tools_Site_Context {
 			$lines[] = 'This server exposes a small set of dispatcher tools. Discover tools with `list-tools`, fetch a tool\'s inputs with `get-tool-schema`, then run it with `call-tool` (name + arguments).';
 		}
 
+		// Discovery-context skills catalog (Pro hooks this to inject a "## Skills"
+		// block; free ships only the empty seam).
+		$emcp_skills = (string) apply_filters( 'emcp_tools_discovery_skills', '' );
+		if ( '' !== $emcp_skills ) {
+			$lines[] = '';
+			$lines[] = $emcp_skills;
+		}
+
 		return implode( "\n", $lines );
 	}
 

@@ -29,6 +29,8 @@ final class EMCP_Tools_Pro_Loader {
 		'includes/abilities/class-widget-builder-abilities.php',
 		'includes/abilities/class-seo-abilities.php',
 		'includes/abilities/class-a11y-abilities.php',
+		'includes/class-skill-catalog.php',
+		'includes/abilities/class-skill-abilities.php',
 		'includes/admin/class-pro-brand-kits.php',
 		'includes/ai-chat/class-key-crypto.php',
 		'includes/ai-chat/class-ai-providers.php',
@@ -120,6 +122,11 @@ final class EMCP_Tools_Pro_Loader {
 		// unlimited quota, and granular selectors to the free seams (license-gated).
 		if ( class_exists( 'EMCP_Tools_Themer_Pro' ) ) {
 			EMCP_Tools_Themer_Pro::init();
+		}
+
+		// Agent-facing skills (read-side): hook the discovery-context catalog.
+		if ( class_exists( 'EMCP_Tools_Skill_Catalog' ) ) {
+			EMCP_Tools_Skill_Catalog::init();
 		}
 	}
 
