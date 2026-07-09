@@ -109,6 +109,7 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/class-admin-bar.php';
 		require_once EMCP_TOOLS_DIR . 'includes/class-github-updater.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-content-abilities.php';
+		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-dispatcher-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-settings-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/class-package-guard.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-plugin-abilities.php';
