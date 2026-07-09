@@ -34,6 +34,22 @@
 /vendor/automattic/jetpack-autoloader/.github/
 /vendor/automattic/jetpack-autoloader/*.dist
 
+# Non-runtime metadata inside the shipped packages — lockfiles, package
+# manifests, markdown docs, skill guides. Never loaded at runtime; they only
+# bloat the zip (a 752K Node package-lock.json was the worst offender). LICENSE*
+# is deliberately KEPT for redistribution compliance.
+/vendor/**/package-lock.json
+/vendor/**/package.json
+/vendor/**/composer.lock
+/vendor/**/README*.md
+/vendor/**/README-INITIAL.md
+/vendor/**/CONTRIBUTING*.md
+/vendor/**/SECURITY*.md
+/vendor/**/CHANGELOG*.md
+/vendor/**/CLAUDE.md
+/vendor/**/.wp-env.json
+/vendor/wordpress/php-mcp-schema/skill/
+
 # IDE / Editor
 .vscode/
 .idea/
