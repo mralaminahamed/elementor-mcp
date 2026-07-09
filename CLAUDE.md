@@ -40,18 +40,18 @@ See `PLAN.md` for the full architectural specification.
 - WordPress >= 6.9 (the Abilities API — `wp_register_ability()` — is core in 6.9+/7.0)
 - Elementor — **optional**. The plugin and every beyond-Elementor tool (WordPress Content, Settings, Plugins & Themes, Users, Media, Performance, Security, Filesystem, Database, PHP Snippets) load and work without it. Installing/activating Elementor (>= 3.20; >= 4.0 for atomic elements) enables the Elementor tool family (query, pages, layout, widgets, templates, globals, composite, stock images, SVG icons, custom code, atomic, global classes, brand kits, widget builder, SEO/A11y). When Elementor is inactive those groups don't register and the admin shows a warning. The only hard dependencies are PHP 8.1+, the WordPress Abilities API (core in WP 6.9+), and the bundled MCP Adapter.
 - WordPress Abilities API — core in WP 6.9+/7.0
-- WordPress MCP Adapter — **bundled** with the plugin since v1.7.4 (`includes/vendors/mcp-adapter/`); no separate install needed. If a standalone MCP Adapter plugin is active, the plugin defers to it (see `Elementor_MCP_Adapter_Bootstrap`).
+- WordPress MCP Adapter — **bundled** with the plugin since v1.7.4; no separate install needed. Since v3.2.0 it is a committed **Composer** dependency (`wordpress/mcp-adapter`) loaded via the **Automattic Jetpack Autoloader** (`vendor/autoload_packages.php`), which arbitrates the highest version process-wide when several active plugins bundle the same adapter (WooCommerce, Automattic MCP, …) — no "class already declared" clash regardless of load order. `EMCP_Tools_Adapter_Bootstrap::ensure()` requires that autoloader and boots the adapter (idempotent) so `mcp_adapter_init` fires even if another plugin only autoloaded the classes.
 - PHP >= 8.1
 
 ## Build & Development Commands
 
-No external dependencies. The plugin uses WordPress core, Elementor, the core Abilities API, and a **bundled** copy of the MCP Adapter (loaded by `Elementor_MCP_Adapter_Bootstrap::ensure()` only when no standalone adapter plugin is active). Only the adapter's `includes/` source is vendored — its dev-only Composer `vendor/` is not, since the package has zero runtime dependencies.
+The plugin uses WordPress core, Elementor, the core Abilities API, and a **bundled** copy of the MCP Adapter. Since v3.2.0 the adapter is a committed Composer runtime dependency (`wordpress/mcp-adapter` + `automattic/jetpack-autoloader` + `wordpress/php-mcp-schema`) under `vendor/`, loaded via the Jetpack Autoloader (`vendor/autoload_packages.php`) by `EMCP_Tools_Adapter_Bootstrap::ensure()`. Run `composer install` to restore dev tooling (phpunit) — only the runtime `vendor/` subset is committed/shipped (per-package `tests/`/`.github/`/`docs` and dev packages are git-ignored).
 
 For plugin review tooling, the `.claude/skills/wp-plugin-review/scripts/setup_tools.sh` script installs PHPCS, WPCS, PHPStan, and PHPUnit.
 
 ### Release build (free/pro split)
 
-- **Free zip** (`emcp-tools-X.Y.Z.zip`, GitHub release): built from the public repo **excluding `pro/`, `tests/`, `tools/`, `skills/`** (plus the usual `.*`, `vendor/`, `docs/`, etc.). No `.emcp-pro` marker.
+- **Free zip** (`emcp-tools-X.Y.Z.zip`, GitHub release): built from the public repo **excluding `pro/`, `tests/`, `tools/`, `skills/`** (plus the usual `.*`, `docs/`, `composer.json`/`composer.lock`, etc.). **`vendor/` IS shipped** (v3.2.0+): the MCP adapter is a committed Composer dep loaded via the Jetpack Autoloader, so `git archive HEAD` includes the runtime `vendor/` subset automatically — do NOT prune `vendor/` in the build. Dev tooling stays git-ignored and never reaches the archive. No `.emcp-pro` marker.
 - **Pro zip** (`emcp-pro-X.Y.Z.zip`, Freemius): the free tree with **`pro/*` overlaid onto plugin paths** (`cp -r pro/includes/. includes/`, `cp -r pro/assets/. assets/`), plus `skills/` and the `.emcp-pro` marker. `pro/tests` + `pro/tools` are NOT shipped.
 - **Always run** `tools/verify-release-zip.sh <zip> pro-manifest.txt` on the free zip (hard-fails on any Pro-path leak) and `tools/verify-release-zip.sh <pro-zip>` on the Pro zip. `tools/` lives in the `pro/` submodule.
 
