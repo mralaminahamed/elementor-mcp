@@ -61,6 +61,18 @@ class EMCP_Tools_ACF_Abilities {
 		$this->register_update_fields();
 		$this->register_create_field_group();
 		$this->register_update_field_group();
+
+		// Custom Post Types & Taxonomies managed by ACF (ACF 6.1+ only).
+		if ( self::cpt_tax_supported() ) {
+			$this->register_list_post_types();
+			$this->register_get_post_type();
+			$this->register_create_post_type();
+			$this->register_update_post_type();
+			$this->register_list_taxonomies();
+			$this->register_get_taxonomy();
+			$this->register_create_taxonomy();
+			$this->register_update_taxonomy();
+		}
 	}
 
 	// -------------------------------------------------------------------
@@ -88,6 +100,20 @@ class EMCP_Tools_ACF_Abilities {
 			return (bool) acf_get_setting( 'pro' );
 		}
 		return defined( 'ACF_PRO' );
+	}
+
+	/**
+	 * Whether ACF exposes its Custom Post Type / Taxonomy registration API
+	 * (added in ACF 6.1).
+	 *
+	 * @since 3.3.0
+	 * @return bool
+	 */
+	public static function cpt_tax_supported(): bool {
+		return function_exists( 'acf_get_acf_post_types' )
+			&& function_exists( 'acf_get_acf_taxonomies' )
+			&& function_exists( 'acf_import_post_type' )
+			&& function_exists( 'acf_import_taxonomy' );
 	}
 
 	// -------------------------------------------------------------------
@@ -1187,5 +1213,658 @@ class EMCP_Tools_ACF_Abilities {
 			return $out;
 		}
 		return $value;
+	}
+
+	// ===================================================================
+	// Custom Post Types (ACF-managed, ACF 6.1+)
+	// ===================================================================
+
+	// -------------------------------------------------------------------
+	// list-acf-post-types
+	// -------------------------------------------------------------------
+
+	private function register_list_post_types(): void {
+		$this->ability_names[] = 'emcp-tools/list-acf-post-types';
+		emcp_tools_register_ability(
+			'emcp-tools/list-acf-post-types',
+			array(
+				'label'               => __( 'List ACF Post Types', 'emcp-tools' ),
+				'description'         => __( 'Lists the Custom Post Types managed by ACF (registered from the ACF UI, not by code). Returns key, post_type slug, title, active state, visibility, hierarchy, supported features, and associated taxonomies. Filter by search text or active state. Post types registered natively by themes/plugins are not listed here — use list-post-types for those.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_list_post_types' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'search'      => array( 'type' => 'string', 'description' => __( 'Case-insensitive match on title or post_type slug.', 'emcp-tools' ) ),
+						'active_only' => array( 'type' => 'boolean', 'description' => __( 'Only active post types. Default: true.', 'emcp-tools' ) ),
+					),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'post_types' => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+					'total'      => array( 'type' => 'integer' ),
+				) ),
+				'meta'                => array( 'annotations' => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array
+	 */
+	public function execute_list_post_types( $input ): array {
+		$search      = isset( $input['search'] ) ? strtolower( sanitize_text_field( (string) $input['search'] ) ) : '';
+		$active_only = ! isset( $input['active_only'] ) || (bool) $input['active_only'];
+
+		$rows = array();
+		foreach ( (array) acf_get_acf_post_types() as $pt ) {
+			$pt = (array) $pt;
+			if ( $active_only && empty( $pt['active'] ) ) {
+				continue;
+			}
+			if ( '' !== $search
+				&& false === strpos( strtolower( (string) ( $pt['title'] ?? '' ) ), $search )
+				&& false === strpos( strtolower( (string) ( $pt['post_type'] ?? '' ) ), $search ) ) {
+				continue;
+			}
+			$rows[] = $this->format_acf_post_type( $pt, false );
+		}
+
+		return array( 'post_types' => $rows, 'total' => count( $rows ) );
+	}
+
+	// -------------------------------------------------------------------
+	// get-acf-post-type
+	// -------------------------------------------------------------------
+
+	private function register_get_post_type(): void {
+		$this->ability_names[] = 'emcp-tools/get-acf-post-type';
+		emcp_tools_register_ability(
+			'emcp-tools/get-acf-post-type',
+			array(
+				'label'               => __( 'Get ACF Post Type', 'emcp-tools' ),
+				'description'         => __( 'Returns the full definition of one ACF-managed Custom Post Type: labels, supports, visibility, REST, rewrite, and associated taxonomies. Pass the post_type_xxx key or its numeric post ID.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_get_post_type' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'key' => array( 'type' => 'string', 'description' => __( 'ACF post type key (post_type_xxx) or numeric post ID.', 'emcp-tools' ) ),
+					),
+					'required'   => array( 'key' ),
+				),
+				'output_schema'       => array( 'type' => 'object' ),
+				'meta'                => array( 'annotations' => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_get_post_type( $input ) {
+		$pt = $this->find_internal( $input['key'] ?? '', 'acf-post-type' );
+		if ( is_wp_error( $pt ) ) {
+			return $pt;
+		}
+		return $this->format_acf_post_type( $pt, true );
+	}
+
+	// -------------------------------------------------------------------
+	// create-acf-post-type
+	// -------------------------------------------------------------------
+
+	private function register_create_post_type(): void {
+		$this->ability_names[] = 'emcp-tools/create-acf-post-type';
+		emcp_tools_register_ability(
+			'emcp-tools/create-acf-post-type',
+			array(
+				'label'               => __( 'Create ACF Post Type', 'emcp-tools' ),
+				'description'         => __( 'Registers a new Custom Post Type through ACF (saved as data, then registered by ACF — no code is written or executed). Requires a post_type slug (lowercase, <= 20 chars, not a reserved or existing type) and a title. Labels are auto-generated from the title when omitted. Optional: public, hierarchical, supports, has_archive, show_in_rest, taxonomies.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_create_post_type' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'post_type'    => array( 'type' => 'string', 'description' => __( 'Post type slug (lowercase, letters/numbers/underscores, <= 20 chars).', 'emcp-tools' ) ),
+						'title'        => array( 'type' => 'string', 'description' => __( 'Plural display name (e.g. "Books").', 'emcp-tools' ) ),
+						'singular'     => array( 'type' => 'string', 'description' => __( 'Singular display name (e.g. "Book"). Defaults from title.', 'emcp-tools' ) ),
+						'public'       => array( 'type' => 'boolean', 'description' => __( 'Default: true.', 'emcp-tools' ) ),
+						'hierarchical' => array( 'type' => 'boolean', 'description' => __( 'Page-like (true) vs post-like (false). Default: false.', 'emcp-tools' ) ),
+						'supports'     => array( 'type' => 'array', 'items' => array( 'type' => 'string' ), 'description' => __( 'e.g. ["title","editor","thumbnail"]. Default: ["title","editor","thumbnail"].', 'emcp-tools' ) ),
+						'has_archive'  => array( 'type' => 'boolean' ),
+						'show_in_rest' => array( 'type' => 'boolean', 'description' => __( 'Enable the block editor + REST. Default: true.', 'emcp-tools' ) ),
+						'taxonomies'   => array( 'type' => 'array', 'items' => array( 'type' => 'string' ), 'description' => __( 'Taxonomy slugs to attach.', 'emcp-tools' ) ),
+					),
+					'required'   => array( 'post_type', 'title' ),
+				),
+				'output_schema'       => array( 'type' => 'object' ),
+				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => false, 'idempotent' => false ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_create_post_type( $input ) {
+		$slug = $this->sanitize_type_slug( $input['post_type'] ?? '', 20, 'post_type' );
+		if ( is_wp_error( $slug ) ) {
+			return $slug;
+		}
+		$title = sanitize_text_field( (string) ( $input['title'] ?? '' ) );
+		if ( '' === $title ) {
+			return new \WP_Error( 'missing_params', __( 'A "title" is required.', 'emcp-tools' ) );
+		}
+		if ( post_type_exists( $slug ) ) {
+			return new \WP_Error( 'post_type_exists', sprintf( /* translators: %s: slug */ __( 'A post type "%s" already exists.', 'emcp-tools' ), $slug ) );
+		}
+
+		$singular = sanitize_text_field( (string) ( $input['singular'] ?? $title ) );
+		$def      = array(
+			'key'          => uniqid( 'post_type_' ),
+			'title'        => $title,
+			'post_type'    => $slug,
+			'active'       => true,
+			'public'       => ! isset( $input['public'] ) || (bool) $input['public'],
+			'hierarchical' => ! empty( $input['hierarchical'] ),
+			'show_in_rest' => ! isset( $input['show_in_rest'] ) || (bool) $input['show_in_rest'],
+			'supports'     => $this->sanitize_string_list( $input['supports'] ?? array( 'title', 'editor', 'thumbnail' ) ),
+			'labels'       => array( 'name' => $title, 'singular_name' => $singular ),
+		);
+		if ( isset( $input['has_archive'] ) ) {
+			$def['has_archive'] = (bool) $input['has_archive'];
+		}
+		if ( isset( $input['taxonomies'] ) ) {
+			$def['taxonomies'] = $this->sanitize_string_list( $input['taxonomies'] );
+		}
+
+		$saved = acf_import_post_type( $def );
+		if ( ! is_array( $saved ) || empty( $saved['ID'] ) ) {
+			return new \WP_Error( 'post_type_create_failed', __( 'ACF did not save the post type.', 'emcp-tools' ) );
+		}
+		return $this->format_acf_post_type( (array) $saved, true );
+	}
+
+	// -------------------------------------------------------------------
+	// update-acf-post-type
+	// -------------------------------------------------------------------
+
+	private function register_update_post_type(): void {
+		$this->ability_names[] = 'emcp-tools/update-acf-post-type';
+		emcp_tools_register_ability(
+			'emcp-tools/update-acf-post-type',
+			array(
+				'label'               => __( 'Update ACF Post Type', 'emcp-tools' ),
+				'description'         => __( 'Updates an ACF-managed Custom Post Type by key. Can change title, labels, visibility, supports, has_archive, show_in_rest, and attached taxonomies. The post_type slug itself cannot change (renaming it orphans all existing content). Only post types stored by ACF can be edited.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_update_post_type' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'key'          => array( 'type' => 'string', 'description' => __( 'ACF post type key (post_type_xxx).', 'emcp-tools' ) ),
+						'title'        => array( 'type' => 'string' ),
+						'singular'     => array( 'type' => 'string' ),
+						'public'       => array( 'type' => 'boolean' ),
+						'hierarchical' => array( 'type' => 'boolean' ),
+						'supports'     => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+						'has_archive'  => array( 'type' => 'boolean' ),
+						'show_in_rest' => array( 'type' => 'boolean' ),
+						'taxonomies'   => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+						'active'       => array( 'type' => 'boolean' ),
+					),
+					'required'   => array( 'key' ),
+				),
+				'output_schema'       => array( 'type' => 'object' ),
+				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => false, 'idempotent' => true ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_update_post_type( $input ) {
+		$pt = $this->find_internal( $input['key'] ?? '', 'acf-post-type' );
+		if ( is_wp_error( $pt ) ) {
+			return $pt;
+		}
+		if ( isset( $input['post_type'] ) && sanitize_key( (string) $input['post_type'] ) !== (string) $pt['post_type'] ) {
+			return new \WP_Error( 'immutable_slug', __( 'The post_type slug cannot change via MCP (it would orphan existing content).', 'emcp-tools' ) );
+		}
+
+		$pt = $this->apply_type_updates( $pt, $input );
+		if ( array_key_exists( 'has_archive', $input ) ) {
+			$pt['has_archive'] = (bool) $input['has_archive'];
+		}
+		if ( array_key_exists( 'hierarchical', $input ) ) {
+			$pt['hierarchical'] = (bool) $input['hierarchical'];
+		}
+		if ( array_key_exists( 'supports', $input ) ) {
+			$pt['supports'] = $this->sanitize_string_list( $input['supports'] );
+		}
+		if ( array_key_exists( 'taxonomies', $input ) ) {
+			$pt['taxonomies'] = $this->sanitize_string_list( $input['taxonomies'] );
+		}
+
+		$saved = acf_update_internal_post_type( $pt, 'acf-post-type' );
+		if ( ! is_array( $saved ) ) {
+			return new \WP_Error( 'post_type_update_failed', __( 'ACF did not save the post type.', 'emcp-tools' ) );
+		}
+		return $this->format_acf_post_type( (array) $saved, true );
+	}
+
+	// ===================================================================
+	// Taxonomies (ACF-managed, ACF 6.1+)
+	// ===================================================================
+
+	// -------------------------------------------------------------------
+	// list-acf-taxonomies
+	// -------------------------------------------------------------------
+
+	private function register_list_taxonomies(): void {
+		$this->ability_names[] = 'emcp-tools/list-acf-taxonomies';
+		emcp_tools_register_ability(
+			'emcp-tools/list-acf-taxonomies',
+			array(
+				'label'               => __( 'List ACF Taxonomies', 'emcp-tools' ),
+				'description'         => __( 'Lists the taxonomies managed by ACF (registered from the ACF UI, not by code). Returns key, taxonomy slug, title, active state, hierarchy, visibility, and the post types each taxonomy is attached to (object_type). Filter by search text or active state. Natively-registered taxonomies are not listed — use list-taxonomies for those.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_list_taxonomies' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'search'      => array( 'type' => 'string', 'description' => __( 'Case-insensitive match on title or taxonomy slug.', 'emcp-tools' ) ),
+						'active_only' => array( 'type' => 'boolean', 'description' => __( 'Only active taxonomies. Default: true.', 'emcp-tools' ) ),
+					),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'taxonomies' => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+					'total'      => array( 'type' => 'integer' ),
+				) ),
+				'meta'                => array( 'annotations' => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array
+	 */
+	public function execute_list_taxonomies( $input ): array {
+		$search      = isset( $input['search'] ) ? strtolower( sanitize_text_field( (string) $input['search'] ) ) : '';
+		$active_only = ! isset( $input['active_only'] ) || (bool) $input['active_only'];
+
+		$rows = array();
+		foreach ( (array) acf_get_acf_taxonomies() as $tax ) {
+			$tax = (array) $tax;
+			if ( $active_only && empty( $tax['active'] ) ) {
+				continue;
+			}
+			if ( '' !== $search
+				&& false === strpos( strtolower( (string) ( $tax['title'] ?? '' ) ), $search )
+				&& false === strpos( strtolower( (string) ( $tax['taxonomy'] ?? '' ) ), $search ) ) {
+				continue;
+			}
+			$rows[] = $this->format_acf_taxonomy( $tax, false );
+		}
+
+		return array( 'taxonomies' => $rows, 'total' => count( $rows ) );
+	}
+
+	// -------------------------------------------------------------------
+	// get-acf-taxonomy
+	// -------------------------------------------------------------------
+
+	private function register_get_taxonomy(): void {
+		$this->ability_names[] = 'emcp-tools/get-acf-taxonomy';
+		emcp_tools_register_ability(
+			'emcp-tools/get-acf-taxonomy',
+			array(
+				'label'               => __( 'Get ACF Taxonomy', 'emcp-tools' ),
+				'description'         => __( 'Returns the full definition of one ACF-managed taxonomy: labels, hierarchy, visibility, REST, and the post types it is attached to (object_type). Pass the taxonomy_xxx key or its numeric post ID.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_get_taxonomy' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'key' => array( 'type' => 'string', 'description' => __( 'ACF taxonomy key (taxonomy_xxx) or numeric post ID.', 'emcp-tools' ) ),
+					),
+					'required'   => array( 'key' ),
+				),
+				'output_schema'       => array( 'type' => 'object' ),
+				'meta'                => array( 'annotations' => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_get_taxonomy( $input ) {
+		$tax = $this->find_internal( $input['key'] ?? '', 'acf-taxonomy' );
+		if ( is_wp_error( $tax ) ) {
+			return $tax;
+		}
+		return $this->format_acf_taxonomy( $tax, true );
+	}
+
+	// -------------------------------------------------------------------
+	// create-acf-taxonomy
+	// -------------------------------------------------------------------
+
+	private function register_create_taxonomy(): void {
+		$this->ability_names[] = 'emcp-tools/create-acf-taxonomy';
+		emcp_tools_register_ability(
+			'emcp-tools/create-acf-taxonomy',
+			array(
+				'label'               => __( 'Create ACF Taxonomy', 'emcp-tools' ),
+				'description'         => __( 'Registers a new taxonomy through ACF (saved as data, then registered by ACF — no code is written or executed). Requires a taxonomy slug (lowercase, <= 32 chars, not reserved or existing), a title, and object_type (an array of post type slugs the taxonomy attaches to). Labels are auto-generated from the title when omitted. Optional: hierarchical (category-like vs tag-like), public, show_in_rest.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_create_taxonomy' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'taxonomy'     => array( 'type' => 'string', 'description' => __( 'Taxonomy slug (lowercase, letters/numbers/underscores, <= 32 chars).', 'emcp-tools' ) ),
+						'title'        => array( 'type' => 'string', 'description' => __( 'Plural display name (e.g. "Genres").', 'emcp-tools' ) ),
+						'singular'     => array( 'type' => 'string', 'description' => __( 'Singular display name (e.g. "Genre"). Defaults from title.', 'emcp-tools' ) ),
+						'object_type'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ), 'description' => __( 'Post type slugs this taxonomy attaches to (e.g. ["book"]).', 'emcp-tools' ) ),
+						'hierarchical' => array( 'type' => 'boolean', 'description' => __( 'Category-like (true) vs tag-like (false). Default: true.', 'emcp-tools' ) ),
+						'public'       => array( 'type' => 'boolean', 'description' => __( 'Default: true.', 'emcp-tools' ) ),
+						'show_in_rest' => array( 'type' => 'boolean', 'description' => __( 'Default: true.', 'emcp-tools' ) ),
+					),
+					'required'   => array( 'taxonomy', 'title', 'object_type' ),
+				),
+				'output_schema'       => array( 'type' => 'object' ),
+				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => false, 'idempotent' => false ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_create_taxonomy( $input ) {
+		$slug = $this->sanitize_type_slug( $input['taxonomy'] ?? '', 32, 'taxonomy' );
+		if ( is_wp_error( $slug ) ) {
+			return $slug;
+		}
+		$title = sanitize_text_field( (string) ( $input['title'] ?? '' ) );
+		if ( '' === $title ) {
+			return new \WP_Error( 'missing_params', __( 'A "title" is required.', 'emcp-tools' ) );
+		}
+		$object_type = $this->sanitize_string_list( $input['object_type'] ?? array() );
+		if ( array() === $object_type ) {
+			return new \WP_Error( 'missing_params', __( 'A non-empty "object_type" array (post type slugs) is required.', 'emcp-tools' ) );
+		}
+		if ( taxonomy_exists( $slug ) ) {
+			return new \WP_Error( 'taxonomy_exists', sprintf( /* translators: %s: slug */ __( 'A taxonomy "%s" already exists.', 'emcp-tools' ), $slug ) );
+		}
+
+		$singular = sanitize_text_field( (string) ( $input['singular'] ?? $title ) );
+		$def      = array(
+			'key'          => uniqid( 'taxonomy_' ),
+			'title'        => $title,
+			'taxonomy'     => $slug,
+			'active'       => true,
+			'object_type'  => $object_type,
+			'hierarchical' => ! isset( $input['hierarchical'] ) || (bool) $input['hierarchical'],
+			'public'       => ! isset( $input['public'] ) || (bool) $input['public'],
+			'show_in_rest' => ! isset( $input['show_in_rest'] ) || (bool) $input['show_in_rest'],
+			'labels'       => array( 'name' => $title, 'singular_name' => $singular ),
+		);
+
+		$saved = acf_import_taxonomy( $def );
+		if ( ! is_array( $saved ) || empty( $saved['ID'] ) ) {
+			return new \WP_Error( 'taxonomy_create_failed', __( 'ACF did not save the taxonomy.', 'emcp-tools' ) );
+		}
+		return $this->format_acf_taxonomy( (array) $saved, true );
+	}
+
+	// -------------------------------------------------------------------
+	// update-acf-taxonomy
+	// -------------------------------------------------------------------
+
+	private function register_update_taxonomy(): void {
+		$this->ability_names[] = 'emcp-tools/update-acf-taxonomy';
+		emcp_tools_register_ability(
+			'emcp-tools/update-acf-taxonomy',
+			array(
+				'label'               => __( 'Update ACF Taxonomy', 'emcp-tools' ),
+				'description'         => __( 'Updates an ACF-managed taxonomy by key. Can change title, labels, hierarchy, visibility, show_in_rest, and the post types it attaches to (object_type). The taxonomy slug itself cannot change (renaming it orphans existing terms). Only taxonomies stored by ACF can be edited.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_update_taxonomy' ),
+				'permission_callback' => array( $this, 'check_manage_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'key'          => array( 'type' => 'string', 'description' => __( 'ACF taxonomy key (taxonomy_xxx).', 'emcp-tools' ) ),
+						'title'        => array( 'type' => 'string' ),
+						'singular'     => array( 'type' => 'string' ),
+						'object_type'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+						'hierarchical' => array( 'type' => 'boolean' ),
+						'public'       => array( 'type' => 'boolean' ),
+						'show_in_rest' => array( 'type' => 'boolean' ),
+						'active'       => array( 'type' => 'boolean' ),
+					),
+					'required'   => array( 'key' ),
+				),
+				'output_schema'       => array( 'type' => 'object' ),
+				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => false, 'idempotent' => true ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_update_taxonomy( $input ) {
+		$tax = $this->find_internal( $input['key'] ?? '', 'acf-taxonomy' );
+		if ( is_wp_error( $tax ) ) {
+			return $tax;
+		}
+		if ( isset( $input['taxonomy'] ) && sanitize_key( (string) $input['taxonomy'] ) !== (string) $tax['taxonomy'] ) {
+			return new \WP_Error( 'immutable_slug', __( 'The taxonomy slug cannot change via MCP (it would orphan existing terms).', 'emcp-tools' ) );
+		}
+
+		$tax = $this->apply_type_updates( $tax, $input );
+		if ( array_key_exists( 'hierarchical', $input ) ) {
+			$tax['hierarchical'] = (bool) $input['hierarchical'];
+		}
+		if ( array_key_exists( 'object_type', $input ) ) {
+			$tax['object_type'] = $this->sanitize_string_list( $input['object_type'] );
+		}
+
+		$saved = acf_update_internal_post_type( $tax, 'acf-taxonomy' );
+		if ( ! is_array( $saved ) ) {
+			return new \WP_Error( 'taxonomy_update_failed', __( 'ACF did not save the taxonomy.', 'emcp-tools' ) );
+		}
+		return $this->format_acf_taxonomy( (array) $saved, true );
+	}
+
+	// -------------------------------------------------------------------
+	// CPT / taxonomy helpers
+	// -------------------------------------------------------------------
+
+	/**
+	 * Loads an ACF-managed internal post type (acf-post-type / acf-taxonomy) by
+	 * key or numeric ID, returning a WP_Error when absent.
+	 *
+	 * @since 3.3.0
+	 * @param mixed  $key       Key string or numeric ID.
+	 * @param string $post_type 'acf-post-type' or 'acf-taxonomy'.
+	 * @return array|\WP_Error
+	 */
+	private function find_internal( $key, string $post_type ) {
+		$key = sanitize_text_field( (string) $key );
+		if ( '' === $key ) {
+			return new \WP_Error( 'missing_params', __( 'A "key" is required.', 'emcp-tools' ) );
+		}
+		$item = acf_get_internal_post_type( is_numeric( $key ) ? (int) $key : $key, $post_type );
+		if ( ! $item || ! is_array( $item ) ) {
+			return new \WP_Error( 'not_found', __( 'Not found, or not managed by ACF.', 'emcp-tools' ) );
+		}
+		return $item;
+	}
+
+	/**
+	 * Applies the settings shared by CPT and taxonomy updates (title, labels,
+	 * public, show_in_rest, active). Slug + type-specific keys are handled by
+	 * the callers.
+	 *
+	 * @since 3.3.0
+	 * @param array $item  Current definition.
+	 * @param array $input Tool input.
+	 * @return array
+	 */
+	private function apply_type_updates( array $item, array $input ): array {
+		if ( isset( $input['title'] ) && '' !== trim( (string) $input['title'] ) ) {
+			$item['title']                  = sanitize_text_field( (string) $input['title'] );
+			$item['labels']['name']         = $item['title'];
+		}
+		if ( isset( $input['singular'] ) && '' !== trim( (string) $input['singular'] ) ) {
+			$item['labels']['singular_name'] = sanitize_text_field( (string) $input['singular'] );
+		}
+		if ( array_key_exists( 'public', $input ) ) {
+			$item['public'] = (bool) $input['public'];
+		}
+		if ( array_key_exists( 'show_in_rest', $input ) ) {
+			$item['show_in_rest'] = (bool) $input['show_in_rest'];
+		}
+		if ( array_key_exists( 'active', $input ) ) {
+			$item['active'] = (bool) $input['active'];
+		}
+		return $item;
+	}
+
+	/**
+	 * Validates + sanitizes a post-type / taxonomy slug.
+	 *
+	 * @since 3.3.0
+	 * @param mixed  $raw   Incoming slug.
+	 * @param int    $max   Max length (20 for post types, 32 for taxonomies).
+	 * @param string $which 'post_type' or 'taxonomy' (for the error message).
+	 * @return string|\WP_Error
+	 */
+	private function sanitize_type_slug( $raw, int $max, string $which ) {
+		$slug = sanitize_key( (string) $raw );
+		if ( '' === $slug ) {
+			return new \WP_Error( 'missing_params', sprintf( /* translators: %s: field name */ __( 'A "%s" slug is required.', 'emcp-tools' ), $which ) );
+		}
+		if ( strlen( $slug ) > $max ) {
+			return new \WP_Error( 'invalid_slug', sprintf( /* translators: 1: field, 2: max length */ __( 'The %1$s slug must be %2$d characters or fewer.', 'emcp-tools' ), $which, $max ) );
+		}
+		if ( in_array( $slug, self::reserved_type_slugs(), true ) ) {
+			return new \WP_Error( 'reserved_slug', sprintf( /* translators: %s: slug */ __( '"%s" is a reserved WordPress slug.', 'emcp-tools' ), $slug ) );
+		}
+		return $slug;
+	}
+
+	/**
+	 * WordPress-reserved post type / taxonomy slugs that must not be claimed.
+	 *
+	 * @since 3.3.0
+	 * @return string[]
+	 */
+	private static function reserved_type_slugs(): array {
+		return array(
+			'post', 'page', 'attachment', 'revision', 'nav_menu_item', 'custom_css',
+			'customize_changeset', 'oembed_cache', 'user_request', 'wp_block',
+			'wp_template', 'wp_template_part', 'wp_global_styles', 'wp_navigation',
+			'action', 'author', 'order', 'theme', 'category', 'post_tag', 'post_format',
+			'nav_menu', 'link_category',
+		);
+	}
+
+	/**
+	 * Sanitizes a flat list of slug-ish strings.
+	 *
+	 * @since 3.3.0
+	 * @param mixed $list
+	 * @return string[]
+	 */
+	private function sanitize_string_list( $list ): array {
+		if ( ! is_array( $list ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $list as $item ) {
+			$clean = sanitize_key( (string) $item );
+			if ( '' !== $clean ) {
+				$out[] = $clean;
+			}
+		}
+		return array_values( array_unique( $out ) );
+	}
+
+	/**
+	 * Compact (list) or full (get/create/update) view of an ACF post type.
+	 *
+	 * @since 3.3.0
+	 * @param array $pt   ACF post-type definition.
+	 * @param bool  $full Include the full setting set.
+	 * @return array
+	 */
+	private function format_acf_post_type( array $pt, bool $full ): array {
+		$out = array(
+			'key'          => (string) ( $pt['key'] ?? '' ),
+			'id'           => (int) ( $pt['ID'] ?? 0 ),
+			'post_type'    => (string) ( $pt['post_type'] ?? '' ),
+			'title'        => (string) ( $pt['title'] ?? '' ),
+			'active'       => ! empty( $pt['active'] ),
+			'public'       => ! empty( $pt['public'] ),
+			'hierarchical' => ! empty( $pt['hierarchical'] ),
+			'has_archive'  => ! empty( $pt['has_archive'] ),
+			'supports'     => array_values( (array) ( $pt['supports'] ?? array() ) ),
+			'taxonomies'   => array_values( (array) ( $pt['taxonomies'] ?? array() ) ),
+		);
+		if ( $full ) {
+			$out['labels']       = (array) ( $pt['labels'] ?? array() );
+			$out['show_in_rest'] = ! empty( $pt['show_in_rest'] );
+			$out['description']  = (string) ( $pt['description'] ?? '' );
+			$out['edit_link']    = ! empty( $pt['ID'] ) ? admin_url( 'post.php?post=' . (int) $pt['ID'] . '&action=edit' ) : '';
+		}
+		return $out;
+	}
+
+	/**
+	 * Compact (list) or full (get/create/update) view of an ACF taxonomy.
+	 *
+	 * @since 3.3.0
+	 * @param array $tax  ACF taxonomy definition.
+	 * @param bool  $full Include the full setting set.
+	 * @return array
+	 */
+	private function format_acf_taxonomy( array $tax, bool $full ): array {
+		$out = array(
+			'key'          => (string) ( $tax['key'] ?? '' ),
+			'id'           => (int) ( $tax['ID'] ?? 0 ),
+			'taxonomy'     => (string) ( $tax['taxonomy'] ?? '' ),
+			'title'        => (string) ( $tax['title'] ?? '' ),
+			'active'       => ! empty( $tax['active'] ),
+			'public'       => ! empty( $tax['public'] ),
+			'hierarchical' => ! empty( $tax['hierarchical'] ),
+			'object_type'  => array_values( (array) ( $tax['object_type'] ?? array() ) ),
+		);
+		if ( $full ) {
+			$out['labels']       = (array) ( $tax['labels'] ?? array() );
+			$out['show_in_rest'] = ! empty( $tax['show_in_rest'] );
+			$out['description']  = (string) ( $tax['description'] ?? '' );
+			$out['edit_link']    = ! empty( $tax['ID'] ) ? admin_url( 'post.php?post=' . (int) $tax['ID'] . '&action=edit' ) : '';
+		}
+		return $out;
 	}
 }
