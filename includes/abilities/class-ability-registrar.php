@@ -162,6 +162,13 @@ class EMCP_Tools_Ability_Registrar {
 		$users->register();
 		$this->ability_names = array_merge( $this->ability_names, $users->get_ability_names() );
 
+		// ACF abilities — only when Advanced Custom Fields (free or Pro) is active.
+		if ( class_exists( 'EMCP_Tools_ACF_Abilities' ) && EMCP_Tools_ACF_Abilities::acf_active() ) {
+			$acf = new EMCP_Tools_ACF_Abilities();
+			$acf->register();
+			$this->ability_names = array_merge( $this->ability_names, $acf->get_ability_names() );
+		}
+
 		// Performance Analyzer (read-only).
 		$performance = new EMCP_Tools_Performance_Abilities();
 		$performance->register();
