@@ -302,7 +302,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 12;
+	const DEFAULTS_VERSION = 13;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -458,10 +458,30 @@ class EMCP_Tools_Admin {
 	 * @return string[]
 	 */
 	public static function acf_write_tool_slugs(): array {
+		return array_merge(
+			array(
+				'emcp-tools/update-acf-fields',
+				'emcp-tools/create-acf-field-group',
+				'emcp-tools/update-acf-field-group',
+			),
+			self::acf_cpt_tax_write_tool_slugs()
+		);
+	}
+
+	/**
+	 * ACF Custom Post Type / Taxonomy mutation tool slugs (ACF 6.1+). Ship
+	 * disabled-by-default; the reads (list/get) stay enabled. Kept as their own
+	 * list so the v13 defaults step seeds only these without re-touching v12.
+	 *
+	 * @since 3.3.0
+	 * @return string[]
+	 */
+	public static function acf_cpt_tax_write_tool_slugs(): array {
 		return array(
-			'emcp-tools/update-acf-fields',
-			'emcp-tools/create-acf-field-group',
-			'emcp-tools/update-acf-field-group',
+			'emcp-tools/create-acf-post-type',
+			'emcp-tools/update-acf-post-type',
+			'emcp-tools/create-acf-taxonomy',
+			'emcp-tools/update-acf-taxonomy',
 		);
 	}
 
@@ -479,6 +499,10 @@ class EMCP_Tools_Admin {
 				'emcp-tools/get-acf-field-group',
 				'emcp-tools/list-acf-options-pages',
 				'emcp-tools/get-acf-fields',
+				'emcp-tools/list-acf-post-types',
+				'emcp-tools/get-acf-post-type',
+				'emcp-tools/list-acf-taxonomies',
+				'emcp-tools/get-acf-taxonomy',
 			),
 			self::acf_write_tool_slugs()
 		);
@@ -576,7 +600,20 @@ class EMCP_Tools_Admin {
 		// v12 — ACF mutation tools ship disabled-by-default (field values +
 		// field group authoring). Reads stay on.
 		if ( $applied < 12 ) {
-			$add = array_merge( $add, self::acf_write_tool_slugs() );
+			$add = array_merge(
+				$add,
+				array(
+					'emcp-tools/update-acf-fields',
+					'emcp-tools/create-acf-field-group',
+					'emcp-tools/update-acf-field-group',
+				)
+			);
+		}
+
+		// v13 — ACF Custom Post Type / Taxonomy mutation tools ship
+		// disabled-by-default (ACF 6.1+). Reads stay on.
+		if ( $applied < 13 ) {
+			$add = array_merge( $add, self::acf_cpt_tax_write_tool_slugs() );
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -2108,6 +2145,46 @@ class EMCP_Tools_Admin {
 					'emcp-tools/update-acf-field-group'  => array(
 						'label'       => __( 'Update ACF Field Group', 'emcp-tools' ),
 						'description' => __( 'Edits a database-stored field group: settings, new fields, or per-field setting changes (no deletes/renames). Disabled by default.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/list-acf-post-types'     => array(
+						'label'       => __( 'List ACF Post Types', 'emcp-tools' ),
+						'description' => __( 'Lists the Custom Post Types managed by ACF (ACF 6.1+); slug, title, visibility, supports, taxonomies.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/get-acf-post-type'       => array(
+						'label'       => __( 'Get ACF Post Type', 'emcp-tools' ),
+						'description' => __( 'Returns one ACF-managed Custom Post Type\'s full definition (labels, supports, REST, taxonomies).', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/create-acf-post-type'    => array(
+						'label'       => __( 'Create ACF Post Type', 'emcp-tools' ),
+						'description' => __( 'Registers a new Custom Post Type through ACF (saved as data, no code executed). Disabled by default.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/update-acf-post-type'    => array(
+						'label'       => __( 'Update ACF Post Type', 'emcp-tools' ),
+						'description' => __( 'Edits an ACF-managed Custom Post Type (labels, visibility, supports, taxonomies); slug is immutable. Disabled by default.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/list-acf-taxonomies'     => array(
+						'label'       => __( 'List ACF Taxonomies', 'emcp-tools' ),
+						'description' => __( 'Lists the taxonomies managed by ACF (ACF 6.1+); slug, title, hierarchy, and attached post types.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/get-acf-taxonomy'        => array(
+						'label'       => __( 'Get ACF Taxonomy', 'emcp-tools' ),
+						'description' => __( 'Returns one ACF-managed taxonomy\'s full definition (labels, hierarchy, REST, attached post types).', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/create-acf-taxonomy'     => array(
+						'label'       => __( 'Create ACF Taxonomy', 'emcp-tools' ),
+						'description' => __( 'Registers a new taxonomy through ACF (saved as data, no code executed). Disabled by default.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/update-acf-taxonomy'     => array(
+						'label'       => __( 'Update ACF Taxonomy', 'emcp-tools' ),
+						'description' => __( 'Edits an ACF-managed taxonomy (labels, hierarchy, attached post types); slug is immutable. Disabled by default.', 'emcp-tools' ),
 						'badges'      => array(),
 					),
 				),
