@@ -302,7 +302,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 11;
+	const DEFAULTS_VERSION = 14;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -451,6 +451,50 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * The ACF dispatcher tool slugs. The domain registers as two dispatcher
+	 * tools (acf-read enabled by default, acf-write disabled by default); the
+	 * 15 operations live behind them. Both slugs are excluded from the drift
+	 * guard since the domain only registers when ACF (free or Pro) is active.
+	 *
+	 * @since 3.2.1
+	 * @return string[]
+	 */
+	public static function acf_tool_slugs(): array {
+		return array(
+			'emcp-tools/acf-read',
+			'emcp-tools/acf-write',
+		);
+	}
+
+	/**
+	 * The pre-release per-operation ACF slugs (the earlier 15-tool layout).
+	 * Kept only so the defaults step can strip them from the stored option on
+	 * sites that seeded them before the 2-dispatcher consolidation.
+	 *
+	 * @since 3.2.1
+	 * @return string[]
+	 */
+	public static function legacy_acf_operation_slugs(): array {
+		return array(
+			'emcp-tools/list-acf-field-groups',
+			'emcp-tools/get-acf-field-group',
+			'emcp-tools/list-acf-options-pages',
+			'emcp-tools/get-acf-fields',
+			'emcp-tools/update-acf-fields',
+			'emcp-tools/create-acf-field-group',
+			'emcp-tools/update-acf-field-group',
+			'emcp-tools/list-acf-post-types',
+			'emcp-tools/get-acf-post-type',
+			'emcp-tools/create-acf-post-type',
+			'emcp-tools/update-acf-post-type',
+			'emcp-tools/list-acf-taxonomies',
+			'emcp-tools/get-acf-taxonomy',
+			'emcp-tools/create-acf-taxonomy',
+			'emcp-tools/update-acf-taxonomy',
+		);
+	}
+
+	/**
 	 * Seeds default disabled-tools on install/upgrade so new Pro tool batches
 	 * ship off-by-default (keeping sites under client tool caps), then records
 	 * the applied version. Each version step adds ONLY its newly-introduced
@@ -537,6 +581,17 @@ class EMCP_Tools_Admin {
 		// behind the master switch too). The admin opts in on the Tools tab.
 		if ( $applied < 11 ) {
 			$add = array_merge( $add, self::themer_php_tool_slugs() );
+		}
+
+		// v14 — ACF is exposed as two dispatcher tools (acf-read / acf-write).
+		// The write dispatcher ships disabled-by-default; the read dispatcher
+		// stays on. Also strip any pre-release per-operation ACF slugs left in
+		// the stored option from the earlier 15-tool layout. (Supersedes the
+		// v12/v13 per-tool ACF seeding, which targeted slugs that no longer
+		// exist as individual tools.)
+		if ( $applied < 14 ) {
+			$existing = array_values( array_diff( $existing, self::legacy_acf_operation_slugs() ) );
+			$add[]    = 'emcp-tools/acf-write';
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -1429,6 +1484,7 @@ class EMCP_Tools_Admin {
 					<?php endif; ?>
 					<div class="emcp-help-menu">
 						<button type="button" class="emcp-help-toggle" aria-haspopup="true">
+							<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 							<?php esc_html_e( 'Help & Support', 'emcp-tools' ); ?>
 							<span class="dashicons dashicons-arrow-down-alt2 emcp-help-caret" aria-hidden="true"></span>
 						</button>
@@ -1436,6 +1492,7 @@ class EMCP_Tools_Admin {
 							<a role="menuitem" href="https://support.msrbuilds.com/" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-sos" aria-hidden="true"></span><?php esc_html_e( 'Ticket Support', 'emcp-tools' ); ?></a>
 							<a role="menuitem" href="https://emcptools.com/docs" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-book" aria-hidden="true"></span><?php esc_html_e( 'Documentation', 'emcp-tools' ); ?></a>
 							<a role="menuitem" href="https://www.facebook.com/groups/emcptools" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-groups" aria-hidden="true"></span><?php esc_html_e( 'Community', 'emcp-tools' ); ?></a>
+							<a role="menuitem" href="https://discord.gg/vJfksd3S9j" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-format-chat" aria-hidden="true"></span><?php esc_html_e( 'Discord', 'emcp-tools' ); ?></a>
 							<a role="menuitem" href="https://emcptools.com/tutorials" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-video-alt3" aria-hidden="true"></span><?php esc_html_e( 'Tutorials', 'emcp-tools' ); ?></a>
 						</div>
 					</div>
@@ -1524,6 +1581,7 @@ class EMCP_Tools_Admin {
 		return array(
 			'elementor' => __( 'Elementor', 'emcp-tools' ),
 			'wordpress' => __( 'WordPress', 'emcp-tools' ),
+			'plugins'   => __( 'Plugins', 'emcp-tools' ),
 			'gutenberg' => __( 'Gutenberg', 'emcp-tools' ),
 		);
 	}
@@ -1701,6 +1759,7 @@ class EMCP_Tools_Admin {
 			// (renamed/removed tools) and not expected environment-gating.
 			$emcp_conditional = array_merge(
 				self::themer_php_tool_slugs(),
+				self::acf_tool_slugs(),
 				array( 'emcp-tools/resize-media' )
 			);
 			foreach ( $catalog as $emcp_group ) {
@@ -2027,6 +2086,42 @@ class EMCP_Tools_Admin {
 						'label'       => __( 'Update User', 'emcp-tools' ),
 						'description' => __( 'Edits a non-admin user\'s profile (no role/password; admins refused).', 'emcp-tools' ),
 						'badges'      => array(),
+					),
+				),
+			),
+			'wp_acf'           => array(
+				'platform' => 'plugins',
+				'label'    => __( 'ACF (Advanced Custom Fields)', 'emcp-tools' ),
+				'note'     => __( 'Plugin integrations are exposed as two tools — one Read, one Write. The AI calls a tool with an operation name; each tool bundles the operations listed on its card. Toggle a tool to allow or block all of its operations at once. Post-type & taxonomy operations need ACF 6.1+.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/acf-read'  => array(
+						'label'       => __( 'ACF Read', 'emcp-tools' ),
+						'description' => __( 'Read Advanced Custom Fields data — field groups, field values, options pages, and (ACF 6.1+) ACF-managed post types and taxonomies.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+						'operations'  => array(
+							'list-field-groups',
+							'get-field-group',
+							'list-options-pages',
+							'get-fields',
+							'list-post-types',
+							'get-post-type',
+							'list-taxonomies',
+							'get-taxonomy',
+						),
+					),
+					'emcp-tools/acf-write' => array(
+						'label'       => __( 'ACF Write', 'emcp-tools' ),
+						'description' => __( 'Write Advanced Custom Fields data — field values, field groups, and (ACF 6.1+) ACF-managed post types and taxonomies. No delete operations; slugs and field keys are immutable.', 'emcp-tools' ),
+						'badges'      => array(),
+						'operations'  => array(
+							'update-fields',
+							'create-field-group',
+							'update-field-group',
+							'create-post-type',
+							'update-post-type',
+							'create-taxonomy',
+							'update-taxonomy',
+						),
 					),
 				),
 			),

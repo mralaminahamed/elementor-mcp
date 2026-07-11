@@ -710,6 +710,82 @@
 	white-space: nowrap;
 }
 
+/* Plugin-integration categories: "how it works" note + two-up cards + operation pills */
+.elementor-mcp-cat-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 12px 0 0;
+	padding: 10px 14px;
+	background: var(--mcp-primary-light);
+	border: 1px solid var(--mcp-gray-200);
+	border-left: 3px solid var(--mcp-primary);
+	border-radius: var(--mcp-radius-sm);
+	color: var(--mcp-gray-700);
+	font-size: 12px;
+	line-height: 1.55;
+}
+
+.elementor-mcp-cat-note-icon {
+	color: var(--mcp-primary);
+	flex-shrink: 0;
+	margin-top: 1px;
+	line-height: 0;
+}
+
+/* Tab-level variant: pinned to the top of the tab, above all category sections */
+.elementor-mcp-tab-note {
+	margin: 0 0 18px;
+}
+
+.elementor-mcp-tools-grid.is-two-up {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 782px) {
+	.elementor-mcp-tools-grid.is-two-up {
+		grid-template-columns: 1fr;
+	}
+}
+
+.elementor-mcp-tool-ops {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-top: 8px;
+}
+
+.elementor-mcp-tool-ops-label {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--mcp-gray-400);
+}
+
+.elementor-mcp-op-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+
+.elementor-mcp-op-pill {
+	font-size: 11px;
+	line-height: 1.4;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	color: var(--mcp-gray-600);
+	background: var(--mcp-gray-100);
+	border: 1px solid var(--mcp-gray-200);
+	padding: 2px 8px;
+	border-radius: 999px;
+}
+
+.elementor-mcp-tool-card.is-enabled .elementor-mcp-op-pill {
+	color: var(--mcp-primary-hover);
+	background: var(--mcp-primary-light);
+	border-color: #dfe3ff;
+}
+
 /* =========================================================================
  * Badges
  * ========================================================================= */
@@ -1233,6 +1309,19 @@
  * Low-tools mode card
  * ========================================================================= */
 
+/* Top-of-Tools mode cards laid out two-up (Compact tool mode + Themer PHP);
+   a single card still fills the row when the other isn't shown. */
+.elementor-mcp-mode-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+	gap: 14px;
+	margin-bottom: 20px;
+}
+
+.elementor-mcp-mode-cards .elementor-mcp-low-mode-card {
+	margin: 0;
+}
+
 .elementor-mcp-low-mode-card {
 	border: 1px solid var(--mcp-gray-200);
 	border-radius: var(--mcp-radius-md, 8px);
@@ -1312,6 +1401,43 @@
 
 .elementor-mcp-pro-prompts-heading .description {
 	margin: 0;
+}
+
+/* Big "N Agent Skills" count in the Skills-tab header (sits to the right) */
+.elementor-mcp-skills .elementor-mcp-pro-prompts-heading {
+	flex: 1 1 360px;
+	min-width: 0;
+}
+
+.emcp-skills-count {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	min-width: 108px;
+	padding: 12px 24px;
+	background: var(--mcp-primary-light);
+	border: 1px solid #e0e3ff;
+	border-radius: var(--mcp-radius-lg);
+	text-align: center;
+}
+
+.emcp-skills-count__num {
+	font-size: 46px;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: -0.03em;
+	color: var(--mcp-primary-hover);
+}
+
+.emcp-skills-count__label {
+	margin-top: 6px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--mcp-primary);
 }
 
 .elementor-mcp-pro-prompts-meta {
@@ -1514,7 +1640,7 @@
 
 .elementor-mcp-skills-packs .description {
 	margin: 0 0 14px;
-	max-width: 70ch;
+	max-width: 100%;
 }
 
 .elementor-mcp-skills-packs__grid {
@@ -1695,6 +1821,12 @@
 	color: var(--mcp-success, #16a34a);
 	background: var(--mcp-success-light, #dcfce7);
 	border-radius: var(--mcp-radius-sm, 6px);
+}
+
+/* Offline state — module and/or MCP server off */
+.emcp-skills-way__badge.is-offline {
+	color: var(--mcp-danger, #dc2626);
+	background: var(--mcp-danger-light, #fee2e2);
 }
 
 .emcp-skills-way__desc {

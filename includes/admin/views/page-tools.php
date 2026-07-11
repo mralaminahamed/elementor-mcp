@@ -57,6 +57,7 @@ $emcp_tools_badge_labels = array(
 <form method="post" action="options.php" id="elementor-mcp-tools-form">
 	<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP ); ?>
 
+	<div class="elementor-mcp-mode-cards">
 	<div class="elementor-mcp-low-mode-card">
 		<label class="elementor-mcp-low-mode-toggle">
 			<input type="hidden" name="<?php echo esc_attr( EMCP_Tools_Plugin::OPTION_DISPATCHER_MODE ); ?>" value="0" />
@@ -105,6 +106,7 @@ $emcp_tools_badge_labels = array(
 			</label>
 		</div>
 	<?php endif; ?>
+	</div><!-- .elementor-mcp-mode-cards -->
 
 	<?php if ( $emcp_tools_compact_mode ) : ?>
 		<div class="elementor-mcp-compact-banner">
@@ -177,6 +179,26 @@ $emcp_tools_badge_labels = array(
 				</p>
 			</div>
 			<?php endif; ?>
+			<?php
+			// Plugin-integration explainer: rendered once at the very top of the
+			// tab, above every category section. The note text lives on the
+			// category data (first category that carries one wins).
+			$emcp_tools_tab_note = '';
+			foreach ( $emcp_tools_tab_cats as $emcp_tools_note_cat ) {
+				if ( ! empty( $emcp_tools_note_cat['note'] ) ) {
+					$emcp_tools_tab_note = (string) $emcp_tools_note_cat['note'];
+					break;
+				}
+			}
+			?>
+			<?php if ( '' !== $emcp_tools_tab_note ) : ?>
+				<p class="elementor-mcp-cat-note elementor-mcp-tab-note">
+					<span class="elementor-mcp-cat-note-icon" aria-hidden="true">
+						<svg viewBox="0 0 20 20" width="15" height="15"><path fill="currentColor" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 12H9v-4h2v4zm0-6H9V6h2v2z"/></svg>
+					</span>
+					<span><?php echo esc_html( $emcp_tools_tab_note ); ?></span>
+				</p>
+			<?php endif; ?>
 			<?php foreach ( $emcp_tools_tab_cats as $emcp_tools_category_id => $emcp_tools_category ) : ?>
 				<div class="elementor-mcp-category <?php echo esc_attr( ! empty( $emcp_tools_category['danger'] ) ? 'is-danger' : '' ); ?>" data-category="<?php echo esc_attr( $emcp_tools_category_id ); ?>">
 					<?php
@@ -218,7 +240,14 @@ $emcp_tools_badge_labels = array(
 						</span>
 					</div>
 
-					<div class="elementor-mcp-tools-grid" id="<?php echo esc_attr( $emcp_tools_grid_id ); ?>">
+					<?php
+					// Dispatcher-style categories (plugin integrations) lay their
+					// cards out two-up with operation pills; the explanatory note
+					// is rendered once at the top of the tab (see above).
+					$emcp_tools_first_tool = reset( $emcp_tools_category['tools'] );
+					$emcp_tools_has_ops    = ! empty( $emcp_tools_first_tool['operations'] );
+					?>
+					<div class="elementor-mcp-tools-grid <?php echo esc_attr( $emcp_tools_has_ops ? 'is-two-up' : '' ); ?>" id="<?php echo esc_attr( $emcp_tools_grid_id ); ?>">
 						<?php foreach ( $emcp_tools_category['tools'] as $emcp_tools_slug => $emcp_tools_tool ) : ?>
 							<?php
 							$emcp_tools_is_enabled = ! in_array( $emcp_tools_slug, $emcp_tools_disabled, true );
@@ -245,6 +274,24 @@ $emcp_tools_badge_labels = array(
 										<?php endforeach; ?>
 									</span>
 									<span class="elementor-mcp-tool-desc"><?php echo esc_html( $emcp_tools_tool['description'] ); ?></span>
+									<?php if ( ! empty( $emcp_tools_tool['operations'] ) ) : ?>
+										<span class="elementor-mcp-tool-ops">
+											<span class="elementor-mcp-tool-ops-label">
+												<?php
+												printf(
+													/* translators: %d: number of operations */
+													esc_html( _n( '%d operation', '%d operations', count( $emcp_tools_tool['operations'] ), 'emcp-tools' ) ),
+													count( $emcp_tools_tool['operations'] )
+												);
+												?>
+											</span>
+											<span class="elementor-mcp-op-pills">
+												<?php foreach ( $emcp_tools_tool['operations'] as $emcp_tools_op ) : ?>
+													<span class="elementor-mcp-op-pill"><?php echo esc_html( $emcp_tools_op ); ?></span>
+												<?php endforeach; ?>
+											</span>
+										</span>
+									<?php endif; ?>
 									<code class="elementor-mcp-tool-slug"><?php echo esc_html( $emcp_tools_slug ); ?></code>
 								</span>
 							</label>
