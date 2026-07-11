@@ -214,6 +214,76 @@ class EMCP_Tools_Page_Snapshot {
 	}
 
 	/**
+	 * Detect which elements carry per-device (_tablet / _mobile / _laptop / _widescreen)
+	 * setting overrides.
+	 *
+	 * @param array $elements Elementor elements array.
+	 * @return array{overrides:array<int,array{element_id:string,widget_type:string,settings:string[]}>,counts:array{desktop_only:int,has_tablet:int,has_mobile:int}}
+	 */
+	public static function detect_responsive( array $elements ): array {
+		$overrides = array();
+		$counts    = array(
+			'desktop_only' => 0,
+			'has_tablet'   => 0,
+			'has_mobile'   => 0,
+		);
+		self::walk_responsive( $elements, $overrides, $counts );
+		return array(
+			'overrides' => $overrides,
+			'counts'    => $counts,
+		);
+	}
+
+	/**
+	 * Recursive responsive-override collector.
+	 *
+	 * @param array $elements  Elements.
+	 * @param array $overrides Accumulator (by reference).
+	 * @param array $counts    Accumulator (by reference).
+	 */
+	private static function walk_responsive( array $elements, array &$overrides, array &$counts ): void {
+		foreach ( $elements as $el ) {
+			if ( ! is_array( $el ) ) {
+				continue;
+			}
+			$s          = ( isset( $el['settings'] ) && is_array( $el['settings'] ) ) ? $el['settings'] : array();
+			$keys       = array();
+			$has_tablet = false;
+			$has_mobile = false;
+			foreach ( array_keys( $s ) as $k ) {
+				if ( preg_match( '/_(tablet|mobile|laptop|widescreen|mobile_extra|tablet_extra)$/', (string) $k, $m ) ) {
+					$keys[] = $k;
+					if ( false !== strpos( $m[1], 'tablet' ) ) {
+						$has_tablet = true;
+					}
+					if ( false !== strpos( $m[1], 'mobile' ) ) {
+						$has_mobile = true;
+					}
+				}
+			}
+			if ( $keys ) {
+				$overrides[] = array(
+					'element_id'  => isset( $el['id'] ) ? (string) $el['id'] : '',
+					'widget_type' => isset( $el['widgetType'] ) ? (string) $el['widgetType'] : '',
+					'settings'    => $keys,
+				);
+				if ( $has_tablet ) {
+					++$counts['has_tablet'];
+				}
+				if ( $has_mobile ) {
+					++$counts['has_mobile'];
+				}
+			} else {
+				++$counts['desktop_only'];
+			}
+
+			if ( ! empty( $el['elements'] ) && is_array( $el['elements'] ) ) {
+				self::walk_responsive( $el['elements'], $overrides, $counts );
+			}
+		}
+	}
+
+	/**
 	 * Truncate to a max length with an ellipsis.
 	 *
 	 * @param string $text Text.
