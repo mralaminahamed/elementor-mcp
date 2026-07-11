@@ -2,6 +2,11 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [Unreleased]
+
+### Added
+- **AI-safe transactions — a unified change ledger + rollback (3 tools, free, always-on).** Every AI-made mutation across Elementor page edits, filesystem writes, and database writes is now recorded to one ledger, and any recorded change can be undone. `list-changes` (recent changes, newest-first, filter by domain/rolled_back/reversible), `get-change` (one entry's full detail incl. its rollback reference), and `rollback-change` (undo by id — restores a page's prior Elementor data, restores/removes a file from its backup, or inverses a database write from its before-image; marks the entry rolled back and records a compensating entry). This unifies the previously fragmented per-domain audit logs, file backups, and row before-images behind one recorder (`EMCP_Tools_Change_Log`). All three tools require `manage_options`; the ledger is capped by count and size (oldest entries age out). Rollback covers the three domains that capture a "before" today; broad dry-run/preview and media/settings rollback are planned follow-ups.
+
 ## [3.3.0]
 
 > A read-foundation release. New **`get-page-snapshot`** tool returns one normalized digest of a page — structure, tokens-in-use, responsive overrides, content outline and SEO-lite — so an AI agent can understand a page from a single call instead of stitching several read tools together, with opt-in performance/accessibility/SEO audit summaries.
