@@ -128,6 +128,7 @@ class EMCP_Tools_Admin {
 		$icons = array(
 			'dashboard'  => 'dashicons-dashboard',
 			'tools'      => 'dashicons-admin-tools',
+			'history'    => 'dashicons-undo',
 			'modules'    => 'dashicons-screenoptions',
 			'connection' => 'dashicons-admin-links',
 			'ai-chat'    => 'dashicons-format-chat',
@@ -148,6 +149,7 @@ class EMCP_Tools_Admin {
 				self::PAGE_SLUG                 => __( 'Dashboard', 'emcp-tools' ),
 				self::PAGE_SLUG . '-modules'    => __( 'Modules', 'emcp-tools' ),
 				self::PAGE_SLUG . '-tools'      => __( 'Tools', 'emcp-tools' ),
+				self::PAGE_SLUG . '-history'    => __( 'History', 'emcp-tools' ),
 				self::PAGE_SLUG . '-connection' => __( 'Connection', 'emcp-tools' ),
 				self::PAGE_SLUG . '-ai-chat'    => __( 'AI Chat', 'emcp-tools' ),
 				self::PAGE_SLUG . '-context'    => __( 'Context', 'emcp-tools' ),
@@ -183,6 +185,8 @@ class EMCP_Tools_Admin {
 		switch ( $page ) {
 			case self::PAGE_SLUG . '-tools':
 				return 'tools';
+			case self::PAGE_SLUG . '-history':
+				return 'history';
 			case self::PAGE_SLUG . '-modules':
 				return 'modules';
 			case self::PAGE_SLUG . '-connection':
@@ -227,6 +231,7 @@ class EMCP_Tools_Admin {
 		add_action( 'wp_ajax_emcp_tools_delete_php_snippet', array( $this, 'ajax_delete_php_snippet' ) );
 		add_action( 'admin_post_emcp_tools_download_mcpb', array( $this, 'handle_download_mcpb' ) );
 		add_action( 'admin_post_' . self::ACTION_DISMISS_PROMPTS_NOTICE, array( $this, 'handle_dismiss_prompts_notice' ) );
+		add_action( 'admin_post_' . self::ACTION_ROLLBACK_CHANGE, array( $this, 'handle_rollback_change' ) );
 	}
 
 	/** Nonce action for the .mcpb bundle download. */
@@ -234,6 +239,45 @@ class EMCP_Tools_Admin {
 
 	/** admin-post action that dismisses the "prompts rewritten" notice. */
 	const ACTION_DISMISS_PROMPTS_NOTICE = 'emcp_tools_dismiss_prompts_notice';
+
+	/** admin-post action that rolls back a change from the History tab. */
+	const ACTION_ROLLBACK_CHANGE = 'emcp_tools_rollback_change';
+
+	/**
+	 * Nonce-protected URL that rolls back one change-ledger entry.
+	 *
+	 * @since 3.3.0
+	 * @param string $id Change id.
+	 * @return string
+	 */
+	public static function rollback_change_url( string $id ): string {
+		return wp_nonce_url(
+			admin_url( 'admin-post.php?action=' . self::ACTION_ROLLBACK_CHANGE . '&change=' . rawurlencode( $id ) ),
+			self::ACTION_ROLLBACK_CHANGE . '_' . $id
+		);
+	}
+
+	/**
+	 * Roll back a change from the History tab, then bounce back with a notice.
+	 *
+	 * @since 3.3.0
+	 */
+	public function handle_rollback_change(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do that.', 'emcp-tools' ), '', array( 'response' => 403 ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified just below against the per-id action.
+		$id = isset( $_GET['change'] ) ? sanitize_text_field( wp_unslash( $_GET['change'] ) ) : '';
+		check_admin_referer( self::ACTION_ROLLBACK_CHANGE . '_' . $id );
+
+		$result = class_exists( 'EMCP_Tools_Change_Log' ) ? EMCP_Tools_Change_Log::rollback( $id ) : new WP_Error( 'unavailable', 'unavailable' );
+		$status = is_wp_error( $result )
+			? 'error&msg=' . rawurlencode( $result->get_error_message() )
+			: 'ok';
+
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-history&rollback=' . $status ) );
+		exit;
+	}
 
 	/**
 	 * User meta flag recording that the current user has dismissed the notice
@@ -1577,6 +1621,8 @@ class EMCP_Tools_Admin {
 						$emcp_upsell_feature = __( 'Skills', 'emcp-tools' );
 						include EMCP_TOOLS_DIR . 'includes/admin/views/page-pro-upsell.php';
 					}
+				} elseif ( 'history' === $active_tab ) {
+					include EMCP_TOOLS_DIR . 'includes/admin/views/page-history.php';
 				} elseif ( 'widgets' === $active_tab ) {
 					include EMCP_TOOLS_DIR . 'includes/admin/views/page-widgets.php';
 				} elseif ( 'changelog' === $active_tab ) {
