@@ -8,7 +8,7 @@
  * backup, or inverse a $wpdb write from a before-image).
  *
  * @package EMCP_Tools
- * @since   3.4.0
+ * @since   3.3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The change ledger.
  *
- * @since 3.4.0
+ * @since 3.3.0
  */
 class EMCP_Tools_Change_Log {
 

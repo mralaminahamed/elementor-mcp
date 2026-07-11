@@ -3,7 +3,7 @@
  * AI-safe transaction MCP abilities: the change ledger + rollback.
  *
  * @package EMCP_Tools
- * @since   3.4.0
+ * @since   3.3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Registers list-changes / get-change / rollback-change.
  *
- * @since 3.4.0
+ * @since 3.3.0
  */
 class EMCP_Tools_Transaction_Abilities {
 
