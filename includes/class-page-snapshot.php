@@ -131,6 +131,89 @@ class EMCP_Tools_Page_Snapshot {
 	}
 
 	/**
+	 * Walk elements collecting which global colors/typography, g- classes, and raw
+	 * fonts are actually referenced, with usage counts.
+	 *
+	 * @param array $elements Elementor elements array.
+	 * @return array{global_colors:array<string,int>,global_typography:array<string,int>,global_classes:array<string,int>,fonts_in_use:string[],colors_in_use:string[]}
+	 */
+	public static function extract_tokens( array $elements ): array {
+		$acc = array(
+			'global_colors'     => array(),
+			'global_typography' => array(),
+			'global_classes'    => array(),
+			'fonts_in_use'      => array(),
+			'colors_in_use'     => array(),
+		);
+		self::walk_tokens( $elements, $acc );
+		$acc['fonts_in_use']  = array_values( array_unique( $acc['fonts_in_use'] ) );
+		$acc['colors_in_use'] = array_values( array_unique( $acc['colors_in_use'] ) );
+		return $acc;
+	}
+
+	/**
+	 * Recursive token collector.
+	 *
+	 * @param array $elements Elements.
+	 * @param array $acc      Accumulator (by reference).
+	 */
+	private static function walk_tokens( array $elements, array &$acc ): void {
+		foreach ( $elements as $el ) {
+			if ( ! is_array( $el ) ) {
+				continue;
+			}
+			$s = ( isset( $el['settings'] ) && is_array( $el['settings'] ) ) ? $el['settings'] : array();
+
+			// Global color/typography refs live in __globals__: "globals/colors?id=primary".
+			if ( ! empty( $s['__globals__'] ) && is_array( $s['__globals__'] ) ) {
+				foreach ( $s['__globals__'] as $ref ) {
+					if ( ! is_string( $ref ) ) {
+						continue;
+					}
+					if ( preg_match( '#globals/colors\?id=([\w-]+)#', $ref, $m ) ) {
+						$acc['global_colors'][ $m[1] ] = ( $acc['global_colors'][ $m[1] ] ?? 0 ) + 1;
+					} elseif ( preg_match( '#globals/typography\?id=([\w-]+)#', $ref, $m ) ) {
+						$acc['global_typography'][ $m[1] ] = ( $acc['global_typography'][ $m[1] ] ?? 0 ) + 1;
+					}
+				}
+			}
+
+			// g- global classes appear in _css_classes / classes (string), or atomic classes.value (array).
+			foreach ( array( '_css_classes', 'classes' ) as $ck ) {
+				if ( ! empty( $s[ $ck ] ) && is_string( $s[ $ck ] ) ) {
+					foreach ( preg_split( '/\s+/', $s[ $ck ] ) as $cls ) {
+						if ( '' !== $cls && 0 === strpos( $cls, 'g-' ) ) {
+							$acc['global_classes'][ $cls ] = ( $acc['global_classes'][ $cls ] ?? 0 ) + 1;
+						}
+					}
+				}
+			}
+			if ( isset( $s['classes']['value'] ) && is_array( $s['classes']['value'] ) ) {
+				foreach ( $s['classes']['value'] as $cls ) {
+					if ( is_string( $cls ) && 0 === strpos( $cls, 'g-' ) ) {
+						$acc['global_classes'][ $cls ] = ( $acc['global_classes'][ $cls ] ?? 0 ) + 1;
+					}
+				}
+			}
+
+			// Raw fonts / hex colors in use.
+			foreach ( $s as $key => $val ) {
+				if ( is_string( $val ) && '' !== $val ) {
+					if ( false !== strpos( (string) $key, 'font_family' ) ) {
+						$acc['fonts_in_use'][] = $val;
+					} elseif ( ( false !== strpos( (string) $key, 'color' ) ) && preg_match( '/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $val ) ) {
+						$acc['colors_in_use'][] = strtolower( $val );
+					}
+				}
+			}
+
+			if ( ! empty( $el['elements'] ) && is_array( $el['elements'] ) ) {
+				self::walk_tokens( $el['elements'], $acc );
+			}
+		}
+	}
+
+	/**
 	 * Truncate to a max length with an ellipsis.
 	 *
 	 * @param string $text Text.
