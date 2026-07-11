@@ -4031,3 +4031,67 @@ body.emcp-modal-open { overflow: hidden; }
 		width: 100%;
 	}
 }
+/* ---------------------------------------------------------------------------
+   History tab — AI-safe change ledger (flat, no gradients)
+   --------------------------------------------------------------------------- */
+.emcp-history__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin: 8px 0 16px;
+}
+.emcp-history__title { margin: 0 0 4px; }
+.emcp-history__intro { margin: 0; color: #50575e; max-width: 640px; }
+.emcp-history__filters {
+	display: flex;
+	gap: 6px;
+	margin: 0;
+	list-style: none;
+	flex-wrap: wrap;
+}
+.emcp-history__filters li a {
+	display: inline-block;
+	padding: 4px 12px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+	color: #2c3338;
+	text-decoration: none;
+	font-size: 12px;
+}
+.emcp-history__filters li.is-active a {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+}
+.emcp-history__table { margin-top: 8px; }
+.emcp-history__ago { display: block; color: #787c82; font-size: 11px; }
+.emcp-history__summary { color: #50575e; font-size: 12px; }
+.emcp-history__target { font-family: Consolas, Monaco, monospace; font-size: 12px; word-break: break-all; }
+.emcp-history__badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #fff;
+	background: #646970;
+}
+.emcp-history__badge--elementor { background: #2271b1; }
+.emcp-history__badge--filesystem { background: #8c6d1f; }
+.emcp-history__badge--database { background: #7c3aed; }
+.emcp-history__actions-col { white-space: nowrap; }
+.emcp-history__rollback .dashicons { margin: 3px 2px 0 -2px; font-size: 15px; }
+.emcp-history__state { color: #787c82; }
+.emcp-history__state--done { color: #2271b1; font-weight: 600; }
+.emcp-history__empty {
+	text-align: center;
+	padding: 48px 24px;
+	border: 1px dashed #c3c4c7;
+	border-radius: 6px;
+	color: #787c82;
+}
+.emcp-history__empty .dashicons { font-size: 32px; width: 32px; height: 32px; opacity: .5; }
+.emcp-history__note { color: #787c82; font-size: 12px; margin-top: 10px; }
