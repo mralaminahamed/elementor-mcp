@@ -8,6 +8,11 @@
          failOnEmptyTestSuite="false">
 
     <testsuites>
+        <testsuite name="Root">
+            <file>pro/tests/unit/PhpSnippetValidatorTest.php</file>
+            <file>pro/tests/unit/SiteContextTest.php</file>
+            <file>pro/tests/unit/WidgetGeneratorTest.php</file>
+        </testsuite>
         <testsuite name="Security">
             <directory>pro/tests/unit/Security</directory>
         </testsuite>
@@ -88,6 +93,18 @@
         </testsuite>
         <testsuite name="Mirror">
             <directory>pro/tests/unit/mirror</directory>
+        </testsuite>
+        <testsuite name="Registrar">
+            <directory>pro/tests/unit/registrar</directory>
+        </testsuite>
+        <testsuite name="Snippet">
+            <directory>pro/tests/unit/snippet</directory>
+        </testsuite>
+        <testsuite name="SystemKit">
+            <directory>pro/tests/unit/systemkit</directory>
+        </testsuite>
+        <testsuite name="WidgetBuilder">
+            <directory>pro/tests/unit/widgetbuilder</directory>
         </testsuite>
     </testsuites>
 
