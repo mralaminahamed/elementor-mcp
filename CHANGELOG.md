@@ -2,6 +2,11 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **`.mcpb` bundles for multiple sites overwrote each other in Claude Desktop.** Every generated bundle used the same manifest `name` (`emcp-tools`), and Claude Desktop identifies installed extensions by that field — so installing a second site's bundle silently replaced the first. The bundle name is now unique per site (`emcp-tools-<host-slug>`, e.g. `emcp-tools-staging-example-co-uk`), so bundles for different sites install side by side. `display_name` and everything else are unchanged. Thanks to @Threadcrapper for the report and diagnosis ([#86](https://github.com/msrbuilds/elementor-mcp/issues/86)).
+
 ## [3.2.1]
 
 > A feature + fix release. **ACF / ACF PRO** becomes a first-class integration — exposed as **two dispatcher tools** (`acf-read` / `acf-write`) behind a new **Plugins** tab — letting an agent build a whole content structure (custom post type → taxonomy → field group → posts with values) end to end. Atomic-element writes get three fixes so v4 pages actually persist. New tools round out AI publishing: **`set-social-image`** fixes wrong social link-previews, and a **`full_bleed`** container preset kills the white strips on Canvas pages. Plus a new **`emcp-plugins`** agent skill, a couple of content-query fixes, and admin polish.
