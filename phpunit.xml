@@ -106,6 +106,9 @@
         <testsuite name="WidgetBuilder">
             <directory>pro/tests/unit/widgetbuilder</directory>
         </testsuite>
+        <testsuite name="Themes">
+            <directory>pro/tests/unit/themes</directory>
+        </testsuite>
     </testsuites>
 
     <source>
