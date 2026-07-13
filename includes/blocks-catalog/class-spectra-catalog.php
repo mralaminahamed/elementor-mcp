@@ -65,6 +65,34 @@ class EMCP_Tools_Spectra_Catalog {
 	const DEFAULT_CAP = 30;
 
 	/**
+	 * Native attributes registered via a shared helper (UAGB_Block_Helper) rather
+	 * than as literal keys in the block's attributes.php — so they DO NOT appear in
+	 * real_attributes()/get-block-schema, yet they are real, editable attributes an
+	 * agent should use instead of a core/html workaround. Keyed by full block name.
+	 *
+	 * @var array<string,array<string,string>>
+	 */
+	const SHARED_ATTRS = array(
+		'uagb/container' => array(
+			'background'       => 'backgroundType supports "color" | "gradient" | "image" | "video".',
+			'background_image' => 'backgroundType:"image" + backgroundImage:{id,url} (also set backgroundImageDesktop). Overlay: overlayType:"color" + backgroundImageColor:"rgba(...)", OR overlayType:"gradient" + gradientValue:"linear-gradient(90deg,rgba(..)0%,rgba(..)100%)" (the overlay gradient is read from gradientValue, NOT gradientOverlayColor1/2). Position/size/repeat default to center/cover/no-repeat.',
+			'background_video' => 'backgroundType:"video" + backgroundVideo:{url} + backgroundVideoFallbackImage:{id,url}; overlay via backgroundVideoColor + backgroundVideoOpacity.',
+			'border_radius'    => 'containerBorderTopLeftRadius / containerBorderTopRightRadius / containerBorderBottomLeftRadius / containerBorderBottomRightRadius (+ containerBorderRadiusUnit).',
+			'box_shadow'       => 'boxShadowColor / boxShadowBlur / boxShadowHOffset / boxShadowVOffset / boxShadowSpread / boxShadowPosition.',
+		),
+	);
+
+	/**
+	 * Shared-helper attributes for a block (see SHARED_ATTRS), or [].
+	 *
+	 * @param string $name Full block name.
+	 * @return array<string,string>
+	 */
+	public static function shared_attributes( string $name ): array {
+		return self::SHARED_ATTRS[ $name ] ?? array();
+	}
+
+	/**
 	 * @return bool Whether Spectra is active.
 	 */
 	public static function is_active(): bool {
