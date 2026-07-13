@@ -2,6 +2,16 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [3.4.0]
+
+> A new **Themes** domain: give an AI agent full context on the active theme, manage its settings, and create a child theme so it can safely edit theme files.
+
+### Added
+- **Themes tab: theme integrations (two dispatcher tools each).** A new **Themes** sub-tab on the Tools screen, following the ACF two-dispatcher pattern (one Read tool, one Write tool, each bundling internal operations). Two layers on a shared base so new frameworks are cheap to add:
+  - **Active Theme** (`theme-read` / `theme-write`, works for any active theme). `theme-read`: `get-theme-context` (active/parent, detected framework, `is_block_theme`, template dir, theme supports, registered menu locations, whether a child theme exists) and `get-mods` (theme_mod values). `theme-write`: `set-mods` (write theme_mod values, structural keys like menu locations refused) and **`create-child-theme`** (scaffold `style.css` + `functions.php` and activate a child of the active parent, so the agent can then edit theme files via the Filesystem tools; requires `confirm:true`, idempotent, refuses grandchildren).
+  - **Astra** (`astra-read` / `astra-write`, registers only when Astra is the active theme). Generic `get-settings` ({ `group`? colors/typography/layout/header-footer, `keys`? }) and `update-settings` ({ `values` }) over a curated `astra-settings` allowlist, mirroring the WordPress Settings domain (typed metadata, non-allowlisted keys reported in `skipped[]`).
+  Reads are enabled by default; the two write dispatchers ship disabled-by-default (opt in on the Tools tab). Building pages with a theme's blocks/patterns reuses the existing Gutenberg tools; this domain supplies the context. More framework packs (Kadence, GeneratePress) build on the same base.
+
 ## [3.3.0]
 
 > A foundation release: two tools that let an AI agent **understand** a page from one call and **undo** any change it makes. **`get-page-snapshot`** returns one normalized digest of a page (structure, tokens-in-use, responsive overrides, content outline, SEO-lite, + opt-in performance/accessibility/SEO audits). **AI-safe transactions** record every mutation to a unified change ledger and can roll any of them back.

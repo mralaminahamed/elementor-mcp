@@ -169,6 +169,10 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 
 == Changelog ==
 
+= 3.4.0 =
+New Themes domain: full context on the active theme, settings management, and child-theme creation for safe file edits.
+* Added: Themes tab with theme integrations on the ACF two-dispatcher pattern (one Read tool, one Write tool, each bundling internal operations). Active Theme (theme-read / theme-write, any theme): get-theme-context (framework, block-theme, supports, menu locations, child status), get-mods / set-mods (theme_mod values, structural keys refused), and create-child-theme (scaffold + activate a child of the active parent so the agent can edit theme files via the Filesystem tools; requires confirm:true, idempotent). Astra (astra-read / astra-write, when Astra is active): generic get-settings / update-settings over a curated astra-settings allowlist (colors, typography, layout, header/footer). Reads on by default; the two write dispatchers ship disabled-by-default. More framework packs (Kadence, GeneratePress) build on the same base.
+
 = 3.3.0 =
 Foundation release: understand a page from one call, undo any change, and reuse existing content.
 * Added: get-page-snapshot (always-on, read-only) returns one normalized digest of a page (structure tree + counts, global colors/typography/classes actually in use, per-device responsive overrides, content outline, and an SEO-lite summary) so an AI agent can reason about a page from a single call. Opt-in performance/accessibility/SEO audit summaries via include:[performance,a11y,seo] (a11y/seo are Pro); heavy sections are transient-cached.
