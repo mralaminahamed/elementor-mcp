@@ -64,9 +64,42 @@ class EMCP_Tools_Stock_Image_Abilities {
 	 * @since 1.1.0
 	 */
 	public function register(): void {
+		$this->register_provider_tools();
+		$this->register_add_stock_image();
+	}
+
+	/**
+	 * The provider tools — search-images + sideload-image. These are pure WP core
+	 * (a stock-provider search + a Media Library sideload) with no Elementor
+	 * dependency, so they register regardless of whether Elementor is active.
+	 *
+	 * @since 3.4.0
+	 */
+	public function register_provider_tools(): void {
 		$this->register_search_images();
 		$this->register_sideload_image();
+	}
+
+	/**
+	 * Registers add-stock-image (search + sideload + add an image widget to the
+	 * page). This one needs a page builder, so the registrar calls it only when
+	 * Elementor is active.
+	 *
+	 * @since 3.4.0
+	 */
+	public function register_widget_tool(): void {
 		$this->register_add_stock_image();
+	}
+
+	/**
+	 * Ability names for the always-on provider tools.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return string[]
+	 */
+	public function provider_tool_names(): array {
+		return array( 'emcp-tools/search-images', 'emcp-tools/sideload-image' );
 	}
 
 	// -------------------------------------------------------------------------

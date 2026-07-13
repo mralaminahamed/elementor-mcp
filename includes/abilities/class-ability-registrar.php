@@ -240,6 +240,13 @@ class EMCP_Tools_Ability_Registrar {
 			$this->ability_names = array_merge( $this->ability_names, $php_snippets->get_ability_names() );
 		}
 
+		// Stock-image provider tools (search-images + sideload-image) — pure WP core
+		// (a stock-provider search + a Media Library sideload), no Elementor needed,
+		// so they register on any site. add-stock-image (adds a widget) is gated below.
+		$stock_images = new EMCP_Tools_Stock_Image_Abilities( $this->data, $this->factory );
+		$stock_images->register_provider_tools();
+		$this->ability_names = array_merge( $this->ability_names, $stock_images->provider_tool_names() );
+
 		// ---- Elementor-dependent groups: only when Elementor is active ----
 		if ( $elementor_active ) {
 			// P0 query/discovery.
@@ -277,10 +284,11 @@ class EMCP_Tools_Ability_Registrar {
 			$composite->register();
 			$this->ability_names = array_merge( $this->ability_names, $composite->get_ability_names() );
 
-			// Stock images.
-			$stock_images = new EMCP_Tools_Stock_Image_Abilities( $this->data, $this->factory );
-			$stock_images->register();
-			$this->ability_names = array_merge( $this->ability_names, $stock_images->get_ability_names() );
+			// Stock images: the add-stock-image widget tool (provider search + sideload
+			// registered unconditionally above); this one adds an image widget so it
+			// needs Elementor.
+			$stock_images->register_widget_tool();
+			$this->ability_names[] = 'emcp-tools/add-stock-image';
 
 			// SVG icons.
 			$svg_icons = new EMCP_Tools_Svg_Icon_Abilities( $this->data, $this->factory );

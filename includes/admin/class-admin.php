@@ -2615,12 +2615,12 @@ class EMCP_Tools_Admin {
 					),
 					'emcp-tools/search-images'    => array(
 						'label'       => __( 'Search Images', 'emcp-tools' ),
-						'description' => __( 'Searches Openverse for Creative Commons licensed images.', 'emcp-tools' ),
+						'description' => __( 'Searches a stock-photo provider (Unsplash, Pexels, or Pixabay) for images. Core WordPress tool — available without Elementor. Needs a free provider API key (Connection tab).', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
 					),
 					'emcp-tools/sideload-image'   => array(
 						'label'       => __( 'Sideload Image', 'emcp-tools' ),
-						'description' => __( 'Downloads an external image into the WordPress Media Library.', 'emcp-tools' ),
+						'description' => __( 'Downloads an external image URL into the WordPress Media Library. Core WordPress tool — available without Elementor.', 'emcp-tools' ),
 						'badges'      => array(),
 					),
 					'emcp-tools/add-stock-image'  => array(
