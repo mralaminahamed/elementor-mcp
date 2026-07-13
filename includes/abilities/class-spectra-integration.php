@@ -1,0 +1,269 @@
+<?php
+/**
+ * Spectra Blocks integration — the "blocks/builder" pack for the Astra + Spectra
+ * combo, under the Themes tab.
+ *
+ * `spectra-read`  : list-blocks (dynamic catalog), get-block-schema (curated params + example)
+ * `spectra-write` : add-block (insert a Spectra block with curated defaults + block_id)
+ *
+ * Registers only when the Spectra plugin (Ultimate Addons for Gutenberg) is
+ * active. Building reuses the Gutenberg block tree; this pack is the Spectra-aware
+ * discover -> inspect -> act layer, mirroring the Elementor widget catalog.
+ *
+ * @package EMCP_Tools
+ * @since   3.4.0
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Spectra block catalog + insertion integration.
+ */
+class EMCP_Tools_Spectra_Integration extends EMCP_Tools_Theme_Integration {
+
+	public function id(): string {
+		return 'spectra';
+	}
+
+	public function label(): string {
+		return __( 'Spectra Blocks', 'emcp-tools' );
+	}
+
+	public function is_available(): bool {
+		return EMCP_Tools_Spectra_Catalog::is_active();
+	}
+
+	// Building content, not theme options.
+	public function can_read(): bool {
+		return current_user_can( 'edit_posts' );
+	}
+	public function can_write(): bool {
+		return current_user_can( 'edit_posts' );
+	}
+
+	protected function operations(): array {
+		return array(
+			'list-blocks'      => array(
+				'mode' => 'read',
+				'run'  => array( $this, 'execute_list_blocks' ),
+				'perm' => array( $this, 'can_read' ),
+				'desc' => __( 'Compact catalog of the Spectra blocks available on this site (name, title, description, category, doc). Optional { category, search }. Step 1 of discover -> inspect -> act.', 'emcp-tools' ),
+			),
+			'get-block-schema' => array(
+				'mode' => 'read',
+				'run'  => array( $this, 'execute_get_block_schema' ),
+				'perm' => array( $this, 'can_read' ),
+				'desc' => __( 'A Spectra block\'s curated key attributes + a ready-to-use example ({ name } or { names: [...] }). { full: true } returns the raw registered attributes when available.', 'emcp-tools' ),
+			),
+			'add-block'        => array(
+				'mode' => 'write',
+				'run'  => array( $this, 'execute_add_block' ),
+				'perm' => array( $this, 'can_write' ),
+				'desc' => __( 'Insert a Spectra block into a post ({ post_id, block, attributes?, position? }), merging curated defaults and a generated block_id. position: { mode: append|prepend|before|after|inside, path?: [..] }.', 'emcp-tools' ),
+			),
+		);
+	}
+
+	/**
+	 * @param array $input { category?, search? }.
+	 * @return array
+	 */
+	public function execute_list_blocks( $input ): array {
+		$category = isset( $input['category'] ) ? (string) $input['category'] : '';
+		$search   = isset( $input['search'] ) ? (string) $input['search'] : '';
+		$blocks   = EMCP_Tools_Spectra_Catalog::blocks_index( $category, $search );
+		return array(
+			'count'  => count( $blocks ),
+			'blocks' => $blocks,
+		);
+	}
+
+	/**
+	 * @param array $input { name? , names?[], full? }.
+	 * @return array|WP_Error
+	 */
+	public function execute_get_block_schema( $input ) {
+		$names = array();
+		if ( isset( $input['names'] ) && is_array( $input['names'] ) ) {
+			$names = array_map( 'strval', $input['names'] );
+		} elseif ( isset( $input['name'] ) ) {
+			$names = array( (string) $input['name'] );
+		}
+		if ( empty( $names ) ) {
+			return new WP_Error( 'missing_name', __( 'Provide a block "name" or "names" array.', 'emcp-tools' ), array( 'status' => 400 ) );
+		}
+		$full = ! empty( $input['full'] );
+
+		$out = array();
+		foreach ( $names as $name ) {
+			$out[ $this->normalize( $name ) ] = $this->schema_for( $this->normalize( $name ), $full );
+		}
+		return ( 1 === count( $out ) ) ? reset( $out ) : array( 'blocks' => $out );
+	}
+
+	/**
+	 * @param array $input { post_id, block, attributes?, position? }.
+	 * @return array|WP_Error
+	 */
+	public function execute_add_block( $input ) {
+		$post_id = absint( $input['post_id'] ?? 0 );
+		$name    = $this->normalize( (string) ( $input['block'] ?? '' ) );
+
+		$post = $post_id ? get_post( $post_id ) : null;
+		if ( ! $post ) {
+			return new WP_Error( 'not_found', __( 'Post not found.', 'emcp-tools' ), array( 'status' => 404 ) );
+		}
+		if ( null === EMCP_Tools_Spectra_Catalog::block_meta( $name ) ) {
+			return new WP_Error( 'unknown_block', sprintf( __( 'Unknown Spectra block: %s', 'emcp-tools' ), $name ), array( 'status' => 404 ) );
+		}
+		$attrs    = ( isset( $input['attributes'] ) && is_array( $input['attributes'] ) ) ? $input['attributes'] : array();
+		$position = ( isset( $input['position'] ) && is_array( $input['position'] ) ) ? $input['position'] : array( 'mode' => 'append' );
+
+		$block = $this->build_block( $name, $attrs );
+		$tree  = EMCP_Tools_Block_Tree::from_markup( (string) $post->post_content );
+		$tree  = EMCP_Tools_Block_Tree::insert( $tree, array( $block ), $position );
+		$markup = EMCP_Tools_Block_Tree::to_markup( $tree );
+
+		$result = wp_update_post( array( 'ID' => $post_id, 'post_content' => wp_slash( $markup ) ), true );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		return array(
+			'added'    => $name,
+			'block_id' => $block['attrs']['block_id'],
+			'post_id'  => $post_id,
+		);
+	}
+
+	// ── helpers ────────────────────────────────────────────────────────────────
+
+	private function normalize( string $name ): string {
+		return ( false === strpos( $name, '/' ) ) ? 'uagb/' . $name : $name;
+	}
+
+	/**
+	 * Build the get-block-schema entry for one block.
+	 *
+	 * @param string $name Full block name.
+	 * @param bool   $full Include raw registered attributes.
+	 * @return array
+	 */
+	private function schema_for( string $name, bool $full ): array {
+		$meta = EMCP_Tools_Spectra_Catalog::block_meta( $name );
+		if ( null === $meta ) {
+			return array( 'name' => $name, 'error' => 'unknown_block' );
+		}
+		$cats  = isset( $meta['admin_categories'] ) ? (array) $meta['admin_categories'] : array();
+		$entry = array(
+			'name'        => $name,
+			'title'       => (string) ( $meta['title'] ?? $name ),
+			'description' => (string) ( $meta['description'] ?? '' ),
+			'category'    => $cats[0] ?? '',
+			'doc'         => EMCP_Tools_Spectra_Catalog::doc_url( $name ),
+		);
+
+		$curated = EMCP_Tools_Spectra_Catalog::curated( $name );
+		if ( null !== $curated ) {
+			$entry['params']  = $curated['params'];
+			$entry['example'] = $this->example_markup( $name );
+		} else {
+			$reg = $this->registered_block( $name );
+			if ( $reg && ! empty( $reg->attributes ) ) {
+				$entry['registered_attributes'] = array_keys( (array) $reg->attributes );
+				$entry['note']                  = __( 'Not curated yet; these are the registered attribute names. Use full:true for the raw schema, or see the doc link.', 'emcp-tools' );
+			} else {
+				$entry['note'] = __( 'This block is editor-defined (attributes are not exposed server-side). See the doc link for its settings.', 'emcp-tools' );
+			}
+		}
+
+		if ( $full ) {
+			$reg                    = $this->registered_block( $name );
+			$entry['full_attributes'] = $reg ? (array) $reg->attributes : null;
+		}
+		return $entry;
+	}
+
+	/**
+	 * @param string $name Block name.
+	 * @return object|null
+	 */
+	private function registered_block( string $name ) {
+		if ( ! class_exists( 'WP_Block_Type_Registry' ) ) {
+			return null;
+		}
+		return WP_Block_Type_Registry::get_instance()->get_registered( $name );
+	}
+
+	/**
+	 * Build a parsed-block array for a Spectra block: curated defaults + caller
+	 * attributes + a generated block_id, plus any curated innerBlocks template.
+	 *
+	 * @param string $name  Full block name.
+	 * @param array  $attrs Caller attributes.
+	 * @return array Parsed block array.
+	 */
+	private function build_block( string $name, array $attrs ): array {
+		$curated  = EMCP_Tools_Spectra_Catalog::curated( $name );
+		$defaults = array();
+		if ( null !== $curated ) {
+			foreach ( $curated['params'] as $p ) {
+				if ( array_key_exists( 'default', $p ) && '' !== $p['default'] ) {
+					$defaults[ $p['name'] ] = $p['default'];
+				}
+			}
+		}
+		$merged = array_merge( $defaults, $attrs, array( 'block_id' => EMCP_Tools_Id_Generator::generate() ) );
+
+		$inner_blocks = array();
+		if ( null !== $curated && ! empty( $curated['inner'] ) ) {
+			foreach ( $curated['inner'] as $child ) {
+				$inner_blocks[] = $this->build_block( (string) $child['name'], isset( $child['attrs'] ) ? (array) $child['attrs'] : array() );
+			}
+		}
+		return $this->block_array( $name, $merged, $inner_blocks );
+	}
+
+	/**
+	 * Assemble a serialize_block-compatible parsed block array.
+	 *
+	 * @param string $name         Block name.
+	 * @param array  $attrs        Attributes.
+	 * @param array  $inner_blocks Parsed inner blocks.
+	 * @return array
+	 */
+	private function block_array( string $name, array $attrs, array $inner_blocks ): array {
+		if ( empty( $inner_blocks ) ) {
+			return array(
+				'blockName'    => $name,
+				'attrs'        => $attrs,
+				'innerBlocks'  => array(),
+				'innerHTML'    => '',
+				'innerContent' => array(),
+			);
+		}
+		$inner_content = array();
+		foreach ( $inner_blocks as $unused ) {
+			$inner_content[] = null; // one null placeholder per child; serialize_block fills them.
+		}
+		return array(
+			'blockName'    => $name,
+			'attrs'        => $attrs,
+			'innerBlocks'  => $inner_blocks,
+			'innerHTML'    => '',
+			'innerContent' => $inner_content,
+		);
+	}
+
+	/**
+	 * A generated example markup string for a curated block.
+	 *
+	 * @param string $name Block name.
+	 * @return string
+	 */
+	private function example_markup( string $name ): string {
+		$block = $this->build_block( $name, array() );
+		return function_exists( 'serialize_block' ) ? serialize_block( $block ) : '';
+	}
+}

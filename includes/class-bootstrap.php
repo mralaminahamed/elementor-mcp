@@ -136,6 +136,8 @@ class EMCP_Tools_Bootstrap {
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-theme-integration.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-active-theme-integration.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-astra-integration.php';
+		require_once EMCP_TOOLS_DIR . 'includes/blocks-catalog/class-spectra-catalog.php';
+		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-spectra-integration.php';
 		// Performance Analyzer (v3.0.0) — read-only server/WP/page audit.
 		require_once EMCP_TOOLS_DIR . 'includes/performance/class-performance-finding.php';
 		require_once EMCP_TOOLS_DIR . 'includes/performance/class-performance-server-audit.php';

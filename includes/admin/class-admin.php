@@ -346,7 +346,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 16;
+	const DEFAULTS_VERSION = 17;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -562,6 +562,8 @@ class EMCP_Tools_Admin {
 			'emcp-tools/theme-write',
 			'emcp-tools/astra-read',
 			'emcp-tools/astra-write',
+			'emcp-tools/spectra-read',
+			'emcp-tools/spectra-write',
 		);
 	}
 
@@ -668,6 +670,11 @@ class EMCP_Tools_Admin {
 		if ( $applied < 16 ) {
 			$add[] = 'emcp-tools/theme-write';
 			$add[] = 'emcp-tools/astra-write';
+		}
+
+		// v17 — Spectra Blocks write dispatcher (add-block) ships disabled-by-default.
+		if ( $applied < 17 ) {
+			$add[] = 'emcp-tools/spectra-write';
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -2302,6 +2309,25 @@ class EMCP_Tools_Admin {
 						'description' => __( 'Write curated Astra settings; non-allowlisted keys are reported in skipped[].', 'emcp-tools' ),
 						'badges'      => array(),
 						'operations'  => array( 'update-settings' ),
+					),
+				),
+			),
+			'theme_spectra'    => array(
+				'platform' => 'themes',
+				'label'    => __( 'Spectra Blocks', 'emcp-tools' ),
+				'note'     => __( 'The Spectra block catalog (pairs with Astra), exposed only when the Spectra plugin is active. Read tools give the block catalog + curated settings; the write tool inserts a Spectra block.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/spectra-read'  => array(
+						'label'       => __( 'Spectra Read', 'emcp-tools' ),
+						'description' => __( 'Catalog of available Spectra blocks (list-blocks) and their curated settings + example markup (get-block-schema).', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+						'operations'  => array( 'list-blocks', 'get-block-schema' ),
+					),
+					'emcp-tools/spectra-write' => array(
+						'label'       => __( 'Spectra Write', 'emcp-tools' ),
+						'description' => __( 'Insert a Spectra block into a post with curated defaults + a generated block_id (add-block).', 'emcp-tools' ),
+						'badges'      => array(),
+						'operations'  => array( 'add-block' ),
 					),
 				),
 			),
