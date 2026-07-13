@@ -2,13 +2,13 @@
 /**
  * Spectra (Ultimate Addons for Gutenberg) block catalog.
  *
- * The block LIST is dynamic — read from Spectra's own `UAGB_Block_Module::
- * get_blocks_info()` — so it is always complete and accurate. The curated
- * per-block schemas (key attributes + defaults + an optional innerBlocks
- * template) are DATA here, keyed by block slug, mirroring the Elementor widget
- * catalog. Spectra's JS-only blocks do not expose attributes server-side, so
- * their curated params are authored here; registered (server-rendered) blocks
- * can additionally expose their raw attributes via get-block-schema full:true.
+ * Both halves are sourced from Spectra itself, so nothing is guessed:
+ *  - the block LIST comes from `UAGB_Block_Module::get_blocks_info()`;
+ *  - a block's ATTRIBUTES come from Spectra's own
+ *    `includes/blocks/<slug>/attributes.php` (real names + defaults).
+ * A small STRUCTURE map records which blocks need an innerBlocks template
+ * (e.g. buttons -> buttons-child) and which are dynamic (server-rendered), which
+ * cannot be read from attributes; that is structural, not attribute-guessing.
  *
  * @package EMCP_Tools
  * @since   3.4.0
@@ -19,78 +19,53 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Spectra block catalog (list + curated schemas).
+ * Spectra block catalog (list + real attributes).
  */
 class EMCP_Tools_Spectra_Catalog {
 
 	const PLUGIN_FILE = 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php';
+	const PLUGIN_SLUG = 'ultimate-addons-for-gutenberg';
 
 	/**
-	 * Curated per-block schemas. Keyed by full block name (`uagb/<slug>`).
-	 * Each: {
-	 *   params:  [ { name, type, default?, desc } ]  // curated key attributes
-	 *   inner?:  [ { name, attrs? } ]                // innerBlocks template
-	 *   dynamic: bool                                 // server-rendered (self-closing markup)
-	 * }
-	 * Grows over time; a block absent here still lists and falls back to the live
-	 * registry attributes (full:true) or its doc link.
+	 * Structural hints that can't be derived from attributes.php: which blocks
+	 * need an innerBlocks template, and which are dynamic (server-rendered, so
+	 * add-block emits self-closing markup). Keyed by full block name. Extend as
+	 * container/parent blocks are covered.
 	 *
-	 * @var array<string,array>
+	 * @var array<string,array{inner?:array,dynamic?:bool}>
 	 */
-	const CURATED = array(
-		'uagb/advanced-heading' => array(
-			'dynamic' => false,
-			'params'  => array(
-				array( 'name' => 'headingTitle', 'type' => 'string', 'default' => 'Heading', 'desc' => 'The heading text.' ),
-				array( 'name' => 'headingDesc', 'type' => 'string', 'default' => '', 'desc' => 'Optional sub-heading / description.' ),
-				array( 'name' => 'headingTag', 'type' => 'string', 'default' => 'h2', 'desc' => 'HTML tag: h1-h6, p, span, div.' ),
-				array( 'name' => 'headingAlign', 'type' => 'string', 'default' => 'left', 'desc' => 'left | center | right.' ),
-				array( 'name' => 'headingColor', 'type' => 'color', 'default' => '', 'desc' => 'Heading text color.' ),
-			),
-		),
-		'uagb/info-box' => array(
-			'dynamic' => false,
-			'params'  => array(
-				array( 'name' => 'headingTitle', 'type' => 'string', 'default' => 'Info Box Title', 'desc' => 'Title text.' ),
-				array( 'name' => 'headingDesc', 'type' => 'string', 'default' => '', 'desc' => 'Description text.' ),
-				array( 'name' => 'source_type', 'type' => 'string', 'default' => 'icon', 'desc' => 'icon | image.' ),
-				array( 'name' => 'icon', 'type' => 'string', 'default' => 'info', 'desc' => 'Icon name when source_type is icon.' ),
-				array( 'name' => 'ctaType', 'type' => 'string', 'default' => 'none', 'desc' => 'none | text | button | all.' ),
-			),
-		),
-		'uagb/container' => array(
-			'dynamic' => false,
-			'params'  => array(
-				array( 'name' => 'innerContentWidth', 'type' => 'string', 'default' => 'alignfull', 'desc' => 'alignfull | alignwide | boxed.' ),
-				array( 'name' => 'directionDesktop', 'type' => 'string', 'default' => 'column', 'desc' => 'Flex direction: row | column.' ),
-				array( 'name' => 'backgroundType', 'type' => 'string', 'default' => 'none', 'desc' => 'none | color | image | gradient.' ),
-				array( 'name' => 'backgroundColor', 'type' => 'color', 'default' => '', 'desc' => 'Background color when backgroundType is color.' ),
-			),
-			'inner'   => array(),
-		),
-		'uagb/buttons' => array(
-			'dynamic' => false,
-			'params'  => array(
-				array( 'name' => 'align', 'type' => 'string', 'default' => 'left', 'desc' => 'Button group alignment.' ),
-			),
-			'inner'   => array(
-				array( 'name' => 'uagb/buttons-child', 'attrs' => array( 'label' => 'Click Here' ) ),
-			),
-		),
-		'uagb/separator' => array(
-			'dynamic' => false,
-			'params'  => array(
-				array( 'name' => 'separatorStyle', 'type' => 'string', 'default' => 'solid', 'desc' => 'solid | dashed | dotted | double.' ),
-				array( 'name' => 'separatorColor', 'type' => 'color', 'default' => '#0000001a', 'desc' => 'Separator color.' ),
-				array( 'name' => 'separatorWidth', 'type' => 'number', 'default' => 100, 'desc' => 'Width value.' ),
-			),
-		),
+	const STRUCTURE = array(
+		'uagb/buttons'          => array( 'inner' => array( array( 'name' => 'uagb/buttons-child' ) ) ),
+		'uagb/icon-list'        => array( 'inner' => array( array( 'name' => 'uagb/icon-list-child' ) ) ),
+		'uagb/tabs'             => array( 'inner' => array( array( 'name' => 'uagb/tabs-child' ) ) ),
+		'uagb/slider'           => array( 'inner' => array( array( 'name' => 'uagb/slider-child' ) ) ),
+		'uagb/social-share'     => array( 'inner' => array( array( 'name' => 'uagb/social-share-child' ) ) ),
+		'uagb/restaurant-menu'  => array( 'inner' => array( array( 'name' => 'uagb/restaurant-menu-child' ) ) ),
+		'uagb/faq'              => array( 'inner' => array( array( 'name' => 'uagb/faq-child' ) ) ),
+		'uagb/content-timeline' => array( 'inner' => array( array( 'name' => 'uagb/content-timeline-child' ) ) ),
+		// Dynamic (server-rendered) blocks — add-block emits self-closing markup.
+		'uagb/post-grid'        => array( 'dynamic' => true ),
+		'uagb/post-carousel'    => array( 'dynamic' => true ),
+		'uagb/post-masonry'     => array( 'dynamic' => true ),
+		'uagb/post-timeline'    => array( 'dynamic' => true ),
+		'uagb/google-map'       => array( 'dynamic' => true ),
+		'uagb/table-of-contents' => array( 'dynamic' => true ),
+		'uagb/taxonomy-list'    => array( 'dynamic' => true ),
+		'uagb/forms'            => array( 'dynamic' => true ),
 	);
 
+	/** Attributes returned by default (a curated key subset when set); [] = return all (capped). */
+	const HIGHLIGHT = array(
+		'uagb/advanced-heading' => array( 'headingAlign', 'headingColor', 'subHeadingColor', 'seperatorStyle', 'separatorColor' ),
+		'uagb/container'        => array( 'innerContentWidth', 'directionDesktop', 'backgroundType', 'backgroundColor' ),
+		'uagb/separator'        => array( 'separatorStyle', 'separatorColor', 'separatorWidth', 'separatorHeight' ),
+		'uagb/call-to-action'   => array( 'ctaType', 'ctaLink', 'ctaTarget', 'textAlign' ),
+	);
+
+	const DEFAULT_CAP = 30;
+
 	/**
-	 * Whether Spectra is active.
-	 *
-	 * @return bool
+	 * @return bool Whether Spectra is active.
 	 */
 	public static function is_active(): bool {
 		return function_exists( 'is_plugin_active' )
@@ -99,12 +74,11 @@ class EMCP_Tools_Spectra_Catalog {
 	}
 
 	/**
-	 * Compact block index from Spectra's own registry. Excludes child blocks,
-	 * extensions, and deprecated entries.
+	 * Compact block index from Spectra's registry (excludes child/extension/deprecated).
 	 *
-	 * @param string $category Optional admin category filter.
-	 * @param string $search   Optional case-insensitive title/description/slug filter.
-	 * @return array<int,array{name:string,title:string,description:string,category:string,doc:string,dynamic:bool}>
+	 * @param string $category Optional admin-category filter.
+	 * @param string $search   Optional case-insensitive filter.
+	 * @return array<int,array>
 	 */
 	public static function blocks_index( string $category = '', string $search = '' ): array {
 		$info   = class_exists( 'UAGB_Block_Module' ) ? (array) UAGB_Block_Module::get_blocks_info() : array();
@@ -117,7 +91,6 @@ class EMCP_Tools_Spectra_Catalog {
 				continue;
 			}
 			$cats = isset( $b['admin_categories'] ) ? (array) $b['admin_categories'] : array();
-			$cat  = $cats[0] ?? '';
 			if ( '' !== $category && ! in_array( $category, $cats, true ) ) {
 				continue;
 			}
@@ -133,19 +106,18 @@ class EMCP_Tools_Spectra_Catalog {
 				'name'        => $name,
 				'title'       => $title,
 				'description' => $desc,
-				'category'    => $cat,
+				'category'    => $cats[0] ?? '',
 				'doc'         => (string) ( $b['doc'] ?? '' ),
-				'dynamic'     => ! empty( $b['dynamic_assets'] ),
-				'curated'     => isset( self::CURATED[ $name ] ),
+				'dynamic'     => ! empty( $b['dynamic_assets'] ) || ! empty( self::STRUCTURE[ $name ]['dynamic'] ),
 			);
 		}
 		return $out;
 	}
 
 	/**
-	 * The raw get_blocks_info() entry for a block (or null).
+	 * The raw get_blocks_info() entry for a block, or null.
 	 *
-	 * @param string $name Full block name (`uagb/<slug>`).
+	 * @param string $name Full block name.
 	 * @return array|null
 	 */
 	public static function block_meta( string $name ): ?array {
@@ -154,20 +126,49 @@ class EMCP_Tools_Spectra_Catalog {
 	}
 
 	/**
-	 * The curated schema for a block, or null if it is not curated.
+	 * A block's REAL attributes (name => default) from Spectra's own
+	 * attributes.php. Tests seed $GLOBALS['_uagb_block_attributes'][$name].
 	 *
 	 * @param string $name Full block name.
-	 * @return array|null
+	 * @return array<string,mixed>
 	 */
-	public static function curated( string $name ): ?array {
-		return self::CURATED[ $name ] ?? null;
+	public static function real_attributes( string $name ): array {
+		if ( isset( $GLOBALS['_uagb_block_attributes'][ $name ] ) ) {
+			return (array) $GLOBALS['_uagb_block_attributes'][ $name ];
+		}
+		$slug = ( 0 === strpos( $name, 'uagb/' ) ) ? substr( $name, 5 ) : $name;
+		$dir  = defined( 'UAGB_DIR' ) ? UAGB_DIR : ( ( defined( 'WP_PLUGIN_DIR' ) ? WP_PLUGIN_DIR : '' ) . '/' . self::PLUGIN_SLUG . '/' );
+		$file = $dir . 'includes/blocks/' . $slug . '/attributes.php';
+		if ( self::is_active() && is_readable( $file ) ) {
+			$attrs = require $file; // returns the attributes array.
+			return is_array( $attrs ) ? $attrs : array();
+		}
+		return array();
 	}
 
 	/**
-	 * The documentation URL for a block from its doc slug.
+	 * The curated highlight attribute names for a block (real names), or [].
 	 *
 	 * @param string $name Full block name.
-	 * @return string
+	 * @return string[]
+	 */
+	public static function highlight( string $name ): array {
+		return self::HIGHLIGHT[ $name ] ?? array();
+	}
+
+	/**
+	 * Structure hint for a block: { inner?: [...], dynamic?: bool }.
+	 *
+	 * @param string $name Full block name.
+	 * @return array
+	 */
+	public static function structure( string $name ): array {
+		return self::STRUCTURE[ $name ] ?? array();
+	}
+
+	/**
+	 * @param string $name Full block name.
+	 * @return string Documentation URL, or ''.
 	 */
 	public static function doc_url( string $name ): string {
 		$meta = self::block_meta( $name );

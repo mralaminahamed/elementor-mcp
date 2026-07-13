@@ -55,13 +55,13 @@ class EMCP_Tools_Spectra_Integration extends EMCP_Tools_Theme_Integration {
 				'mode' => 'read',
 				'run'  => array( $this, 'execute_get_block_schema' ),
 				'perm' => array( $this, 'can_read' ),
-				'desc' => __( 'A Spectra block\'s curated key attributes + a ready-to-use example ({ name } or { names: [...] }). { full: true } returns the raw registered attributes when available.', 'emcp-tools' ),
+				'desc' => __( 'A Spectra block\'s key attributes (real names + defaults from Spectra) + a ready-to-use example ({ name } or { names: [...] }). { full: true } returns the block\'s full attribute set.', 'emcp-tools' ),
 			),
 			'add-block'        => array(
 				'mode' => 'write',
 				'run'  => array( $this, 'execute_add_block' ),
 				'perm' => array( $this, 'can_write' ),
-				'desc' => __( 'Insert a Spectra block into a post ({ post_id, block, attributes?, position? }), merging curated defaults and a generated block_id. position: { mode: append|prepend|before|after|inside, path?: [..] }.', 'emcp-tools' ),
+				'desc' => __( 'Insert a Spectra block into a post ({ post_id, block, attributes?, position? }); Spectra applies its own defaults, a block_id is generated. position: { mode: append|prepend|before|after|inside, path?: [..] }.', 'emcp-tools' ),
 			),
 		);
 	}
@@ -164,23 +164,41 @@ class EMCP_Tools_Spectra_Integration extends EMCP_Tools_Theme_Integration {
 			'doc'         => EMCP_Tools_Spectra_Catalog::doc_url( $name ),
 		);
 
-		$curated = EMCP_Tools_Spectra_Catalog::curated( $name );
-		if ( null !== $curated ) {
-			$entry['params']  = $curated['params'];
+		$real = EMCP_Tools_Spectra_Catalog::real_attributes( $name );
+		if ( ! empty( $real ) ) {
+			// Real attributes from Spectra's own attributes.php (names + defaults).
+			$highlight = EMCP_Tools_Spectra_Catalog::highlight( $name );
+			$keys      = ! empty( $highlight )
+				? array_values( array_intersect( $highlight, array_keys( $real ) ) )
+				: array_slice( array_keys( $real ), 0, EMCP_Tools_Spectra_Catalog::DEFAULT_CAP );
+			$params = array();
+			foreach ( $keys as $k ) {
+				$params[] = array( 'name' => $k, 'default' => $real[ $k ] );
+			}
+			$entry['attributes']       = $params;
+			$entry['total_attributes'] = count( $real );
+			if ( empty( $highlight ) && count( $real ) > count( $keys ) ) {
+				$entry['note'] = sprintf(
+					/* translators: 1: shown count, 2: total count. */
+					__( 'Showing the first %1$d of %2$d attributes; pass full:true for all. The heading/body text of static blocks is RichText content, not an attribute.', 'emcp-tools' ),
+					count( $keys ),
+					count( $real )
+				);
+			}
 			$entry['example'] = $this->example_markup( $name );
+			$entry['dynamic'] = ! empty( EMCP_Tools_Spectra_Catalog::structure( $name )['dynamic'] ) || ! empty( $meta['dynamic_assets'] );
 		} else {
 			$reg = $this->registered_block( $name );
 			if ( $reg && ! empty( $reg->attributes ) ) {
 				$entry['registered_attributes'] = array_keys( (array) $reg->attributes );
-				$entry['note']                  = __( 'Not curated yet; these are the registered attribute names. Use full:true for the raw schema, or see the doc link.', 'emcp-tools' );
+				$entry['note']                  = __( 'Attributes read from the block registry. Use full:true for the raw schema, or see the doc link.', 'emcp-tools' );
 			} else {
-				$entry['note'] = __( 'This block is editor-defined (attributes are not exposed server-side). See the doc link for its settings.', 'emcp-tools' );
+				$entry['note'] = __( 'Attributes are not available server-side for this block. See the doc link for its settings.', 'emcp-tools' );
 			}
 		}
 
 		if ( $full ) {
-			$reg                    = $this->registered_block( $name );
-			$entry['full_attributes'] = $reg ? (array) $reg->attributes : null;
+			$entry['full_attributes'] = ! empty( $real ) ? $real : ( ( $reg = $this->registered_block( $name ) ) ? (array) $reg->attributes : null );
 		}
 		return $entry;
 	}
@@ -205,20 +223,15 @@ class EMCP_Tools_Spectra_Integration extends EMCP_Tools_Theme_Integration {
 	 * @return array Parsed block array.
 	 */
 	private function build_block( string $name, array $attrs ): array {
-		$curated  = EMCP_Tools_Spectra_Catalog::curated( $name );
-		$defaults = array();
-		if ( null !== $curated ) {
-			foreach ( $curated['params'] as $p ) {
-				if ( array_key_exists( 'default', $p ) && '' !== $p['default'] ) {
-					$defaults[ $p['name'] ] = $p['default'];
-				}
-			}
-		}
-		$merged = array_merge( $defaults, $attrs, array( 'block_id' => EMCP_Tools_Id_Generator::generate() ) );
+		// Caller attributes + a generated block_id. Spectra applies its own
+		// defaults from the block's attributes.php, so the stored block stays
+		// minimal (only the caller's overrides + block_id).
+		$merged = array_merge( $attrs, array( 'block_id' => EMCP_Tools_Id_Generator::generate() ) );
 
 		$inner_blocks = array();
-		if ( null !== $curated && ! empty( $curated['inner'] ) ) {
-			foreach ( $curated['inner'] as $child ) {
+		$structure    = EMCP_Tools_Spectra_Catalog::structure( $name );
+		if ( ! empty( $structure['inner'] ) ) {
+			foreach ( $structure['inner'] as $child ) {
 				$inner_blocks[] = $this->build_block( (string) $child['name'], isset( $child['attrs'] ) ? (array) $child['attrs'] : array() );
 			}
 		}
