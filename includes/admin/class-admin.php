@@ -346,7 +346,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 15;
+	const DEFAULTS_VERSION = 16;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -547,6 +547,24 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.6.0
 	 */
+	/**
+	 * The Themes-domain dispatcher slugs (Active Theme + framework packs). Both
+	 * write dispatchers ship disabled-by-default; the per-framework packs are
+	 * env-gated (register only when that framework is active). Excluded from the
+	 * F-019 drift guard for that reason.
+	 *
+	 * @since 3.4.0
+	 * @return string[]
+	 */
+	public static function theme_tool_slugs(): array {
+		return array(
+			'emcp-tools/theme-read',
+			'emcp-tools/theme-write',
+			'emcp-tools/astra-read',
+			'emcp-tools/astra-write',
+		);
+	}
+
 	public function maybe_apply_default_disabled_tools(): void {
 		$applied = (int) get_option( self::OPTION_DEFAULTS_APPLIED, 0 );
 		if ( $applied >= self::DEFAULTS_VERSION ) {
@@ -643,6 +661,13 @@ class EMCP_Tools_Admin {
 		// with the rest of the SEO/A11y toolkit.
 		if ( $applied < 15 ) {
 			$add[] = 'emcp-tools/set-social-image';
+		}
+
+		// v16 — Themes-domain write dispatchers ship disabled-by-default (theme_mod
+		// writes + child-theme creation; per-framework settings writes). Reads on.
+		if ( $applied < 16 ) {
+			$add[] = 'emcp-tools/theme-write';
+			$add[] = 'emcp-tools/astra-write';
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -1650,6 +1675,7 @@ class EMCP_Tools_Admin {
 			'elementor' => __( 'Elementor', 'emcp-tools' ),
 			'wordpress' => __( 'WordPress', 'emcp-tools' ),
 			'plugins'   => __( 'Plugins', 'emcp-tools' ),
+			'themes'    => __( 'Themes', 'emcp-tools' ),
 			'gutenberg' => __( 'Gutenberg', 'emcp-tools' ),
 		);
 	}
@@ -1828,6 +1854,7 @@ class EMCP_Tools_Admin {
 			$emcp_conditional = array_merge(
 				self::themer_php_tool_slugs(),
 				self::acf_tool_slugs(),
+				self::theme_tool_slugs(),
 				array( 'emcp-tools/resize-media' )
 			);
 			foreach ( $catalog as $emcp_group ) {
@@ -2237,6 +2264,44 @@ class EMCP_Tools_Admin {
 							'create-taxonomy',
 							'update-taxonomy',
 						),
+					),
+				),
+			),
+			'theme_active'     => array(
+				'platform' => 'themes',
+				'label'    => __( 'Active Theme', 'emcp-tools' ),
+				'note'     => __( 'Theme integrations are exposed as two tools — one Read, one Write — that bundle internal operations. The AI calls a tool with an operation name; toggle a tool to allow or block all of its operations at once.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/theme-read'  => array(
+						'label'       => __( 'Theme Read', 'emcp-tools' ),
+						'description' => __( 'Read the active theme: context (framework, block-theme, supports, menu locations, child status) and theme_mod values.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+						'operations'  => array( 'get-theme-context', 'get-mods' ),
+					),
+					'emcp-tools/theme-write' => array(
+						'label'       => __( 'Theme Write', 'emcp-tools' ),
+						'description' => __( 'Set theme_mod values and create + activate a child theme so the agent can edit theme files (create-child-theme requires confirm:true).', 'emcp-tools' ),
+						'badges'      => array(),
+						'operations'  => array( 'set-mods', 'create-child-theme' ),
+					),
+				),
+			),
+			'theme_astra'      => array(
+				'platform' => 'themes',
+				'label'    => __( 'Astra', 'emcp-tools' ),
+				'note'     => __( 'Astra theme settings, exposed only when Astra is the active theme.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/astra-read'  => array(
+						'label'       => __( 'Astra Read', 'emcp-tools' ),
+						'description' => __( 'Read curated Astra settings (colors, typography, layout, header/footer) with value + type/label/group metadata.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+						'operations'  => array( 'get-settings' ),
+					),
+					'emcp-tools/astra-write' => array(
+						'label'       => __( 'Astra Write', 'emcp-tools' ),
+						'description' => __( 'Write curated Astra settings; non-allowlisted keys are reported in skipped[].', 'emcp-tools' ),
+						'badges'      => array(),
+						'operations'  => array( 'update-settings' ),
 					),
 				),
 			),
