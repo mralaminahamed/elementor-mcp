@@ -346,7 +346,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 17;
+	const DEFAULTS_VERSION = 18;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -677,6 +677,12 @@ class EMCP_Tools_Admin {
 			$add[] = 'emcp-tools/spectra-write';
 		}
 
+		// v18 — WP-CLI tools (run + background jobs) ship disabled-by-default
+		// (command execution surface). All four are off until the admin opts in.
+		if ( $applied < 18 ) {
+			$add = array_merge( $add, EMCP_Tools_WPCLI_Abilities::slugs() );
+		}
+
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
 		update_option( self::OPTION_DISABLED_TOOLS, $merged );
 		update_option( self::OPTION_DEFAULTS_APPLIED, (string) self::DEFAULTS_VERSION );
@@ -874,6 +880,21 @@ class EMCP_Tools_Admin {
 				'default'           => '0',
 				'sanitize_callback' => static function ( $value ) {
 					return '1' === (string) $value ? '1' : '0';
+				},
+			)
+		);
+
+		// WP-CLI base command (Connection → 3rd Party Services) — the `wp` launcher
+		// used for the shell / background-job path over HTTP (e.g. "wp" or
+		// "php /path/to/wp-cli.phar"). Empty = in-process only (WP-CLI stdio).
+		register_setting(
+			self::SETTINGS_GROUP_SERVICES,
+			'emcp_tools_wpcli_command',
+			array(
+				'type'              => 'string',
+				'default'           => '',
+				'sanitize_callback' => static function ( $value ) {
+					return sanitize_text_field( (string) $value );
 				},
 			)
 		);
@@ -2178,6 +2199,17 @@ class EMCP_Tools_Admin {
 					'emcp-tools/insert-row'     => array( 'label' => __( 'Insert Row', 'emcp-tools' ),     'description' => __( 'Insert a row (parameterized). Disabled by default.', 'emcp-tools' ),   'badges' => array() ),
 					'emcp-tools/update-rows'    => array( 'label' => __( 'Update Rows', 'emcp-tools' ),    'description' => __( 'Update rows matching a WHERE. Disabled by default.', 'emcp-tools' ),   'badges' => array() ),
 					'emcp-tools/delete-rows'    => array( 'label' => __( 'Delete Rows', 'emcp-tools' ),    'description' => __( 'Delete rows matching a WHERE (confirm). Disabled by default.', 'emcp-tools' ), 'badges' => array() ),
+				),
+			),
+			'wpcli'            => array(
+				'platform' => 'wordpress',
+				'danger'   => true,
+				'label' => __( 'WP-CLI', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/run-wp-cli'       => array( 'label' => __( 'Run WP-CLI Command', 'emcp-tools' ), 'description' => __( 'Run a wp-cli command (blocklist-guarded: no eval/shell/raw-SQL/config-writes). Disabled by default.', 'emcp-tools' ), 'badges' => array() ),
+					'emcp-tools/dispatch-wp-cli'  => array( 'label' => __( 'Dispatch WP-CLI Job', 'emcp-tools' ), 'description' => __( 'Run a wp-cli command as a detached background job (long migrations / bulk tasks). Disabled by default.', 'emcp-tools' ), 'badges' => array() ),
+					'emcp-tools/get-wp-cli-job'   => array( 'label' => __( 'Get WP-CLI Job', 'emcp-tools' ), 'description' => __( 'Poll a background job\'s status, exit code, and output.', 'emcp-tools' ), 'badges' => array( 'read-only' ) ),
+					'emcp-tools/list-wp-cli-jobs' => array( 'label' => __( 'List WP-CLI Jobs', 'emcp-tools' ), 'description' => __( 'List recent WP-CLI background jobs.', 'emcp-tools' ), 'badges' => array( 'read-only' ) ),
 				),
 			),
 			'transactions'     => array(

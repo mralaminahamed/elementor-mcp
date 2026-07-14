@@ -458,6 +458,26 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 						</div>
 					<?php endforeach; ?>
 				</div>
+
+				<?php $emcp_wpcli_const = defined( 'EMCP_TOOLS_WPCLI_COMMAND' ); ?>
+				<div class="emcp-service-field" style="margin-top:22px;padding-top:20px;border-top:1px solid var(--mcp-line,#e5e7eb);">
+					<div class="emcp-service-field-head">
+						<label for="emcp-tools-wpcli-command">
+							<?php esc_html_e( 'WP-CLI base command', 'emcp-tools' ); ?>
+							<?php if ( $emcp_wpcli_const ) : ?><span class="emcp-service-badge"><?php esc_html_e( 'constant', 'emcp-tools' ); ?></span><?php endif; ?>
+						</label>
+					</div>
+					<input
+						type="text"
+						id="emcp-tools-wpcli-command"
+						name="emcp_tools_wpcli_command"
+						value="<?php echo esc_attr( $emcp_wpcli_const ? '' : (string) get_option( 'emcp_tools_wpcli_command', '' ) ); ?>"
+						placeholder="<?php echo esc_attr( $emcp_wpcli_const ? sprintf( __( 'Set via the %s constant', 'emcp-tools' ), 'EMCP_TOOLS_WPCLI_COMMAND' ) : 'wp   —   or   php /path/to/wp-cli.phar' ); ?>"
+						autocomplete="off" spellcheck="false"
+						<?php disabled( $emcp_wpcli_const ); ?>
+					/>
+					<p class="description"><?php esc_html_e( 'The wp launcher used by the WP-CLI tools over HTTP and for background jobs (e.g. "wp", or "php /path/to/wp-cli.phar"). Leave blank if you connect only over the WP-CLI stdio transport — commands then run in-process, no binary needed.', 'emcp-tools' ); ?></p>
+				</div>
 			</form>
 		</div>
 	</div><?php // /#emcp-conn-services ?>

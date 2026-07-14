@@ -150,6 +150,11 @@ class EMCP_Tools_Bootstrap {
 		// Database tools (read-only query + structured writes; writes off by default).
 		require_once EMCP_TOOLS_DIR . 'includes/class-database-guard.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-database-abilities.php';
+		// WP-CLI tools (run + background jobs; disabled-by-default, manage_options).
+		require_once EMCP_TOOLS_DIR . 'includes/wpcli/class-wpcli-validator.php';
+		require_once EMCP_TOOLS_DIR . 'includes/wpcli/class-wpcli-runner.php';
+		require_once EMCP_TOOLS_DIR . 'includes/wpcli/class-wpcli-jobs.php';
+		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-wpcli-abilities.php';
 		// Security & Malware Scanner (v3.0.0) — read-only multi-audit scan.
 		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-finding.php';
 		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-malware-audit.php';
