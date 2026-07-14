@@ -228,6 +228,11 @@ class EMCP_Tools_Ability_Registrar {
 		$database->register();
 		$this->ability_names = array_merge( $this->ability_names, $database->get_ability_names() );
 
+		// WP-CLI tools (run + background jobs; disabled-by-default, manage_options).
+		$wpcli = new EMCP_Tools_WPCLI_Abilities();
+		$wpcli->register();
+		$this->ability_names = array_merge( $this->ability_names, $wpcli->get_ability_names() );
+
 		// Security & Malware Scanner (read-only).
 		$security = new EMCP_Tools_Security_Abilities();
 		$security->register();
