@@ -256,16 +256,18 @@ class EMCP_Tools_Plugin {
 		// Compact tool mode: surface only the 3 dispatcher tools instead of every
 		// individual ability (the rest stay registered and reachable via call-tool).
 		if ( self::is_dispatcher_mode() ) {
+			// Exactly the 3 meta-tools — the core context abilities are folded in
+			// too (reachable through call-tool), so the surface stays at 3.
 			$tools = EMCP_Tools_Dispatcher_Abilities::NAMES;
 		} else {
 			$tools = $this->ability_names;
-		}
 
-		// Also expose WordPress core's read-only context abilities (site/user/
-		// environment info) on our server — registered by core, free to surface.
-		foreach ( array( 'core/get-site-info', 'core/get-user-info', 'core/get-environment-info' ) as $emcp_core_ability ) {
-			if ( function_exists( 'wp_get_ability' ) && wp_get_ability( $emcp_core_ability ) && ! in_array( $emcp_core_ability, $tools, true ) ) {
-				$tools[] = $emcp_core_ability;
+			// Also expose WordPress core's read-only context abilities (site/user/
+			// environment info) on our server — registered by core, free to surface.
+			foreach ( array( 'core/get-site-info', 'core/get-user-info', 'core/get-environment-info' ) as $emcp_core_ability ) {
+				if ( function_exists( 'wp_get_ability' ) && wp_get_ability( $emcp_core_ability ) && ! in_array( $emcp_core_ability, $tools, true ) ) {
+					$tools[] = $emcp_core_ability;
+				}
 			}
 		}
 

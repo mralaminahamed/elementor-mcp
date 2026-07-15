@@ -40,10 +40,21 @@ class EMCP_Tools_Dispatcher_Abilities {
 	 * @return string[]
 	 */
 	protected function active_names(): array {
+		$names = array();
 		if ( class_exists( 'EMCP_Tools_Plugin' ) && method_exists( 'EMCP_Tools_Plugin', 'instance' ) ) {
-			return EMCP_Tools_Plugin::instance()->get_active_ability_names();
+			$names = EMCP_Tools_Plugin::instance()->get_active_ability_names();
 		}
-		return array();
+		// Fold in the same WordPress core context abilities the server surfaces
+		// directly in full mode, so they stay listable + callable via call-tool
+		// in compact mode (where the top-level surface is just the 3 meta-tools).
+		if ( function_exists( 'wp_get_ability' ) ) {
+			foreach ( array( 'core/get-site-info', 'core/get-user-info', 'core/get-environment-info' ) as $core ) {
+				if ( wp_get_ability( $core ) && ! in_array( $core, $names, true ) ) {
+					$names[] = $core;
+				}
+			}
+		}
+		return $names;
 	}
 
 	/**
