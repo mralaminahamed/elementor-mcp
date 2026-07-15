@@ -4153,3 +4153,45 @@ body.emcp-modal-open { overflow: hidden; }
 	flex: 0 0 auto;
 	margin-top: 1px;
 }
+
+/* ===== Connection: authentication-method chooser + OAuth ===== */
+.emcp-auth-methods {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	max-width: 720px;
+}
+.emcp-auth-card {
+	display: block;
+	position: relative;
+	padding: 18px 20px;
+	border: 2px solid var(--mcp-line, #e2e4ea);
+	border-radius: 12px;
+	cursor: pointer;
+	background: #fff;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+.emcp-auth-card:hover { border-color: #c7cbe0; }
+.emcp-auth-card:has(input:checked) {
+	border-color: #4f46e5;
+	box-shadow: 0 0 0 1px #4f46e5 inset;
+}
+.emcp-auth-card.is-disabled { opacity: .55; cursor: not-allowed; }
+.emcp-auth-card.is-disabled:hover { border-color: var(--mcp-line, #e2e4ea); }
+.emcp-auth-card input { position: absolute; opacity: 0; pointer-events: none; }
+.emcp-auth-card__title {
+	display: flex; align-items: center; gap: 10px;
+	font-size: 15px; font-weight: 600; color: #1e1f2b; margin-bottom: 6px;
+}
+.emcp-auth-card__desc { display: block; font-size: 13px; color: #64677a; line-height: 1.5; }
+.emcp-auth-card__note { display: block; margin-top: 8px; font-size: 12.5px; color: #9497a8; }
+.emcp-auth-badge {
+	font-size: 11px; font-weight: 600; color: #16794a;
+	background: #dff3e6; border-radius: 999px; padding: 2px 9px;
+}
+.emcp-manage-apps-link { font-size: 13px; }
+.emcp-oauth-signin { margin-top: 4px; }
+.emcp-oauth-signin-title { margin: 0 0 4px; }
+body[data-emcp-auth="oauth"] [data-authfor="app-password"] { display: none; }
+body[data-emcp-auth="app-password"] [data-authfor="oauth"] { display: none; }
+@media (max-width: 600px) { .emcp-auth-methods { grid-template-columns: 1fr; } }

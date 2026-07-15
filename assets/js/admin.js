@@ -234,6 +234,34 @@
 			return;
 		}
 
+		// Endpoint is available without generating credentials (OAuth mode needs it).
+		if ( typeof emcpToolsAdmin !== 'undefined' && emcpToolsAdmin.mcpEndpoint && ! window.emcpConn ) {
+			window.emcpConn = { endpoint: emcpToolsAdmin.mcpEndpoint, siteUrl: emcpToolsAdmin.siteUrl || '' };
+		}
+
+		// Authentication-method chooser: toggle the flow + re-render the selected
+		// client for the chosen method (OAuth = sign-in, app-password = configs).
+		var authRadios = document.querySelectorAll( 'input[name="emcp_auth_method"]' );
+		function emcpApplyAuthMethod() {
+			document.body.setAttribute( 'data-emcp-auth', emcpAuthMethod() );
+			var sel = document.querySelector( '.elementor-mcp-client-card.is-selected' );
+			if ( sel ) { emcpSelectClient( sel.getAttribute( 'data-client' ) ); }
+		}
+		for ( var ai = 0; ai < authRadios.length; ai++ ) {
+			authRadios[ ai ].addEventListener( 'change', emcpApplyAuthMethod );
+		}
+		document.body.setAttribute( 'data-emcp-auth', emcpAuthMethod() );
+
+		// The client picker is always visible now; auto-select so steps show.
+		var picker = document.getElementById( 'elementor-mcp-client-picker' );
+		if ( picker ) {
+			picker.style.display = '';
+			var savedClient = window.localStorage.getItem( 'emcpConnClient' );
+			var firstCard = document.querySelector( '.elementor-mcp-client-card' );
+			var pick = savedClient || ( firstCard ? firstCard.getAttribute( 'data-client' ) : '' );
+			if ( pick ) { emcpSelectClient( pick ); }
+		}
+
 		// The Basic Authorization header from the last generated credentials,
 		// used by the auth self-test (#41).
 		var emcpAuthHeader = '';
@@ -1251,9 +1279,35 @@
 			'<textarea id="' + id + '" class="elementor-mcp-copy-source">' + emcpEscapeHtml( text ) + '</textarea></div>';
 	}
 
+	// The selected authentication method (falls back to whatever is available).
+	function emcpAuthMethod() {
+		var r = document.querySelector( 'input[name="emcp_auth_method"]:checked' );
+		if ( r ) { return r.value; }
+		return ( typeof emcpToolsAdmin !== 'undefined' && emcpToolsAdmin.oauthEnabled ) ? 'oauth' : 'app-password';
+	}
+
+	// OAuth setup for a client: the connect command (or connector URL) + a
+	// "sign in" note. No credentials — the browser sign-in supplies auth.
+	function emcpRenderOAuth( client ) {
+		var endpoint = ( window.emcpConn && window.emcpConn.endpoint ) || emcpToolsAdmin.mcpEndpoint;
+		var out = '';
+		if ( client.oauth ) {
+			var cmd = String( client.oauth ).replace( /%NAME%/g, emcpServerName() ).replace( /%ENDPOINT%/g, endpoint );
+			out += emcpCopyBlock( 'a. Run this in your terminal', cmd );
+		} else {
+			out += emcpCopyBlock( 'a. Add this site as an HTTP MCP server (paste the URL)', endpoint );
+		}
+		out += '<div class="emcp-oauth-signin"><p class="emcp-oauth-signin-title"><strong>b. Sign in</strong></p>' +
+			'<p class="description">' +
+			emcpEscapeHtml( ( typeof emcpToolsAdmin !== 'undefined' && emcpToolsAdmin.oauthSignin ) || 'The next time your AI client connects, your browser opens so you can authorize it. Approve to finish connecting.' ) +
+			'</p></div>';
+		return out;
+	}
+
 	function emcpSelectClient( id ) {
 		var client = emcpClientById( id );
-		if ( ! client || ! window.emcpConn ) { return; }
+		if ( ! client ) { return; }
+		if ( ! window.emcpConn ) { window.emcpConn = { endpoint: emcpToolsAdmin.mcpEndpoint }; }
 		window.localStorage.setItem( 'emcpConnClient', id );
 
 		// toggle card selected state
@@ -1271,6 +1325,17 @@
 
 		var html = '';
 		var m = client.methods;
+		var method = emcpAuthMethod();
+
+		if ( method === 'oauth' ) {
+			// OAuth mode: no credentials — connect command + browser sign-in.
+			html = emcpRenderOAuth( client );
+		} else if ( ! window.emcpConn.b64 ) {
+			// App-password mode needs generated credentials first.
+			html = '<p class="description">' +
+				emcpEscapeHtml( ( emcpToolsAdmin.genFirst || 'Generate your credentials above — the config for %s then appears here.' ).replace( '%s', client.label ) ) +
+				'</p>';
+		} else {
 
 		// 0) Client-specific setup guide (e.g. Codex's custom-MCP form mapping).
 		//    %ENDPOINT%/%B64% are filled with the live, escaped values.
@@ -1313,6 +1378,7 @@
 				html += emcpCopyBlock( label, JSON.stringify( emcpJsonConfig( variant ), null, 4 ) );
 			}
 		} );
+		} // /else (app-password mode with generated credentials)
 
 		var host = document.getElementById( 'elementor-mcp-client-options' );
 		if ( host ) { host.innerHTML = html; }
