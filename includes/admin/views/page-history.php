@@ -34,6 +34,11 @@ $emcp_domain_labels = array(
 // Result notice after a rollback.
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only notice.
 $emcp_rb = isset( $_GET['rollback'] ) ? sanitize_key( wp_unslash( $_GET['rollback'] ) ) : '';
+// Result notices after a delete / clear-all.
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only notice.
+$emcp_del = isset( $_GET['deleted'] ) ? sanitize_key( wp_unslash( $_GET['deleted'] ) ) : '';
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only notice.
+$emcp_cleared = isset( $_GET['cleared'] ) ? absint( wp_unslash( $_GET['cleared'] ) ) : -1;
 ?>
 
 <div class="emcp-history">
@@ -48,12 +53,40 @@ $emcp_rb = isset( $_GET['rollback'] ) ? sanitize_key( wp_unslash( $_GET['rollbac
 		</p></div>
 	<?php endif; ?>
 
+	<?php if ( '1' === $emcp_del ) : ?>
+		<div class="notice notice-success is-dismissible"><p><strong><?php esc_html_e( 'History entry deleted.', 'emcp-tools' ); ?></strong></p></div>
+	<?php elseif ( '0' === $emcp_del ) : ?>
+		<div class="notice notice-error is-dismissible"><p><strong><?php esc_html_e( 'That history entry no longer exists.', 'emcp-tools' ); ?></strong></p></div>
+	<?php endif; ?>
+
+	<?php if ( $emcp_cleared > -1 ) : ?>
+		<div class="notice notice-success is-dismissible"><p><strong>
+			<?php
+			printf(
+				/* translators: %s: number of history entries removed */
+				esc_html( _n( 'Cleared %s history entry.', 'Cleared %s history entries.', $emcp_cleared, 'emcp-tools' ) ),
+				esc_html( number_format_i18n( $emcp_cleared ) )
+			);
+			?>
+		</strong></p></div>
+	<?php endif; ?>
+
 	<div class="emcp-history__head">
 		<div>
 			<h2 class="emcp-history__title"><?php esc_html_e( 'Change history', 'emcp-tools' ); ?></h2>
 			<p class="emcp-history__intro">
 				<?php esc_html_e( 'Every AI-made change to Elementor pages, files, and the database is recorded here. Reversible changes can be rolled back with one click.', 'emcp-tools' ); ?>
 			</p>
+			<?php if ( ! empty( $emcp_entries ) ) : ?>
+				<p class="emcp-history__clear-wrap">
+					<a class="button button-link-delete emcp-history__clear"
+						href="<?php echo esc_url( EMCP_Tools_Admin::clear_changes_url() ); ?>"
+						onclick="return confirm('<?php echo esc_js( __( 'Clear the entire change history? This cannot be undone, and any entries that could still be rolled back will lose that ability.', 'emcp-tools' ) ); ?>');">
+						<span class="dashicons dashicons-trash" aria-hidden="true"></span>
+						<?php esc_html_e( 'Clear all', 'emcp-tools' ); ?>
+					</a>
+				</p>
+			<?php endif; ?>
 		</div>
 		<ul class="emcp-history__filters">
 			<li<?php echo '' === $emcp_domain ? ' class="is-active"' : ''; ?>><a href="<?php echo esc_url( admin_url( 'admin.php?page=' . EMCP_Tools_Admin::PAGE_SLUG . '-history' ) ); ?>"><?php esc_html_e( 'All', 'emcp-tools' ); ?></a></li>
@@ -115,6 +148,17 @@ $emcp_rb = isset( $_GET['rollback'] ) ? sanitize_key( wp_unslash( $_GET['rollbac
 							<?php else : ?>
 								<span class="emcp-history__state">—</span>
 							<?php endif; ?>
+							<a class="emcp-history__delete"
+								href="<?php echo esc_url( EMCP_Tools_Admin::delete_change_url( $emcp_id ) ); ?>"
+								aria-label="<?php esc_attr_e( 'Delete this history entry', 'emcp-tools' ); ?>"
+								onclick="return confirm('<?php echo esc_js(
+									$emcp_reversible
+										? __( 'Delete this entry? It can still be rolled back — deleting it discards that ability permanently.', 'emcp-tools' )
+										: __( 'Delete this history entry? This cannot be undone.', 'emcp-tools' )
+								); ?>');">
+								<span class="dashicons dashicons-trash" aria-hidden="true"></span>
+								<span class="screen-reader-text"><?php esc_html_e( 'Delete', 'emcp-tools' ); ?></span>
+							</a>
 						</td>
 					</tr>
 				<?php endforeach; ?>

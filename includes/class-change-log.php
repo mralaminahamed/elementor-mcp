@@ -108,6 +108,50 @@ class EMCP_Tools_Change_Log {
 	}
 
 	/**
+	 * Delete a single entry from the ledger.
+	 *
+	 * Note: an entry carries its own before-image, so deleting a reversible
+	 * entry permanently forfeits the ability to roll it back. The admin UI
+	 * warns about this before calling.
+	 *
+	 * @since 3.4.2
+	 * @param string $id Entry id.
+	 * @return bool True when an entry was removed.
+	 */
+	public static function delete( string $id ): bool {
+		if ( '' === $id ) {
+			return false;
+		}
+		$log   = self::all();
+		$kept  = array();
+		$found = false;
+		foreach ( $log as $e ) {
+			if ( ! $found && isset( $e['id'] ) && $e['id'] === $id ) {
+				$found = true;
+				continue;
+			}
+			$kept[] = $e;
+		}
+		if ( ! $found ) {
+			return false;
+		}
+		update_option( self::OPTION, array_values( $kept ), false );
+		return true;
+	}
+
+	/**
+	 * Wipe the whole ledger.
+	 *
+	 * @since 3.4.2
+	 * @return int Number of entries removed.
+	 */
+	public static function clear(): int {
+		$count = count( self::all() );
+		update_option( self::OPTION, array(), false );
+		return $count;
+	}
+
+	/**
 	 * Enforce count + size caps by dropping the oldest entries.
 	 *
 	 * @param array $log Entries.

@@ -232,6 +232,8 @@ class EMCP_Tools_Admin {
 		add_action( 'admin_post_emcp_tools_download_mcpb', array( $this, 'handle_download_mcpb' ) );
 		add_action( 'admin_post_' . self::ACTION_DISMISS_PROMPTS_NOTICE, array( $this, 'handle_dismiss_prompts_notice' ) );
 		add_action( 'admin_post_' . self::ACTION_ROLLBACK_CHANGE, array( $this, 'handle_rollback_change' ) );
+		add_action( 'admin_post_' . self::ACTION_DELETE_CHANGE, array( $this, 'handle_delete_change' ) );
+		add_action( 'admin_post_' . self::ACTION_CLEAR_CHANGES, array( $this, 'handle_clear_changes' ) );
 		add_action( 'admin_post_' . self::ACTION_REVOKE_OAUTH, array( $this, 'handle_revoke_oauth_client' ) );
 	}
 
@@ -243,6 +245,12 @@ class EMCP_Tools_Admin {
 
 	/** admin-post action that rolls back a change from the History tab. */
 	const ACTION_ROLLBACK_CHANGE = 'emcp_tools_rollback_change';
+
+	/** admin-post action that deletes one entry from the History ledger. */
+	const ACTION_DELETE_CHANGE = 'emcp_tools_delete_change';
+
+	/** admin-post action that clears the whole History ledger. */
+	const ACTION_CLEAR_CHANGES = 'emcp_tools_clear_changes';
 
 	/**
 	 * admin-post action: revoke all tokens for one OAuth client.
@@ -284,6 +292,69 @@ class EMCP_Tools_Admin {
 			: 'ok';
 
 		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-history&rollback=' . $status ) );
+		exit;
+	}
+
+	/**
+	 * Nonce'd URL that deletes one History entry.
+	 *
+	 * @since 3.4.2
+	 * @param string $id Entry id.
+	 * @return string
+	 */
+	public static function delete_change_url( string $id ): string {
+		return wp_nonce_url(
+			admin_url( 'admin-post.php?action=' . self::ACTION_DELETE_CHANGE . '&change=' . rawurlencode( $id ) ),
+			self::ACTION_DELETE_CHANGE . '_' . $id
+		);
+	}
+
+	/**
+	 * Nonce'd URL that clears the whole History ledger.
+	 *
+	 * @since 3.4.2
+	 * @return string
+	 */
+	public static function clear_changes_url(): string {
+		return wp_nonce_url(
+			admin_url( 'admin-post.php?action=' . self::ACTION_CLEAR_CHANGES ),
+			self::ACTION_CLEAR_CHANGES
+		);
+	}
+
+	/**
+	 * Delete one entry from the History ledger, then bounce back with a notice.
+	 *
+	 * @since 3.4.2
+	 */
+	public function handle_delete_change(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do that.', 'emcp-tools' ), '', array( 'response' => 403 ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified just below against the per-id action.
+		$id = isset( $_GET['change'] ) ? sanitize_text_field( wp_unslash( $_GET['change'] ) ) : '';
+		check_admin_referer( self::ACTION_DELETE_CHANGE . '_' . $id );
+
+		$deleted = class_exists( 'EMCP_Tools_Change_Log' ) && EMCP_Tools_Change_Log::delete( $id );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-history&deleted=' . ( $deleted ? '1' : '0' ) ) );
+		exit;
+	}
+
+	/**
+	 * Clear the whole History ledger, then bounce back with a notice.
+	 *
+	 * @since 3.4.2
+	 */
+	public function handle_clear_changes(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do that.', 'emcp-tools' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( self::ACTION_CLEAR_CHANGES );
+
+		$count = class_exists( 'EMCP_Tools_Change_Log' ) ? EMCP_Tools_Change_Log::clear() : 0;
+
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-history&cleared=' . (int) $count ) );
 		exit;
 	}
 
