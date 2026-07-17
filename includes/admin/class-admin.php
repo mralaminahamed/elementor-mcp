@@ -623,6 +623,22 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * The Meta Box dispatcher tool slugs. The domain registers as two dispatcher
+	 * tools (metabox-read enabled by default, metabox-write disabled by default);
+	 * the operations live behind them. Both slugs are excluded from the drift
+	 * guard since the domain only registers when Meta Box is active.
+	 *
+	 * @since 3.4.2
+	 * @return string[]
+	 */
+	public static function metabox_tool_slugs(): array {
+		return array(
+			'emcp-tools/metabox-read',
+			'emcp-tools/metabox-write',
+		);
+	}
+
+	/**
 	 * The pre-release per-operation ACF slugs (the earlier 15-tool layout).
 	 * Kept only so the defaults step can strip them from the stored option on
 	 * sites that seeded them before the 2-dispatcher consolidation.
@@ -794,10 +810,12 @@ class EMCP_Tools_Admin {
 			$add = array_merge( $add, EMCP_Tools_WPCLI_Abilities::slugs() );
 		}
 
-		// v19 — WooCommerce write dispatcher ships disabled-by-default (money +
-		// PII surface). woo-read stays enabled.
+		// v19 — WooCommerce + Meta Box write dispatchers ship disabled-by-default.
+		// Woo write is the money/PII surface; Meta Box write edits custom-field
+		// values. Both read dispatchers stay enabled.
 		if ( $applied < 19 ) {
 			$add[] = 'emcp-tools/woo-write';
+			$add[] = 'emcp-tools/metabox-write';
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -2195,6 +2213,7 @@ class EMCP_Tools_Admin {
 				self::themer_php_tool_slugs(),
 				self::acf_tool_slugs(),
 				self::woo_tool_slugs(),
+				self::metabox_tool_slugs(),
 				self::theme_tool_slugs(),
 				array( 'emcp-tools/resize-media' )
 			);
@@ -2639,6 +2658,31 @@ class EMCP_Tools_Admin {
 						'operations'       => array( 'create-product', 'update-order', 'create-refund', 'create-customer', 'delete-order', 'update-setting', '… ~59 write operations' ),
 						'available'        => self::woo_available(),
 						'unavailable_note' => __( 'Install & activate WooCommerce to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_metabox'       => array(
+				'platform' => 'plugins',
+				'label'    => __( 'Meta Box', 'emcp-tools' ),
+				'note'     => __( 'Plugin integrations are exposed as two tools — one Read, one Write. The AI calls a tool with an operation name; each tool bundles the operations listed on its card. Toggle a tool to allow or block all of its operations at once.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/metabox-read'  => array(
+						'label'       => __( 'Meta Box Read', 'emcp-tools' ),
+						'description' => __( 'Read Meta Box data — field groups, field definitions, and field values for posts and other supported object types.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+						'operations'  => array(
+							'list-field-groups',
+							'get-field-group',
+							'get-fields',
+						),
+					),
+					'emcp-tools/metabox-write' => array(
+						'label'       => __( 'Meta Box Write', 'emcp-tools' ),
+						'description' => __( 'Write Meta Box field values. No delete operations; unknown fields are skipped, not created.', 'emcp-tools' ),
+						'badges'      => array(),
+						'operations'  => array(
+							'update-fields',
+						),
 					),
 				),
 			),
