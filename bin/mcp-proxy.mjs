@@ -32,6 +32,10 @@ import { request as httpsRequest } from 'node:https';
 import { appendFileSync, readFileSync } from 'node:fs';
 
 const MCP_REST_PATH = '/mcp/emcp-tools-server';
+// A named User-Agent so WAFs/CDNs (Cloudflare, etc.) that block requests with
+// a missing/empty UA don't reject the proxy as a bot. Aggressive bot-protection
+// modes may still block it — those need a host-side allow rule for the MCP path.
+const PROXY_UA = 'emcp-proxy/1.9.2 (+https://emcptools.com; MCP client)';
 const MCP_LOG_FILE = process.env.MCP_LOG_FILE || '';
 const MCP_PROTOCOL_VERSION = process.env.MCP_PROTOCOL_VERSION || '';
 
@@ -212,7 +216,7 @@ function runProxy() {
       const options = {
         hostname: site.parsed.hostname,
         port: site.parsed.port || (isHttps ? 443 : 80),
-        path: `${sitePath(site)}/wp-json/`, method: 'HEAD', headers: { Accept: 'application/json' },
+        path: `${sitePath(site)}/wp-json/`, method: 'HEAD', headers: { Accept: 'application/json', 'User-Agent': PROXY_UA },
       };
       if (isHttps && site.isLocalDev) options.rejectUnauthorized = false;
       const { statusCode } = await doHttpRequest(site, options, '');
@@ -232,7 +236,7 @@ function runProxy() {
       logStderr(`[${alias}] permalinks: ${state.permalinks[alias] ? 'pretty' : 'plain'}`);
     }
     const auth = Buffer.from(`${site.username}:${site.appPassword}`).toString('base64');
-    const headers = { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Basic ${auth}` };
+    const headers = { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Basic ${auth}`, 'User-Agent': PROXY_UA };
     if (state.session[alias]) headers['Mcp-Session-Id'] = state.session[alias];
     const payload = JSON.stringify(message);
     const isHttps = site.parsed.protocol === 'https:';
