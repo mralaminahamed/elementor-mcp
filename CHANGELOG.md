@@ -2,12 +2,14 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
-## [3.4.3]
+## [3.5.0]
 
-> Clearer Pro tool sections on free builds.
+> Forms plugin integrations (CF7 free + WPForms/Gravity/Fluent/Ninja/Formidable Pro), clearer Pro tool sections, a redesigned Dashboard usage panel, and an organized Plugins tab.
 
 ### Changed
 - **Pro tool sections are now visible (and clearly marked) on free builds.** WooCommerce, SEO & Accessibility, and Widget Builder used to either show interactive toggles with no "Pro" indication (WooCommerce) or not appear at all (SEO / Widget Builder). They now always appear on the Tools tab with a **Pro** badge, their toggles **disabled**, and a **"Requires EMCP Pro — Upgrade"** link — so it's clear what Pro unlocks. No functional change: the Pro abilities were already license-gated and never callable on free.
+- **Dashboard "Your usage" is now a 4-card activity panel.** The single wide, mostly-empty card is split into four focused cards — **Usage** (templates applied / prompts copied), **History** (changes recorded, rolled back, last change), **Most used** (top actions from the change ledger), and **Sandbox** (PHP snippet count) — each linking to its tab. History, Most-used, and Sandbox are free features, so the panel now shows on free builds too (the Usage card carries a Pro badge there).
+- **Plugins tab is now grouped by category.** Plugin integrations are clustered under group headings — **Dynamic Content** (ACF, Meta Box), **E-Commerce** (WooCommerce), with **Forms** and more to come — with each plugin shown as a self-contained card and slimmer toggle cards inside. Keeps the tab organized as the number of integrations grows.
 
 ## [3.4.2]
 
