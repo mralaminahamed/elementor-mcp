@@ -39,3 +39,5 @@ includes/abilities/forms/class-gravityforms-integration.php
 includes/abilities/forms/class-fluentforms-integration.php
 includes/abilities/forms/class-ninjaforms-integration.php
 includes/abilities/forms/class-formidable-integration.php
+includes/abilities/forms/class-metform-integration.php
+includes/abilities/forms/class-sureforms-integration.php

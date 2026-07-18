@@ -221,6 +221,8 @@ class EMCP_Tools_Ability_Registrar {
 				'EMCP_Tools_FluentForms_Integration',
 				'EMCP_Tools_NinjaForms_Integration',
 				'EMCP_Tools_Formidable_Integration',
+				'EMCP_Tools_MetForm_Integration',
+				'EMCP_Tools_SureForms_Integration',
 			) as $emcp_form_class ) {
 				if ( class_exists( $emcp_form_class ) ) {
 					$form_integrations[] = new $emcp_form_class();

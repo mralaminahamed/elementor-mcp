@@ -444,7 +444,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 20;
+	const DEFAULTS_VERSION = 21;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -828,6 +828,12 @@ class EMCP_Tools_Admin {
 			$add[] = 'emcp-tools/fluentforms-write';
 			$add[] = 'emcp-tools/ninjaforms-write';
 			$add[] = 'emcp-tools/formidable-write';
+		}
+
+		// v21 — MetForm + SureForms writes disabled-by-default.
+		if ( $applied < 21 ) {
+			$add[] = 'emcp-tools/metform-write';
+			$add[] = 'emcp-tools/sureforms-write';
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -2171,6 +2177,16 @@ class EMCP_Tools_Admin {
 		return class_exists( 'FrmForm' ) || class_exists( 'FrmAppHelper' );
 	}
 
+	/** @since 3.5.0 */
+	public static function metform_available(): bool {
+		return defined( 'METFORM_VERSION' ) || post_type_exists( 'metform-form' );
+	}
+
+	/** @since 3.5.0 */
+	public static function sureforms_available(): bool {
+		return defined( 'SRFM_VER' ) || post_type_exists( 'sureforms_form' );
+	}
+
 	/**
 	 * The 12 Forms dispatcher slugs — drift-guard exclusion (registered only when
 	 * their plugin is active / Pro, so the drift guard must not flag them as
@@ -2193,6 +2209,10 @@ class EMCP_Tools_Admin {
 			'emcp-tools/ninjaforms-write',
 			'emcp-tools/formidable-read',
 			'emcp-tools/formidable-write',
+			'emcp-tools/metform-read',
+			'emcp-tools/metform-write',
+			'emcp-tools/sureforms-read',
+			'emcp-tools/sureforms-write',
 		);
 	}
 
@@ -2970,6 +2990,56 @@ class EMCP_Tools_Admin {
 						'operations'       => array( 'delete-entry' ),
 						'available'        => self::formidable_available(),
 						'unavailable_note' => __( 'Install & activate Formidable Forms to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_metform'       => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'MetForm', 'emcp-tools' ),
+				'note'     => __( 'MetForm exposed as two tools — one Read, one Write. Reads cover forms, fields, and entries; writes delete entries. Requires MetForm (and Elementor) active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/metform-read'  => array(
+						'label'            => __( 'MetForm Read', 'emcp-tools' ),
+						'description'      => __( 'Read MetForm forms, fields, and entries.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-entries', 'get-entry' ),
+						'available'        => self::metform_available(),
+						'unavailable_note' => __( 'Install & activate MetForm to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/metform-write' => array(
+						'label'            => __( 'MetForm Write', 'emcp-tools' ),
+						'description'      => __( 'Delete MetForm entries (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'delete-entry' ),
+						'available'        => self::metform_available(),
+						'unavailable_note' => __( 'Install & activate MetForm to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_sureforms'     => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'SureForms', 'emcp-tools' ),
+				'note'     => __( 'SureForms exposed as two tools — one Read, one Write. Reads cover forms, fields, and entries; writes set entry status and delete entries. Requires SureForms active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/sureforms-read'  => array(
+						'label'            => __( 'SureForms Read', 'emcp-tools' ),
+						'description'      => __( 'Read SureForms forms, fields, and entries.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-entries', 'get-entry' ),
+						'available'        => self::sureforms_available(),
+						'unavailable_note' => __( 'Install & activate SureForms to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/sureforms-write' => array(
+						'label'            => __( 'SureForms Write', 'emcp-tools' ),
+						'description'      => __( 'Set SureForms entry status and delete entries (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'update-entry-status', 'delete-entry' ),
+						'available'        => self::sureforms_available(),
+						'unavailable_note' => __( 'Install & activate SureForms to enable this tool.', 'emcp-tools' ),
 					),
 				),
 			),

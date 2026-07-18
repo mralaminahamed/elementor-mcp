@@ -36,6 +36,8 @@ final class EMCP_Tools_Pro_Loader {
 		'includes/abilities/forms/class-fluentforms-integration.php',
 		'includes/abilities/forms/class-ninjaforms-integration.php',
 		'includes/abilities/forms/class-formidable-integration.php',
+		'includes/abilities/forms/class-metform-integration.php',
+		'includes/abilities/forms/class-sureforms-integration.php',
 		'includes/class-skill-catalog.php',
 		'includes/abilities/class-skill-abilities.php',
 		'includes/class-page-snapshot-pro.php',
