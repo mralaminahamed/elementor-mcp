@@ -2215,6 +2215,8 @@ class EMCP_Tools_Admin {
 				self::woo_tool_slugs(),
 				self::metabox_tool_slugs(),
 				self::theme_tool_slugs(),
+				self::seo_a11y_tool_slugs(),
+				self::widget_builder_tool_slugs(),
 				array( 'emcp-tools/resize-media' )
 			);
 			foreach ( $catalog as $emcp_group ) {
@@ -2230,6 +2232,33 @@ class EMCP_Tools_Admin {
 				}
 			}
 		}
+
+		// Pro sections are always present in the catalog so free users see the
+		// (locked) Pro surface. On a build without a usable Pro license, lock
+		// every tool in a `pro` category — disable its toggle and swap in a
+		// "Requires EMCP Pro" note — and ensure it carries the `pro` badge. On a
+		// licensed build the category's own availability (e.g. WooCommerce active)
+		// is left untouched, and the abilities themselves stay license-gated.
+		$emcp_is_pro = function_exists( 'emcp_tools_fs' ) && emcp_tools_fs()->can_use_premium_code();
+		foreach ( $catalog as &$emcp_pro_cat ) {
+			if ( empty( $emcp_pro_cat['pro'] ) || empty( $emcp_pro_cat['tools'] ) ) {
+				continue;
+			}
+			foreach ( $emcp_pro_cat['tools'] as &$emcp_pro_tool ) {
+				if ( empty( $emcp_pro_tool['badges'] ) || ! is_array( $emcp_pro_tool['badges'] ) ) {
+					$emcp_pro_tool['badges'] = array();
+				}
+				if ( ! in_array( 'pro', $emcp_pro_tool['badges'], true ) ) {
+					array_unshift( $emcp_pro_tool['badges'], 'pro' );
+				}
+				if ( ! $emcp_is_pro ) {
+					$emcp_pro_tool['available']        = false;
+					$emcp_pro_tool['unavailable_note'] = __( 'Requires EMCP Pro.', 'emcp-tools' );
+				}
+			}
+			unset( $emcp_pro_tool );
+		}
+		unset( $emcp_pro_cat );
 
 		return $catalog;
 	}
@@ -2640,6 +2669,7 @@ class EMCP_Tools_Admin {
 			),
 			'wp_woo'           => array(
 				'platform' => 'plugins',
+				'pro'      => true,
 				'label'    => __( 'WooCommerce', 'emcp-tools' ),
 				'note'     => __( 'WooCommerce is exposed as two tools — one Read, one Write — over the full wc/v3 API (~120 operations). The AI calls a tool with an operation name; toggle a tool to allow or block all of its operations at once. Money/irreversible operations (refunds, deletes, batch) additionally require confirm:true. Requires WooCommerce active.', 'emcp-tools' ),
 				'tools'    => array(
@@ -3220,13 +3250,15 @@ class EMCP_Tools_Admin {
 			);
 		}
 
-		// SEO & Accessibility toolkit (Pro). Shown to licensed sites only —
-		// matching the ability gate. Carries the 'pro' badge so they ship
-		// disabled-by-default (see maybe_apply_default_disabled_tools v2);
-		// users re-enable individual tools here. All five are read-only.
-		if ( function_exists( 'emcp_tools_fs' ) && emcp_tools_fs()->can_use_premium_code() ) {
+		// SEO & Accessibility toolkit (Pro) + Widget Builder (Pro). ALWAYS added
+		// to the catalog so free users see the (locked) Pro surface; get_all_tools()
+		// flags each 'pro' category "Requires EMCP Pro" and disables its toggles on
+		// free builds, and the abilities themselves stay license-gated. Bare block
+		// keeps the two category assignments grouped.
+		{
 			$tools['seo'] = array(
 				'platform' => 'wordpress',
+				'pro'      => true,
 				'label' => __( 'SEO', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/audit-page-seo'                => array(
@@ -3281,6 +3313,7 @@ class EMCP_Tools_Admin {
 
 			$tools['widget_builder'] = array(
 				'platform' => 'elementor',
+				'pro'      => true,
 				'label' => __( 'Widget Builder (Pro)', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-control-types'   => array(

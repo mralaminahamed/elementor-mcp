@@ -2,6 +2,13 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [3.4.3]
+
+> Clearer Pro tool sections on free builds.
+
+### Changed
+- **Pro tool sections are now visible (and clearly marked) on free builds.** WooCommerce, SEO & Accessibility, and Widget Builder used to either show interactive toggles with no "Pro" indication (WooCommerce) or not appear at all (SEO / Widget Builder). They now always appear on the Tools tab with a **Pro** badge, their toggles **disabled**, and a **"Requires EMCP Pro — Upgrade"** link — so it's clear what Pro unlocks. No functional change: the Pro abilities were already license-gated and never callable on free.
+
 ## [3.4.2]
 
 > WooCommerce + Meta Box integrations, template/prompt usage insights, and History delete.

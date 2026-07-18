@@ -23,6 +23,10 @@ $emcp_tools_compact_mode  = '1' === (string) get_option( EMCP_Tools_Plugin::OPTI
 $emcp_tools_tabs               = EMCP_Tools_Admin::platform_tabs();
 $emcp_tools_buckets            = EMCP_Tools_Admin::partition_by_platform( $emcp_tools_all_tools );
 $emcp_tools_elementor_active   = EMCP_Tools_Bootstrap::elementor_active();
+// Whether this build can run Pro code. Pro tool sections stay visible on free
+// (as an upsell) but locked; get_all_tools() already flags their tools.
+$emcp_tools_is_pro             = function_exists( 'emcp_tools_fs' ) && emcp_tools_fs()->can_use_premium_code();
+$emcp_tools_upgrade_url        = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_upgrade_url() : 'https://emcptools.com/pricing/';
 
 /**
  * Per-tab enabled/total counts, computed from the stored disabled set.
@@ -223,6 +227,9 @@ $emcp_tools_badge_labels = array(
 								<svg viewBox="0 0 20 20" width="14" height="14"><path d="M6 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 							</span>
 							<span class="elementor-mcp-category-title"><?php echo esc_html( $emcp_tools_category['label'] ); ?></span>
+							<?php if ( ! empty( $emcp_tools_category['pro'] ) ) : ?>
+								<span class="elementor-mcp-badge elementor-mcp-badge--pro"><?php esc_html_e( 'Pro', 'emcp-tools' ); ?></span>
+							<?php endif; ?>
 							<span class="elementor-mcp-category-count">
 								<?php
 								printf(
@@ -234,10 +241,18 @@ $emcp_tools_badge_labels = array(
 								?>
 							</span>
 						</button>
-						<span class="elementor-mcp-cat-toggle-group" role="group" aria-label="<?php esc_attr_e( 'Toggle all tools in this section', 'emcp-tools' ); ?>">
-							<button type="button" class="elementor-mcp-cat-btn elementor-mcp-cat-enable-all"><?php esc_html_e( 'All', 'emcp-tools' ); ?></button>
-							<button type="button" class="elementor-mcp-cat-btn elementor-mcp-cat-disable-all"><?php esc_html_e( 'None', 'emcp-tools' ); ?></button>
-						</span>
+						<?php if ( ! empty( $emcp_tools_category['pro'] ) && ! $emcp_tools_is_pro ) : ?>
+							<a class="elementor-mcp-cat-upgrade" href="<?php echo esc_url( $emcp_tools_upgrade_url ); ?>" target="_blank" rel="noopener noreferrer">
+								<span class="dashicons dashicons-star-filled" aria-hidden="true"></span>
+								<?php esc_html_e( 'Requires EMCP Pro — Upgrade', 'emcp-tools' ); ?>
+							</a>
+						<?php endif; ?>
+						<?php if ( empty( $emcp_tools_category['pro'] ) || $emcp_tools_is_pro ) : ?>
+							<span class="elementor-mcp-cat-toggle-group" role="group" aria-label="<?php esc_attr_e( 'Toggle all tools in this section', 'emcp-tools' ); ?>">
+								<button type="button" class="elementor-mcp-cat-btn elementor-mcp-cat-enable-all"><?php esc_html_e( 'All', 'emcp-tools' ); ?></button>
+								<button type="button" class="elementor-mcp-cat-btn elementor-mcp-cat-disable-all"><?php esc_html_e( 'None', 'emcp-tools' ); ?></button>
+							</span>
+						<?php endif; ?>
 					</div>
 
 					<?php
