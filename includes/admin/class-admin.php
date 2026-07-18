@@ -444,7 +444,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 19;
+	const DEFAULTS_VERSION = 20;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -816,6 +816,18 @@ class EMCP_Tools_Admin {
 		if ( $applied < 19 ) {
 			$add[] = 'emcp-tools/woo-write';
 			$add[] = 'emcp-tools/metabox-write';
+		}
+
+		// v20 — Forms domain writes ship disabled-by-default (all six plugins).
+		// Reads stay enabled; the five Pro reads render locked on free builds via
+		// the get_all_tools() Pro-lock post-process.
+		if ( $applied < 20 ) {
+			$add[] = 'emcp-tools/cf7-write';
+			$add[] = 'emcp-tools/wpforms-write';
+			$add[] = 'emcp-tools/gravityforms-write';
+			$add[] = 'emcp-tools/fluentforms-write';
+			$add[] = 'emcp-tools/ninjaforms-write';
+			$add[] = 'emcp-tools/formidable-write';
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -2124,6 +2136,67 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * Form-plugin availability — mirrors each adapter's is_active() so the admin
+	 * card greys out its toggles when the plugin is inactive. Detection is
+	 * reconciled with the adapter's own is_active() in the adapter tasks.
+	 *
+	 * @since 3.5.0
+	 */
+	public static function cf7_available(): bool {
+		return class_exists( 'WPCF7_ContactForm' ) || defined( 'WPCF7_VERSION' );
+	}
+
+	/** @since 3.5.0 */
+	public static function wpforms_available(): bool {
+		return function_exists( 'wpforms' );
+	}
+
+	/** @since 3.5.0 */
+	public static function gravityforms_available(): bool {
+		return class_exists( 'GFForms' ) || class_exists( 'GFAPI' );
+	}
+
+	/** @since 3.5.0 */
+	public static function fluentforms_available(): bool {
+		return defined( 'FLUENTFORM_VERSION' ) || function_exists( 'wpFluentForm' );
+	}
+
+	/** @since 3.5.0 */
+	public static function ninjaforms_available(): bool {
+		return function_exists( 'Ninja_Forms' );
+	}
+
+	/** @since 3.5.0 */
+	public static function formidable_available(): bool {
+		return class_exists( 'FrmForm' ) || class_exists( 'FrmAppHelper' );
+	}
+
+	/**
+	 * The 12 Forms dispatcher slugs — drift-guard exclusion (registered only when
+	 * their plugin is active / Pro, so the drift guard must not flag them as
+	 * "missing" tools).
+	 *
+	 * @since 3.5.0
+	 * @return string[]
+	 */
+	public static function form_tool_slugs(): array {
+		return array(
+			'emcp-tools/cf7-read',
+			'emcp-tools/cf7-write',
+			'emcp-tools/wpforms-read',
+			'emcp-tools/wpforms-write',
+			'emcp-tools/gravityforms-read',
+			'emcp-tools/gravityforms-write',
+			'emcp-tools/fluentforms-read',
+			'emcp-tools/fluentforms-write',
+			'emcp-tools/ninjaforms-read',
+			'emcp-tools/ninjaforms-write',
+			'emcp-tools/formidable-read',
+			'emcp-tools/formidable-write',
+		);
+	}
+
+	/**
 	 * Whether Freemius's Affiliation page actually exists right now.
 	 *
 	 * We hide the Affiliation submenu (see the `is_submenu_visible` filter in
@@ -2245,6 +2318,7 @@ class EMCP_Tools_Admin {
 				self::acf_tool_slugs(),
 				self::woo_tool_slugs(),
 				self::metabox_tool_slugs(),
+				self::form_tool_slugs(),
 				self::theme_tool_slugs(),
 				self::seo_a11y_tool_slugs(),
 				self::widget_builder_tool_slugs(),
@@ -2747,6 +2821,155 @@ class EMCP_Tools_Admin {
 						'operations'  => array(
 							'update-fields',
 						),
+					),
+				),
+			),
+			'wp_cf7'           => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'label'    => __( 'Contact Form 7', 'emcp-tools' ),
+				'note'     => __( 'Contact Form 7 exposed as two tools — one Read, one Write. Reads list forms, fields, mail templates and messages; writes update mail, messages, and settings. CF7 stores no submissions, so there are no entry operations.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/cf7-read'  => array(
+						'label'            => __( 'Contact Form 7 Read', 'emcp-tools' ),
+						'description'      => __( 'Read CF7 forms — fields, mail templates, messages, and settings.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-notifications', 'get-settings' ),
+						'available'        => self::cf7_available(),
+						'unavailable_note' => __( 'Install & activate Contact Form 7 to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/cf7-write' => array(
+						'label'            => __( 'Contact Form 7 Write', 'emcp-tools' ),
+						'description'      => __( 'Update CF7 mail templates, messages, and additional settings.', 'emcp-tools' ),
+						'badges'           => array(),
+						'operations'       => array( 'update-notification', 'update-messages', 'update-form-settings' ),
+						'available'        => self::cf7_available(),
+						'unavailable_note' => __( 'Install & activate Contact Form 7 to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_wpforms'       => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'WPForms', 'emcp-tools' ),
+				'note'     => __( 'WPForms exposed as two tools — one Read, one Write. Reads cover forms, fields, notifications, and entries (entries require WPForms Pro); writes update settings/notifications and manage entries. Requires WPForms active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/wpforms-read'  => array(
+						'label'            => __( 'WPForms Read', 'emcp-tools' ),
+						'description'      => __( 'Read WPForms forms, fields, notifications, and entries (entries require WPForms Pro).', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-notifications', 'list-entries', 'get-entry', 'get-settings' ),
+						'available'        => self::wpforms_available(),
+						'unavailable_note' => __( 'Install & activate WPForms to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/wpforms-write' => array(
+						'label'            => __( 'WPForms Write', 'emcp-tools' ),
+						'description'      => __( 'Update WPForms settings/notifications, set entry status, and delete entries (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'update-form-settings', 'update-notification', 'update-entry-status', 'delete-entry' ),
+						'available'        => self::wpforms_available(),
+						'unavailable_note' => __( 'Install & activate WPForms to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_gravityforms'  => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'Gravity Forms', 'emcp-tools' ),
+				'note'     => __( 'Gravity Forms exposed as two tools — one Read, one Write — over the GFAPI. Reads cover forms, fields, notifications, and entries; writes set entry status and delete entries. Requires Gravity Forms active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/gravityforms-read'  => array(
+						'label'            => __( 'Gravity Forms Read', 'emcp-tools' ),
+						'description'      => __( 'Read Gravity Forms forms, fields, notifications, and entries.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-notifications', 'list-entries', 'get-entry', 'get-settings' ),
+						'available'        => self::gravityforms_available(),
+						'unavailable_note' => __( 'Install & activate Gravity Forms to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/gravityforms-write' => array(
+						'label'            => __( 'Gravity Forms Write', 'emcp-tools' ),
+						'description'      => __( 'Set Gravity Forms entry status (active/spam/trash) and delete entries (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'update-entry-status', 'delete-entry' ),
+						'available'        => self::gravityforms_available(),
+						'unavailable_note' => __( 'Install & activate Gravity Forms to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_fluentforms'   => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'Fluent Forms', 'emcp-tools' ),
+				'note'     => __( 'Fluent Forms exposed as two tools — one Read, one Write. Reads cover forms, fields, and submissions; writes set submission status and delete submissions. Requires Fluent Forms active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/fluentforms-read'  => array(
+						'label'            => __( 'Fluent Forms Read', 'emcp-tools' ),
+						'description'      => __( 'Read Fluent Forms forms, fields, and submissions.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-entries', 'get-entry' ),
+						'available'        => self::fluentforms_available(),
+						'unavailable_note' => __( 'Install & activate Fluent Forms to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/fluentforms-write' => array(
+						'label'            => __( 'Fluent Forms Write', 'emcp-tools' ),
+						'description'      => __( 'Set Fluent Forms submission status and delete submissions (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'update-entry-status', 'delete-entry' ),
+						'available'        => self::fluentforms_available(),
+						'unavailable_note' => __( 'Install & activate Fluent Forms to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_ninjaforms'    => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'Ninja Forms', 'emcp-tools' ),
+				'note'     => __( 'Ninja Forms exposed as two tools — one Read, one Write. Reads cover forms, fields, and submissions; writes delete submissions. Requires Ninja Forms active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/ninjaforms-read'  => array(
+						'label'            => __( 'Ninja Forms Read', 'emcp-tools' ),
+						'description'      => __( 'Read Ninja Forms forms, fields, and submissions.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-entries', 'get-entry' ),
+						'available'        => self::ninjaforms_available(),
+						'unavailable_note' => __( 'Install & activate Ninja Forms to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/ninjaforms-write' => array(
+						'label'            => __( 'Ninja Forms Write', 'emcp-tools' ),
+						'description'      => __( 'Delete Ninja Forms submissions (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'delete-entry' ),
+						'available'        => self::ninjaforms_available(),
+						'unavailable_note' => __( 'Install & activate Ninja Forms to enable this tool.', 'emcp-tools' ),
+					),
+				),
+			),
+			'wp_formidable'    => array(
+				'platform' => 'plugins',
+				'group'    => 'forms',
+				'pro'      => true,
+				'label'    => __( 'Formidable Forms', 'emcp-tools' ),
+				'note'     => __( 'Formidable Forms exposed as two tools — one Read, one Write. Reads cover forms, fields, notifications, and entries; writes update notifications and delete entries. Requires Formidable Forms active.', 'emcp-tools' ),
+				'tools'    => array(
+					'emcp-tools/formidable-read'  => array(
+						'label'            => __( 'Formidable Forms Read', 'emcp-tools' ),
+						'description'      => __( 'Read Formidable forms, fields, notifications, and entries.', 'emcp-tools' ),
+						'badges'           => array( 'read-only' ),
+						'operations'       => array( 'list-forms', 'get-form', 'list-notifications', 'list-entries', 'get-entry' ),
+						'available'        => self::formidable_available(),
+						'unavailable_note' => __( 'Install & activate Formidable Forms to enable this tool.', 'emcp-tools' ),
+					),
+					'emcp-tools/formidable-write' => array(
+						'label'            => __( 'Formidable Forms Write', 'emcp-tools' ),
+						'description'      => __( 'Update Formidable notifications and delete entries (confirm:true).', 'emcp-tools' ),
+						'badges'           => array( 'destructive' ),
+						'operations'       => array( 'update-notification', 'delete-entry' ),
+						'available'        => self::formidable_available(),
+						'unavailable_note' => __( 'Install & activate Formidable Forms to enable this tool.', 'emcp-tools' ),
 					),
 				),
 			),
