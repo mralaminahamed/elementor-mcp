@@ -2865,9 +2865,9 @@ class EMCP_Tools_Admin {
 					),
 					'emcp-tools/wpforms-write' => array(
 						'label'            => __( 'WPForms Write', 'emcp-tools' ),
-						'description'      => __( 'Update WPForms settings/notifications, set entry status, and delete entries (confirm:true).', 'emcp-tools' ),
+						'description'      => __( 'Update WPForms notifications, set entry status, and delete entries (confirm:true). Entry operations require WPForms Pro.', 'emcp-tools' ),
 						'badges'           => array( 'destructive' ),
-						'operations'       => array( 'update-form-settings', 'update-notification', 'update-entry-status', 'delete-entry' ),
+						'operations'       => array( 'update-notification', 'update-entry-status', 'delete-entry' ),
 						'available'        => self::wpforms_available(),
 						'unavailable_note' => __( 'Install & activate WPForms to enable this tool.', 'emcp-tools' ),
 					),
