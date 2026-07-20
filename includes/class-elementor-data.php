@@ -521,6 +521,11 @@ class EMCP_Tools_Data {
 				// but never read by Elementor's CSS generator (issue #32).
 				if ( 'container' === ( $item['elType'] ?? '' ) ) {
 					$settings = EMCP_Tools_Element_Factory::normalize_container_settings( $settings );
+				} else {
+					// Widgets/other elTypes: flatten the same background shorthand
+					// so an update-time background applies (containers already
+					// covered by normalize_container_settings above).
+					$settings = EMCP_Tools_Element_Factory::normalize_background_settings( $settings );
 				}
 
 				$item['settings'] = array_merge( $item['settings'], $settings );

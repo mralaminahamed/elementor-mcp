@@ -73,7 +73,7 @@ class EMCP_Tools_Element_Factory {
 			'elType'     => 'widget',
 			'widgetType' => $widget_type,
 			'isInner'    => false,
-			'settings'   => $settings,
+			'settings'   => self::normalize_background_settings( $settings ),
 			'elements'   => array(),
 		);
 	}
@@ -164,6 +164,69 @@ class EMCP_Tools_Element_Factory {
 			}
 
 			unset( $settings[ $shorthand ] );
+		}
+
+		return self::normalize_background_settings( $settings );
+	}
+
+	/**
+	 * Coerces the intuitive-but-wrong background shorthand that agents (weak
+	 * local models especially) routinely emit into the flat keys Elementor's
+	 * background group control actually reads. Three fixes:
+	 *
+	 *  1. A nested `background` group — `background => { background_image, size,
+	 *     ... }` — is flattened to top-level `background_*` keys. Elementor has
+	 *     no `background` group setting, so a nested object is silently dropped.
+	 *  2. `background_image` given as an array of `{ id, url }` objects (the
+	 *     model mirrors media-repeater shape) is unwrapped to the single
+	 *     `{ id, url }` object the control expects.
+	 *  3. When an image or colour is present but the `background_background`
+	 *     activator is missing, it is set to `classic` — without the activator
+	 *     Elementor never renders the background at all.
+	 *
+	 * Idempotent and non-destructive: caller-supplied flat keys always win over
+	 * anything lifted out of the nested group, and settings with no background
+	 * keys pass through untouched.
+	 *
+	 * @since 3.5.1
+	 *
+	 * @param array $settings Raw element settings.
+	 * @return array Settings with background shorthand normalized.
+	 */
+	public static function normalize_background_settings( array $settings ): array {
+		// 1. Flatten a nested `background` group into top-level keys.
+		if ( isset( $settings['background'] ) && is_array( $settings['background'] ) ) {
+			$nested = $settings['background'];
+			// Only treat it as a group if its keys look like background_* controls
+			// (guards against an element that legitimately stores something else
+			// under `background`, which Elementor does not).
+			$looks_like_group = false;
+			foreach ( $nested as $k => $v ) {
+				if ( is_string( $k ) && 0 === strpos( $k, 'background' ) ) {
+					$looks_like_group = true;
+					break;
+				}
+			}
+			if ( $looks_like_group ) {
+				unset( $settings['background'] );
+				foreach ( $nested as $k => $v ) {
+					if ( ! array_key_exists( $k, $settings ) ) {
+						$settings[ $k ] = $v;
+					}
+				}
+			}
+		}
+
+		// 2. Unwrap a `background_image` array-of-objects to a single object.
+		if ( isset( $settings['background_image'] ) && is_array( $settings['background_image'] )
+			&& isset( $settings['background_image'][0] ) && is_array( $settings['background_image'][0] ) ) {
+			$settings['background_image'] = $settings['background_image'][0];
+		}
+
+		// 3. Inject the `classic` activator when a background exists without one.
+		$has_bg = ( ! empty( $settings['background_image'] ) || ! empty( $settings['background_color'] ) );
+		if ( $has_bg && empty( $settings['background_background'] ) ) {
+			$settings['background_background'] = 'classic';
 		}
 
 		return $settings;
