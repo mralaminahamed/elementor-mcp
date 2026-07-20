@@ -137,6 +137,45 @@ class EMCP_Tools_Unsplash_Client {
 	}
 
 	/**
+	 * Resolves an Unsplash download-endpoint URL to the real image URL.
+	 *
+	 * `api.unsplash.com/photos/<id>/download` 401s without the API key — agents
+	 * routinely pass it (built from a photo id) instead of the direct image URL.
+	 * Called with the Client-ID, that endpoint returns `{ "url": "<image>" }`, so
+	 * we resolve it here and let the caller download the real file. Also fires
+	 * Unsplash's required download-tracking as a side effect.
+	 *
+	 * @since 3.6.0
+	 * @param string $url An api.unsplash.com download URL.
+	 * @return string|\WP_Error The direct image URL, or a WP_Error.
+	 */
+	public static function resolve_download( string $url ) {
+		$url = esc_url_raw( $url );
+		if ( 0 !== strpos( $url, self::API_BASE ) ) {
+			return new \WP_Error( 'not_unsplash_api', __( 'Not an Unsplash API URL.', 'emcp-tools' ) );
+		}
+		if ( ! self::has_key() ) {
+			return new \WP_Error( 'no_api_key', __( 'The Unsplash download API needs an access key (EMCP Tools → Connection). Use the direct image URL from search-images instead.', 'emcp-tools' ) );
+		}
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout' => self::TIMEOUT,
+				'headers' => array( 'Authorization' => 'Client-ID ' . self::access_key() ),
+			)
+		);
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( ! is_array( $body ) || empty( $body['url'] ) ) {
+			return new \WP_Error( 'resolve_failed', __( 'Unsplash did not return a downloadable URL.', 'emcp-tools' ) );
+		}
+		return (string) $body['url'];
+	}
+
+	/**
 	 * Map our aspect_ratio vocabulary to Unsplash's `orientation`.
 	 *
 	 * @since 3.1.0

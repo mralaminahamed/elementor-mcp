@@ -324,7 +324,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'emcp-tools/sideload-image',
 			array(
 				'label'               => __( 'Sideload Image', 'emcp-tools' ),
-				'description'         => __( 'Downloads an external image URL into the WordPress Media Library and returns the local attachment ID and URL. Use this after search-images to import a chosen image.', 'emcp-tools' ),
+				'description'         => __( 'Downloads an external image URL into the WordPress Media Library and returns the local attachment ID and URL. Use this after search-images: pass the EXACT `url` from a search result — never construct, guess, or edit an image URL (a made-up URL 404s, and the Unsplash api.unsplash.com/…/download endpoint needs a key). For stock photos, prefer add-stock-image, which searches, sideloads, and places the image in one call.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_sideload_image' ),
 				'permission_callback' => array( $this, 'check_upload_permission' ),
@@ -398,18 +398,44 @@ class EMCP_Tools_Stock_Image_Abilities {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 		}
 
+		// Agents often pass Unsplash's download-tracking endpoint
+		// (api.unsplash.com/photos/<id>/download) — built from a photo id —
+		// instead of the direct image URL; that 401s without the API key.
+		// Resolve it to the real image URL when we have a key.
+		if (
+			class_exists( 'EMCP_Tools_Unsplash_Client' )
+			&& false !== strpos( $url, 'api.unsplash.com' )
+			&& false !== strpos( $url, '/download' )
+		) {
+			$resolved = EMCP_Tools_Unsplash_Client::resolve_download( $url );
+			if ( ! is_wp_error( $resolved ) && '' !== $resolved ) {
+				$url = esc_url_raw( $resolved );
+			}
+		}
+
 		// Download the file to a temp location (SSRF-guarded: blocks private/
 		// reserved/loopback hosts and re-validates each redirect hop).
 		$tmp_file = EMCP_Tools_Url_Guard::safe_download( $url, 30 );
 
 		if ( is_wp_error( $tmp_file ) ) {
+			// Make the failure actionable so an agent corrects the URL rather than
+			// retrying the same bad one (a common weak-model loop).
+			$msg  = $tmp_file->get_error_message();
+			$hint = '';
+			if ( false !== strpos( $url, 'api.unsplash.com' ) ) {
+				$hint = ' ' . __( 'That is the Unsplash API URL — pass the direct image `url` from search-images instead, or use add-stock-image.', 'emcp-tools' );
+			} elseif ( preg_match( '/not found|404/i', $msg ) ) {
+				$hint = ' ' . __( 'Use the exact `url` returned by search-images (do not construct or edit image URLs), or use add-stock-image (search + sideload + place in one call).', 'emcp-tools' );
+			} elseif ( preg_match( '/unauthorized|forbidden|401|403/i', $msg ) ) {
+				$hint = ' ' . __( 'The URL requires authorization — use the direct `url` from search-images, or use add-stock-image.', 'emcp-tools' );
+			}
 			return new \WP_Error(
 				'download_failed',
 				sprintf(
 					/* translators: %s: error message */
 					__( 'Failed to download image: %s', 'emcp-tools' ),
-					$tmp_file->get_error_message()
-				)
+					$msg
+				) . $hint
 			);
 		}
 
