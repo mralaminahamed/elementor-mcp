@@ -58,6 +58,7 @@ final class EMCP_Tools_Pro_Loader {
 		'includes/ai-chat/class-ai-chat-settings.php',
 		'includes/ai-chat/class-ai-chat-prompt.php',
 		'includes/ai-chat/class-ai-chat-web-fetch.php',
+		'includes/ai-chat/class-ai-chat-image-reader.php',
 		'includes/ai-chat/class-ai-chat-controller.php',
 		'includes/themer/class-themer-pro-matchers.php',
 		'includes/themer/class-themer-pro-conditions.php',
