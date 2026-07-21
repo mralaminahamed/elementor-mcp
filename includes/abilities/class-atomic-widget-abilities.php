@@ -171,7 +171,7 @@ class EMCP_Tools_Atomic_Widget_Abilities {
 			$name,
 			array(
 				'label'               => __( 'Update Atomic Widget', 'emcp-tools' ),
-				'description'         => __( 'Updates settings on an existing Elementor 4.0+ atomic widget. Performs a partial merge — only provided keys are changed.', 'emcp-tools' ),
+				'description'         => __( 'Updates settings on an existing Elementor 4.0+ atomic widget. Performs a partial merge, only provided keys are changed.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_update_atomic_widget' ),
 				'permission_callback' => array( $this, 'check_edit_permission' ),

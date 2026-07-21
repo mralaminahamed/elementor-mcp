@@ -235,7 +235,7 @@ class EMCP_Tools_Gutenberg_Abilities {
 			'emcp-tools/list-patterns',
 			array(
 				'label'               => __( 'List Patterns', 'emcp-tools' ),
-				'description'         => __( 'Lists registered block patterns (prebuilt block compositions) — name, title, categories, description. Use insert-pattern to drop one into a post.', 'emcp-tools' ),
+				'description'         => __( 'Lists registered block patterns (prebuilt block compositions), name, title, categories, description. Use insert-pattern to drop one into a post.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_list_patterns' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),

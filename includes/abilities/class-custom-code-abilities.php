@@ -322,7 +322,7 @@ class EMCP_Tools_Custom_Code_Abilities {
 			'emcp-tools/add-custom-js',
 			array(
 				'label'               => __( 'Add Custom JavaScript', 'emcp-tools' ),
-				'description'         => __( 'Adds a custom JavaScript snippet to a page by inserting an HTML widget containing a <script> tag. Works with free Elementor (no Pro required). The JS code is automatically wrapped in <script> tags — do NOT include them yourself. Use wrap_dom_ready=true to wrap in a DOMContentLoaded listener. For site-wide JS, use add-code-snippet instead (requires Pro).', 'emcp-tools' ),
+				'description'         => __( 'Adds a custom JavaScript snippet to a page by inserting an HTML widget containing a <script> tag. Works with free Elementor (no Pro required). The JS code is automatically wrapped in <script> tags, do NOT include them yourself. Use wrap_dom_ready=true to wrap in a DOMContentLoaded listener. For site-wide JS, use add-code-snippet instead (requires Pro).', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_add_custom_js' ),
 				'permission_callback' => array( $this, 'check_js_permission' ),
@@ -339,7 +339,7 @@ class EMCP_Tools_Custom_Code_Abilities {
 						),
 						'js'             => array(
 							'type'        => 'string',
-							'description' => __( 'JavaScript code to inject. Do NOT include <script> tags — they are added automatically.', 'emcp-tools' ),
+							'description' => __( 'JavaScript code to inject. Do NOT include <script> tags, they are added automatically.', 'emcp-tools' ),
 						),
 						'position'       => array(
 							'type'        => 'integer',

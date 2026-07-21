@@ -175,40 +175,40 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 = 3.5.1 =
 A redesigned AI Chat (local models, vision, skills) + three connectivity/builder fixes.
 * Added: AI Chat gets a full-width two-column settings screen (built-in controls + default model on the left, providers on the right). (Pro)
-* Added: AI Chat providers DeepSeek, Moonshot, Z.ai, plus local runtimes Ollama and LM Studio — auto-detected on localhost, no API key needed. Refresh-models button; remembers your last provider/model. (Pro)
+* Added: AI Chat providers DeepSeek, Moonshot, Z.ai, plus local runtimes Ollama and LM Studio, auto-detected on localhost, no API key needed. Refresh-models button; remembers your last provider/model. (Pro)
 * Added: AI Chat loads the EMCP agent skills, and handles images for text-only models via a local vision model or a built-in dependency-free image reader. (Pro)
-* Changed: AI Chat hardened for small local models — lean tool schemas, capped tool results, empty-turn recovery, reasoning-stream capture, one-page-per-request and background-format guidance; list-skills is now a compact catalog. (Pro)
-* Fixed: #99 — a different MCP-adapter version bundled by another active plugin (e.g. Rank Math) caused "McpServerError: Session terminated"; EMCP now serves the whole WP\MCP namespace from its bundled copy so the server starts regardless of load order.
-* Fixed: #97 — duplicating a v4 atomic element now re-mints its local style classes so the copy keeps its styling.
-* Fixed: #98 — verify-and-fallback when Elementor's document save reports success but persists nothing (CLI/proxy), so edits aren't silently lost.
-* Fixed: backgrounds emitted as a nested/array shorthand now render — the factory coerces them to Elementor's flat keys and adds the required classic activator (the "sideloaded photo doesn't show" cause).
+* Changed: AI Chat hardened for small local models, lean tool schemas, capped tool results, empty-turn recovery, reasoning-stream capture, one-page-per-request and background-format guidance; list-skills is now a compact catalog. (Pro)
+* Fixed: #99, a different MCP-adapter version bundled by another active plugin (e.g. Rank Math) caused "McpServerError: Session terminated"; EMCP now serves the whole WP\MCP namespace from its bundled copy so the server starts regardless of load order.
+* Fixed: #97, duplicating a v4 atomic element now re-mints its local style classes so the copy keeps its styling.
+* Fixed: #98, verify-and-fallback when Elementor's document save reports success but persists nothing (CLI/proxy), so edits aren't silently lost.
+* Fixed: backgrounds emitted as a nested/array shorthand now render, the factory coerces them to Elementor's flat keys and adds the required classic activator (the "sideloaded photo doesn't show" cause).
 * Fixed: build-page no longer silently drops shorthand nodes (accepts them, returns warnings); sideload-image resolves api.unsplash.com download URLs with actionable errors; clearer web-fetch SSL/timeout errors.
 
 = 3.5.0 =
-Forms + SEO plugin integrations — 15 plugins over MCP.
-* Added: Forms integrations — two dispatcher tools per plugin (read/write) for 8 form builders: Contact Form 7 (free) plus WPForms, Gravity Forms, Fluent Forms, Ninja Forms, Formidable, MetForm, and SureForms (Pro). Read forms, fields, notifications and entries (submissions); manage entries. Each pair registers only when its plugin is active; reads on by default, writes off by default; delete-entry needs confirm:true. CF7 has no entries; WPForms entry ops need WPForms Pro.
-* Added: SEO integrations — two dispatcher tools per plugin (read/write) for 7 SEO plugins: Slim SEO (free) plus Yoast SEO, Rank Math, All in One SEO, SEOPress, The SEO Framework, and SureRank (Pro). Read/write the SEO metadata each plugin stores (title, description, canonical, robots, focus keyword, Open Graph / Twitter) for posts and terms, over one unified field vocabulary, plus schema-read where supported. Distinct from the SEO & Accessibility toolkit (which audits/generates).
-* Changed: Pro tool sections (WooCommerce, SEO & Accessibility, Widget Builder) now always appear on free builds — Pro-badged, disabled, with an Upgrade link — so it's clear what Pro unlocks.
+Forms + SEO plugin integrations, 15 plugins over MCP.
+* Added: Forms integrations, two dispatcher tools per plugin (read/write) for 8 form builders: Contact Form 7 (free) plus WPForms, Gravity Forms, Fluent Forms, Ninja Forms, Formidable, MetForm, and SureForms (Pro). Read forms, fields, notifications and entries (submissions); manage entries. Each pair registers only when its plugin is active; reads on by default, writes off by default; delete-entry needs confirm:true. CF7 has no entries; WPForms entry ops need WPForms Pro.
+* Added: SEO integrations, two dispatcher tools per plugin (read/write) for 7 SEO plugins: Slim SEO (free) plus Yoast SEO, Rank Math, All in One SEO, SEOPress, The SEO Framework, and SureRank (Pro). Read/write the SEO metadata each plugin stores (title, description, canonical, robots, focus keyword, Open Graph / Twitter) for posts and terms, over one unified field vocabulary, plus schema-read where supported. Distinct from the SEO & Accessibility toolkit (which audits/generates).
+* Changed: Pro tool sections (WooCommerce, SEO & Accessibility, Widget Builder) now always appear on free builds, Pro-badged, disabled, with an Upgrade link, so it's clear what Pro unlocks.
 * Changed: Dashboard "Your usage" is now a 4-card activity panel (Usage, History, Most used, Sandbox). The Plugins tab is grouped by category (Dynamic Content, E-Commerce, Forms, SEO).
 * New agent skills: emcp-plugins/forms and emcp-plugins/seo (Pro).
 
 = 3.4.2 =
 WooCommerce integration + template & prompt usage insights.
-* Added: WooCommerce Pro integration — two tools (woo-read / woo-write) over the full wc/v3 surface (~120 operations): products, variations, orders, refunds, customers, coupons, reports, settings, shipping, taxes, webhooks, system status. Runs through WooCommerce's own REST (HPOS-safe). Reads on by default; writes off by default; refunds/deletes/batch require confirm:true. Registers only when WooCommerce is active.
-* Added: Meta Box integration (community PR #96) — two tools (metabox-read / metabox-write) to read/write Meta Box custom-field values and discover field groups over MCP. Values only (no delete, no field authoring); registers only when Meta Box is active; metabox-read on by default, metabox-write off. Thanks @Mrshahidali420.
-* Added: History tab — delete individual entries and a "Clear all" button to wipe the change ledger. Confirm-gated; deleting an entry that can still be rolled back warns you first.
-* Fixed: the Affiliate Program link in the header led to "you are not allowed to access this page" on fresh installs — Freemius only registers that page after the user opts in or skips, so the link now shows only when the page exists.
+* Added: WooCommerce Pro integration, two tools (woo-read / woo-write) over the full wc/v3 surface (~120 operations): products, variations, orders, refunds, customers, coupons, reports, settings, shipping, taxes, webhooks, system status. Runs through WooCommerce's own REST (HPOS-safe). Reads on by default; writes off by default; refunds/deletes/batch require confirm:true. Registers only when WooCommerce is active.
+* Added: Meta Box integration (community PR #96), two tools (metabox-read / metabox-write) to read/write Meta Box custom-field values and discover field groups over MCP. Values only (no delete, no field authoring); registers only when Meta Box is active; metabox-read on by default, metabox-write off. Thanks @Mrshahidali420.
+* Added: History tab, delete individual entries and a "Clear all" button to wipe the change ledger. Confirm-gated; deleting an entry that can still be rolled back warns you first.
+* Fixed: the Affiliate Program link in the header led to "you are not allowed to access this page" on fresh installs, Freemius only registers that page after the user opts in or skips, so the link now shows only when the page exists.
 * Added: "Used N times" usage counts on Pro template cards, plus a "Your usage" widget on the Dashboard (templates you've applied and prompts you've copied on this site + the globally-popular templates). Lightweight, non-blocking telemetry (license + site only; no page content, customer data, or AI conversations are ever sent).
 
 = 3.4.1 =
 OAuth sign-in for MCP clients + atomic-element and compact-mode fixes.
-* Added: OAuth sign-in for AI clients (free). Claude and other MCP clients connect through a standard OAuth 2.1 flow — approve access from your WordPress login, no Application Password to copy. Self-contained authorization server (discovery, dynamic client registration, PKCE, admin-only consent, short-lived + refresh tokens); the token acts as the authorizing admin, and Application Passwords keep working alongside it. HTTPS-gated, on by default when available.
+* Added: OAuth sign-in for AI clients (free). Claude and other MCP clients connect through a standard OAuth 2.1 flow, approve access from your WordPress login, no Application Password to copy. Self-contained authorization server (discovery, dynamic client registration, PKCE, admin-only consent, short-lived + refresh tokens); the token acts as the authorizing admin, and Application Passwords keep working alongside it. HTTPS-gated, on by default when available.
 * Added: Connection tab authentication-method chooser (OAuth vs Application password) with per-client setup steps (mcp-add command, custom-connector walkthrough with one-click deep links, or config-file snippet), a Connected apps list with Revoke, and a Claude.ai client.
-* Fixed: OAuth discovery 404 — MCP clients request the resource-scoped well-known path (RFC 9728), which 404'd and broke OAuth with real clients; now served.
-* Fixed: get-page-snapshot returned zeros on atomic (v4) pages (#91) — now extracts atomic heading/paragraph/button/image content.
-* Fixed: atomic style-class writes were persisted but never applied (#92) — writes now reference the class on the element.
+* Fixed: OAuth discovery 404, MCP clients request the resource-scoped well-known path (RFC 9728), which 404'd and broke OAuth with real clients; now served.
+* Fixed: get-page-snapshot returned zeros on atomic (v4) pages (#91), now extracts atomic heading/paragraph/button/image content.
+* Fixed: atomic style-class writes were persisted but never applied (#92), writes now reference the class on the element.
 * Fixed: compact tool mode surfaced 6 tools instead of 3 (core context abilities now fold into the dispatcher catalog).
-* Fixed: subdirectory WordPress installs (e.g. example.com/subdir) were unreachable via the Node proxy (#93) — it ignored the URL path, building every request against the domain root; the proxy now honors the site base path (root installs unchanged) and returns a JSON-RPC error instead of corrupting stdio framing on a non-JSON upstream body. Proxy 1.9.1. Thanks @carstenbaumhoegger.
+* Fixed: subdirectory WordPress installs (e.g. example.com/subdir) were unreachable via the Node proxy (#93), it ignored the URL path, building every request against the domain root; the proxy now honors the site base path (root installs unchanged) and returns a JSON-RPC error instead of corrupting stdio framing on a non-JSON upstream body. Proxy 1.9.1. Thanks @carstenbaumhoegger.
 * Changed: renamed the Codex connection card to "ChatGPT App" and corrected its OAuth setup to the app's in-app MCP flow (Add server → Streamable HTTP → Save → Authenticate → Approve). The Application Password (config.toml) method is unchanged.
 
 = 3.4.0 =
@@ -217,7 +217,7 @@ New Themes domain, WP-CLI tools, SVG uploads, and 50 starter templates.
 * Added: WP-CLI tools (4 tools, disabled-by-default, manage_options): run-wp-cli (synchronous), dispatch-wp-cli (background job), get-wp-cli-job, list-wp-cli-jobs. A command validator blocks destructive/host-level commands (eval, shell, db query/import/export/reset, config set, package/cli mutations) and dangerous flags; runs in-process when available, else via a spawned shell. Every run is recorded to the change ledger.
 * Added: SVG Uploads module (opt-in): allow sanitized SVG/SVGZ uploads to the Media Library. Every uploaded SVG is scrubbed with enshrined/svg-sanitize (scripts, event handlers, external references removed) and rejected if it can't be made safe. Fixes the common programmatic-upload failure where WordPress mis-detects SVG as a text file.
 * Added: get-block-schema now surfaces Spectra's shared-helper attributes so Gutenberg/Spectra blocks report their real attribute names and defaults.
-* Changed: search-images and sideload-image are now core WordPress tools — they register on any site regardless of Elementor (they only need a stock-provider API key and the Media Library).
+* Changed: search-images and sideload-image are now core WordPress tools, they register on any site regardless of Elementor (they only need a stock-provider API key and the Media Library).
 
 = 3.3.0 =
 Foundation release: understand a page from one call, undo any change, and reuse existing content.

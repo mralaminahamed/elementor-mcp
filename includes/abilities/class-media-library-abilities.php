@@ -486,7 +486,7 @@ class EMCP_Tools_Media_Library_Abilities {
 			'emcp-tools/delete-media',
 			array(
 				'label'               => __( 'Delete Media', 'emcp-tools' ),
-				'description'         => __( 'Deletes a Media Library attachment. DESTRUCTIVE and effectively permanent — WordPress bypasses Trash for media unless MEDIA_TRASH is defined. Requires confirm:true. Pass force:true to skip Trash even when MEDIA_TRASH is on.', 'emcp-tools' ),
+				'description'         => __( 'Deletes a Media Library attachment. DESTRUCTIVE and effectively permanent, WordPress bypasses Trash for media unless MEDIA_TRASH is defined. Requires confirm:true. Pass force:true to skip Trash even when MEDIA_TRASH is on.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_delete_media' ),
 				'permission_callback' => array( $this, 'check_delete_permission' ),

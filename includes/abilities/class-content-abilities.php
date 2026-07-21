@@ -382,7 +382,7 @@ class EMCP_Tools_Content_Abilities {
 			'emcp-tools/create-post',
 			array(
 				'label'               => __( 'Create Post', 'emcp-tools' ),
-				'description'         => __( 'Creates a post, page, or any custom post type. Sets title, content (classic HTML or Gutenberg block markup), excerpt, status, slug, author, date, parent/menu_order, plus optional taxonomy terms, custom-field meta, and a featured image — in one call. This writes post_content; to build an Elementor page use the Elementor tools instead.', 'emcp-tools' ),
+				'description'         => __( 'Creates a post, page, or any custom post type. Sets title, content (classic HTML or Gutenberg block markup), excerpt, status, slug, author, date, parent/menu_order, plus optional taxonomy terms, custom-field meta, and a featured image, in one call. This writes post_content; to build an Elementor page use the Elementor tools instead.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_create_post' ),
 				'permission_callback' => array( $this, 'check_create_permission' ),
@@ -391,7 +391,7 @@ class EMCP_Tools_Content_Abilities {
 					'properties' => array(
 						'post_type'      => array( 'type' => 'string', 'description' => __( 'Target type (post, page, or a CPT from list-post-types). Default: post.', 'emcp-tools' ) ),
 						'title'          => array( 'type' => 'string', 'description' => __( 'Post title.', 'emcp-tools' ) ),
-						'content'        => array( 'type' => 'string', 'description' => __( 'post_content — classic HTML or Gutenberg block markup, stored verbatim.', 'emcp-tools' ) ),
+						'content'        => array( 'type' => 'string', 'description' => __( 'post_content, classic HTML or Gutenberg block markup, stored verbatim.', 'emcp-tools' ) ),
 						'excerpt'        => array( 'type' => 'string' ),
 						'status'         => array( 'type' => 'string', 'enum' => array( 'draft', 'publish', 'pending', 'private', 'future' ), 'description' => __( 'Default: draft.', 'emcp-tools' ) ),
 						'slug'           => array( 'type' => 'string' ),
@@ -635,7 +635,7 @@ class EMCP_Tools_Content_Abilities {
 			'emcp-tools/update-post',
 			array(
 				'label'               => __( 'Update Post', 'emcp-tools' ),
-				'description'         => __( 'Partial update of a post/page/CPT. Only the fields you pass change. terms_mode controls replace/append; meta upserts the given keys; featured_image:null clears it. Does not touch Elementor data — use the Elementor tools for builder pages.', 'emcp-tools' ),
+				'description'         => __( 'Partial update of a post/page/CPT. Only the fields you pass change. terms_mode controls replace/append; meta upserts the given keys; featured_image:null clears it. Does not touch Elementor data, use the Elementor tools for builder pages.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_update_post' ),
 				'permission_callback' => array( $this, 'check_edit_permission' ),
@@ -644,7 +644,7 @@ class EMCP_Tools_Content_Abilities {
 					'properties' => array(
 						'post_id'        => array( 'type' => 'integer', 'description' => __( 'The post ID.', 'emcp-tools' ) ),
 						'title'          => array( 'type' => 'string' ),
-						'content'        => array( 'type' => 'string', 'description' => __( 'post_content — classic HTML or block markup.', 'emcp-tools' ) ),
+						'content'        => array( 'type' => 'string', 'description' => __( 'post_content, classic HTML or block markup.', 'emcp-tools' ) ),
 						'excerpt'        => array( 'type' => 'string' ),
 						'status'         => array( 'type' => 'string', 'enum' => array( 'draft', 'publish', 'pending', 'private', 'future' ) ),
 						'slug'           => array( 'type' => 'string' ),
@@ -811,7 +811,7 @@ class EMCP_Tools_Content_Abilities {
 			'emcp-tools/list-posts',
 			array(
 				'label'               => __( 'List Posts', 'emcp-tools' ),
-				'description'         => __( 'Lists/searches posts, pages, or any CPT. Filter by type, status, search text, taxonomy term, author, or parent; paginated. Returns compact rows (no content body) — call get-post for the full content. The is_elementor flag flags builder pages.', 'emcp-tools' ),
+				'description'         => __( 'Lists/searches posts, pages, or any CPT. Filter by type, status, search text, taxonomy term, author, or parent; paginated. Returns compact rows (no content body), call get-post for the full content. The is_elementor flag flags builder pages.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_list_posts' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),

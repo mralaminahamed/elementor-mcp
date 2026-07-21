@@ -367,7 +367,7 @@ class EMCP_Tools_Bootstrap {
 						'<div class="notice notice-error"><p>%s</p></div>',
 						sprintf(
 							/* translators: %s: current PHP version */
-							esc_html__( 'EMCP Tools requires PHP 8.1 or higher. Your server is running PHP %s — please upgrade PHP to avoid silent Elementor write failures.', 'emcp-tools' ),
+							esc_html__( 'EMCP Tools requires PHP 8.1 or higher. Your server is running PHP %s, please upgrade PHP to avoid silent Elementor write failures.', 'emcp-tools' ),
 							esc_html( PHP_VERSION )
 						)
 					);
@@ -388,7 +388,7 @@ class EMCP_Tools_Bootstrap {
 		// ran above). Only fails if the bundled source is missing/corrupt — a
 		// broken build, not a user action.
 		if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
-			$missing[] = 'WordPress MCP Adapter (bundled — reinstall the plugin if this persists)';
+			$missing[] = 'WordPress MCP Adapter (bundled, reinstall the plugin if this persists)';
 		}
 
 		if ( ! empty( $missing ) ) {

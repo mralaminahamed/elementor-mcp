@@ -85,7 +85,7 @@ class EMCP_Tools_Filesystem_Abilities {
 		$content = (string) file_get_contents( $abs );
 		$rel     = EMCP_Tools_Filesystem_Guard::to_relative( $abs );
 		if ( ! EMCP_Tools_Filesystem_Guard::is_utf8( $content ) ) {
-			return array( 'path' => $rel, 'size' => $size, 'binary' => true, 'message' => __( 'Binary file — not returned as text.', 'emcp-tools' ) );
+			return array( 'path' => $rel, 'size' => $size, 'binary' => true, 'message' => __( 'Binary file, not returned as text.', 'emcp-tools' ) );
 		}
 		$offset = isset( $input['offset'] ) ? max( 1, (int) $input['offset'] ) : 0;
 		$limit  = isset( $input['limit'] ) ? max( 0, (int) $input['limit'] ) : 0;

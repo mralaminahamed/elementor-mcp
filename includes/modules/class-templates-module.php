@@ -32,7 +32,7 @@ class EMCP_Tools_Templates_Module extends EMCP_Tools_Module {
 	}
 
 	public function description(): string {
-		return __( 'Ready-to-apply Elementor page templates — one-click creates a full page you edit visually.', 'emcp-tools' );
+		return __( 'Ready-to-apply Elementor page templates, one-click creates a full page you edit visually.', 'emcp-tools' );
 	}
 
 	public function tier(): string {

@@ -283,13 +283,13 @@ abstract class EMCP_Tools_SEO_Integration {
 	 * @return string
 	 */
 	protected function read_description(): string {
-		return $this->label() . ' — read operations (post/term SEO, settings). Call with no operation to list them.';
+		return $this->label() . ', read operations (post/term SEO, settings). Call with no operation to list them.';
 	}
 
 	/**
 	 * @return string
 	 */
 	protected function write_description(): string {
-		return $this->label() . ' — write operations (post/term SEO, settings). Call with no operation to list them.';
+		return $this->label() . ', write operations (post/term SEO, settings). Call with no operation to list them.';
 	}
 }

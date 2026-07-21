@@ -99,7 +99,7 @@ $emcp_cleared = isset( $_GET['cleared'] ) ? absint( wp_unslash( $_GET['cleared']
 	<?php if ( empty( $emcp_entries ) ) : ?>
 		<div class="emcp-history__empty">
 			<span class="dashicons dashicons-undo" aria-hidden="true"></span>
-			<p><?php esc_html_e( 'No changes recorded yet. As soon as a connected AI edits a page, writes a file, or changes the database, it will appear here — ready to roll back.', 'emcp-tools' ); ?></p>
+			<p><?php esc_html_e( 'No changes recorded yet. As soon as a connected AI edits a page, writes a file, or changes the database, it will appear here, ready to roll back.', 'emcp-tools' ); ?></p>
 		</div>
 	<?php else : ?>
 		<table class="widefat striped emcp-history__table">
@@ -123,7 +123,7 @@ $emcp_cleared = isset( $_GET['cleared'] ) ? absint( wp_unslash( $_GET['cleared']
 					?>
 					<tr>
 						<td>
-							<?php echo esc_html( $emcp_ts ? date_i18n( 'Y-m-d H:i', $emcp_ts ) : '—' ); ?>
+							<?php echo esc_html( $emcp_ts ? date_i18n( 'Y-m-d H:i', $emcp_ts ) : ', ' ); ?>
 							<?php if ( $emcp_ts ) : ?>
 								<span class="emcp-history__ago"><?php echo esc_html( sprintf( /* translators: %s: human time diff */ __( '%s ago', 'emcp-tools' ), human_time_diff( $emcp_ts ) ) ); ?></span>
 							<?php endif; ?>
@@ -146,14 +146,14 @@ $emcp_cleared = isset( $_GET['cleared'] ) ? absint( wp_unslash( $_GET['cleared']
 									<?php esc_html_e( 'Roll back', 'emcp-tools' ); ?>
 								</a>
 							<?php else : ?>
-								<span class="emcp-history__state">—</span>
+								<span class="emcp-history__state">, </span>
 							<?php endif; ?>
 							<a class="emcp-history__delete"
 								href="<?php echo esc_url( EMCP_Tools_Admin::delete_change_url( $emcp_id ) ); ?>"
 								aria-label="<?php esc_attr_e( 'Delete this history entry', 'emcp-tools' ); ?>"
 								onclick="return confirm('<?php echo esc_js(
 									$emcp_reversible
-										? __( 'Delete this entry? It can still be rolled back — deleting it discards that ability permanently.', 'emcp-tools' )
+										? __( 'Delete this entry? It can still be rolled back, deleting it discards that ability permanently.', 'emcp-tools' )
 										: __( 'Delete this history entry? This cannot be undone.', 'emcp-tools' )
 								); ?>');">
 								<span class="dashicons dashicons-trash" aria-hidden="true"></span>

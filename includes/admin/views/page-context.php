@@ -21,7 +21,7 @@ $emcp_tools_ctx_final = EMCP_Tools_Site_Context::compose_instructions( $emcp_too
 	<div class="elementor-mcp-section">
 		<h2><?php esc_html_e( 'Site Context', 'emcp-tools' ); ?></h2>
 		<p class="description">
-			<?php esc_html_e( 'Stable, site-wide guidance that every AI agent connecting to this site receives automatically and applies to all of its work here — your business identity, brand voice, content rules, technical constraints, and guardrails. It is delivered as the MCP server\'s instructions at connection; changes take effect the next time an agent connects.', 'emcp-tools' ); ?>
+			<?php esc_html_e( 'Stable, site-wide guidance that every AI agent connecting to this site receives automatically and applies to all of its work here, your business identity, brand voice, content rules, technical constraints, and guardrails. It is delivered as the MCP server\'s instructions at connection; changes take effect the next time an agent connects.', 'emcp-tools' ); ?>
 		</p>
 
 		<form method="post" action="options.php" class="elementor-mcp-context-form">

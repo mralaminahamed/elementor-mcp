@@ -182,7 +182,7 @@ class EMCP_Tools_Pixabay_Client {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 400 === $code || 401 === $code ) {
 			// Pixabay returns 400 for a bad/missing key or invalid params.
-			return new \WP_Error( 'invalid_key', __( 'Pixabay rejected the request — check the API key on EMCP Tools → Connection.', 'emcp-tools' ) );
+			return new \WP_Error( 'invalid_key', __( 'Pixabay rejected the request, check the API key on EMCP Tools → Connection.', 'emcp-tools' ) );
 		}
 		if ( 429 === $code ) {
 			return new \WP_Error( 'rate_limited', __( 'Pixabay rate limit reached (100 requests/minute). Try again shortly.', 'emcp-tools' ) );

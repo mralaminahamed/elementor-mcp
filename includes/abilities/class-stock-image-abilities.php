@@ -324,7 +324,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'emcp-tools/sideload-image',
 			array(
 				'label'               => __( 'Sideload Image', 'emcp-tools' ),
-				'description'         => __( 'Downloads an external image URL into the WordPress Media Library and returns the local attachment ID and URL. Use this after search-images: pass the EXACT `url` from a search result — never construct, guess, or edit an image URL (a made-up URL 404s, and the Unsplash api.unsplash.com/…/download endpoint needs a key). For stock photos, prefer add-stock-image, which searches, sideloads, and places the image in one call.', 'emcp-tools' ),
+				'description'         => __( 'Downloads an external image URL into the WordPress Media Library and returns the local attachment ID and URL. Use this after search-images: pass the EXACT `url` from a search result, never construct, guess, or edit an image URL (a made-up URL 404s, and the Unsplash api.unsplash.com/…/download endpoint needs a key). For stock photos, prefer add-stock-image, which searches, sideloads, and places the image in one call.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_sideload_image' ),
 				'permission_callback' => array( $this, 'check_upload_permission' ),
@@ -423,11 +423,11 @@ class EMCP_Tools_Stock_Image_Abilities {
 			$msg  = $tmp_file->get_error_message();
 			$hint = '';
 			if ( false !== strpos( $url, 'api.unsplash.com' ) ) {
-				$hint = ' ' . __( 'That is the Unsplash API URL — pass the direct image `url` from search-images instead, or use add-stock-image.', 'emcp-tools' );
+				$hint = ' ' . __( 'That is the Unsplash API URL, pass the direct image `url` from search-images instead, or use add-stock-image.', 'emcp-tools' );
 			} elseif ( preg_match( '/not found|404/i', $msg ) ) {
 				$hint = ' ' . __( 'Use the exact `url` returned by search-images (do not construct or edit image URLs), or use add-stock-image (search + sideload + place in one call).', 'emcp-tools' );
 			} elseif ( preg_match( '/unauthorized|forbidden|401|403/i', $msg ) ) {
-				$hint = ' ' . __( 'The URL requires authorization — use the direct `url` from search-images, or use add-stock-image.', 'emcp-tools' );
+				$hint = ' ' . __( 'The URL requires authorization, use the direct `url` from search-images, or use add-stock-image.', 'emcp-tools' );
 			}
 			return new \WP_Error(
 				'download_failed',
@@ -519,7 +519,7 @@ class EMCP_Tools_Stock_Image_Abilities {
 			'emcp-tools/add-stock-image',
 			array(
 				'label'               => __( 'Add Stock Image', 'emcp-tools' ),
-				'description'         => __( 'Searches a stock provider (Unsplash, Pexels, or Pixabay) for a photo, downloads it to the Media Library, and adds it as an image widget to the page — all in one step. Defaults to landscape (wide) images for consistent layouts. Combines search-images + sideload-image + add-free-widget. Requires a free API key for at least one provider (EMCP Tools → Connection).', 'emcp-tools' ),
+				'description'         => __( 'Searches a stock provider (Unsplash, Pexels, or Pixabay) for a photo, downloads it to the Media Library, and adds it as an image widget to the page, all in one step. Defaults to landscape (wide) images for consistent layouts. Combines search-images + sideload-image + add-free-widget. Requires a free API key for at least one provider (EMCP Tools → Connection).', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_add_stock_image' ),
 				'permission_callback' => array( $this, 'check_combined_permission' ),

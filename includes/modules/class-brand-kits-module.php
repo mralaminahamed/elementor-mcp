@@ -31,7 +31,7 @@ class EMCP_Tools_Brand_Kits_Module extends EMCP_Tools_Module {
 	}
 
 	public function description(): string {
-		return __( 'One-click color + typography kits for your site — bundled free kits plus the premium library.', 'emcp-tools' );
+		return __( 'One-click color + typography kits for your site, bundled free kits plus the premium library.', 'emcp-tools' );
 	}
 
 	public function tier(): string {

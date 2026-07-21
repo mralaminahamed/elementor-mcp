@@ -67,7 +67,7 @@ class EMCP_Tools_Elementor_Notice {
 		printf(
 			'<div class="notice notice-warning is-dismissible" data-emcp-elementor-notice="1" data-emcp-nonce="%s"><p>%s</p><p><a class="button button-secondary" href="%s">%s</a></p></div>',
 			esc_attr( $nonce ),
-			esc_html__( 'EMCP Tools is active. Install and activate Elementor to enable the Elementor page-building tools (widgets, layout, templates, brand kits). All other tools — WordPress content, plugins & themes, users, media, performance, security, filesystem, and database — work without it.', 'emcp-tools' ),
+			esc_html__( 'EMCP Tools is active. Install and activate Elementor to enable the Elementor page-building tools (widgets, layout, templates, brand kits). All other tools, WordPress content, plugins & themes, users, media, performance, security, filesystem, and database, work without it.', 'emcp-tools' ),
 			esc_url( $install ),
 			esc_html__( 'Install Elementor', 'emcp-tools' )
 		);

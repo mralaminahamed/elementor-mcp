@@ -350,7 +350,7 @@ class EMCP_Tools_Settings_Abilities {
 			'emcp-tools/update-settings',
 			array(
 				'label'               => __( 'Update Settings', 'emcp-tools' ),
-				'description'         => __( 'Updates curated WordPress site settings from a map of key → value. Only allowlisted, writable keys are changed; non-allowlisted, read-only (admin_email), or invalid values are returned in "skipped" with a reason — one bad key never aborts the batch. Changing a permalink setting (permalink_structure, category_base, tag_base) flushes rewrite rules automatically.', 'emcp-tools' ),
+				'description'         => __( 'Updates curated WordPress site settings from a map of key → value. Only allowlisted, writable keys are changed; non-allowlisted, read-only (admin_email), or invalid values are returned in "skipped" with a reason, one bad key never aborts the batch. Changing a permalink setting (permalink_structure, category_base, tag_base) flushes rewrite rules automatically.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_update_settings' ),
 				'permission_callback' => array( $this, 'check_manage_permission' ),

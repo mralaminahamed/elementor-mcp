@@ -260,7 +260,7 @@ class EMCP_Tools_User_Abilities {
 			'emcp-tools/create-user',
 			array(
 				'label'               => __( 'Create User', 'emcp-tools' ),
-				'description'         => __( 'Creates a new non-admin WordPress user. A strong password is generated automatically and the user is emailed a set-password link — the password is never returned. The role defaults to subscriber and cannot be an administrator or any admin-grade role.', 'emcp-tools' ),
+				'description'         => __( 'Creates a new non-admin WordPress user. A strong password is generated automatically and the user is emailed a set-password link, the password is never returned. The role defaults to subscriber and cannot be an administrator or any admin-grade role.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_create_user' ),
 				'permission_callback' => array( $this, 'can_create' ),

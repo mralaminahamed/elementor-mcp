@@ -248,10 +248,10 @@ class EMCP_Tools_Widget_Abilities {
 
 		// Tier gate. 'free' tool: reject Pro/Woo types. 'pro' tool: reject free types.
 		if ( 'free' === $expected_tier && $is_pro ) {
-			return new \WP_Error( 'wrong_tier', __( 'That is a Pro widget — use add-pro-widget.', 'emcp-tools' ) );
+			return new \WP_Error( 'wrong_tier', __( 'That is a Pro widget, use add-pro-widget.', 'emcp-tools' ) );
 		}
 		if ( 'pro' === $expected_tier && null !== $entry && ! $is_pro ) {
-			return new \WP_Error( 'wrong_tier', __( 'That is a free widget — use add-free-widget.', 'emcp-tools' ) );
+			return new \WP_Error( 'wrong_tier', __( 'That is a free widget, use add-free-widget.', 'emcp-tools' ) );
 		}
 
 		// Merge catalog defaults under the caller's settings (caller wins).

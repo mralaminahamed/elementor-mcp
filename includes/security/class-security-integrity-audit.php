@@ -78,7 +78,7 @@ class EMCP_Tools_Security_Integrity_Audit {
 		$hasher = static function ( string $relpath ): ?string {
 			$full = ABSPATH . $relpath;
 			if ( 0 === strpos( $relpath, 'wp-content/' ) ) {
-				return null; // Excluded — treat as present to suppress findings.
+				return null; // Excluded, treat as present to suppress findings.
 			}
 			if ( ! is_file( $full ) ) {
 				return null;

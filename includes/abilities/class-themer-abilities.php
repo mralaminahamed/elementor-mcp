@@ -341,7 +341,7 @@ class EMCP_Tools_Themer_Abilities {
 			'emcp-tools/resolve-template',
 			array(
 				'label'               => __( 'Resolve Template', 'emcp-tools' ),
-				'description'         => __( 'Given a post_id (single) or a query descriptor, returns which templates fill the header/body/footer slots — so you can verify your conditions wired correctly.', 'emcp-tools' ),
+				'description'         => __( 'Given a post_id (single) or a query descriptor, returns which templates fill the header/body/footer slots, so you can verify your conditions wired correctly.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_resolve' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),

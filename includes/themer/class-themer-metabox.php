@@ -36,7 +36,7 @@ class EMCP_Tools_Themer_Metabox {
 	public function add(): void {
 		add_meta_box(
 			'emcp-themer-conditions',
-			__( 'EMCP Themer — Display Conditions', 'emcp-tools' ),
+			__( 'EMCP Themer, Display Conditions', 'emcp-tools' ),
 			array( $this, 'render' ),
 			EMCP_Tools_Themer_CPT::POST_TYPE,
 			'normal',
@@ -99,7 +99,7 @@ class EMCP_Tools_Themer_Metabox {
 					'chooseGroup'  => __( 'Choose…', 'emcp-tools' ),
 					'all'          => __( 'All', 'emcp-tools' ),
 					'searchType'   => __( 'Type 1+ characters…', 'emcp-tools' ),
-					'noBuilder'    => __( 'This template type applies automatically — no display conditions needed.', 'emcp-tools' ),
+					'noBuilder'    => __( 'This template type applies automatically, no display conditions needed.', 'emcp-tools' ),
 					'proHint'      => __( 'Upgrade to EMCP Pro for Exclude rules, per-page / per-category / per-author targeting, and priority.', 'emcp-tools' ),
 					'remove'       => __( 'Remove', 'emcp-tools' ),
 				),
@@ -120,7 +120,7 @@ class EMCP_Tools_Themer_Metabox {
 				array(
 					'templates' => $templates,
 					'i18n'      => array(
-						'none'       => __( '— None (use builder content) —', 'emcp-tools' ),
+						'none'       => __( ', None (use builder content) , ', 'emcp-tools' ),
 						'chooseType' => __( 'Choose a template type first to list matching PHP templates.', 'emcp-tools' ),
 						'noMatch'    => __( 'No PHP templates match this type yet. Ask your AI agent to create one.', 'emcp-tools' ),
 					),
@@ -201,7 +201,7 @@ JS;
 		echo '<div class="emcp-themer-field" style="flex:1 1 260px;min-width:240px;">';
 		echo '<p style="margin-top:0;"><label for="emcp-themer-type"><strong>' . esc_html__( 'Template type', 'emcp-tools' ) . '</strong> <span style="color:#d63638">*</span></label><br>';
 		echo '<select id="emcp-themer-type" name="emcp_themer_type" class="emcp-themer-type-select" required style="width:100%;max-width:340px;">';
-		printf( '<option value="" %s>%s</option>', selected( $type, '', false ), esc_html__( '— Choose a template type —', 'emcp-tools' ) );
+		printf( '<option value="" %s>%s</option>', selected( $type, '', false ), esc_html__( ', Choose a template type , ', 'emcp-tools' ) );
 		foreach ( EMCP_Tools_Themer_CPT::TYPES as $t ) {
 			printf( '<option value="%1$s" %2$s>%3$s</option>', esc_attr( $t ), selected( $type, $t, false ), esc_html( $type_labels[ $t ] ?? ucfirst( $t ) ) );
 		}
@@ -222,7 +222,7 @@ JS;
 				$attached,
 				$has_type ? '' : 'display:none;'
 			);
-			printf( '<option value="0">%s</option>', esc_html__( '— None (use builder content) —', 'emcp-tools' ) );
+			printf( '<option value="0">%s</option>', esc_html__( ', None (use builder content) , ', 'emcp-tools' ) );
 			if ( $has_type ) {
 				foreach ( self::eligible_templates( $type ) as $tpl ) {
 					printf(
@@ -250,13 +250,13 @@ JS;
 		$conflicts = self::find_conflicts( (int) $post->ID, $type, $cond );
 		if ( ! empty( $conflicts ) ) {
 			echo '<div class="notice notice-warning inline emcp-themer-conflict" style="margin:4px 0 14px;padding:8px 12px;">';
-			echo '<p style="margin:.35em 0;"><strong>' . esc_html__( 'Conflict', 'emcp-tools' ) . '</strong> — ';
+			echo '<p style="margin:.35em 0;"><strong>' . esc_html__( 'Conflict', 'emcp-tools' ) . '</strong>: ';
 			echo esc_html(
 				sprintf(
 					/* translators: 1: count, 2: template type label */
 					_n(
-						'%1$d other %2$s template targets an overlapping condition. Only one template can render a given page — the resolver picks the most specific rule, then the highest priority, then the newest.',
-						'%1$d other %2$s templates target overlapping conditions. Only one template can render a given page — the resolver picks the most specific rule, then the highest priority, then the newest.',
+						'%1$d other %2$s template targets an overlapping condition. Only one template can render a given page, the resolver picks the most specific rule, then the highest priority, then the newest.',
+						'%1$d other %2$s templates target overlapping conditions. Only one template can render a given page, the resolver picks the most specific rule, then the highest priority, then the newest.',
 						count( $conflicts ),
 						'emcp-tools'
 					),

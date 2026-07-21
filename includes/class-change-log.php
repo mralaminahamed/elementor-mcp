@@ -279,7 +279,7 @@ class EMCP_Tools_Change_Log {
 	private static function rollback_file_delete( array $rb ) {
 		$target = (string) ( $rb['target_path'] ?? '' );
 		if ( '' === $target || ! is_file( $target ) ) {
-			return true; // Already gone — nothing to undo.
+			return true; // Already gone, nothing to undo.
 		}
 		$safe = self::guard_target( $target );
 		if ( is_wp_error( $safe ) ) {

@@ -43,14 +43,14 @@ $emcp_features = array(
 	array(
 		'icon'  => 'dashicons-admin-tools',
 		'title' => __( 'MCP Tools', 'emcp-tools' ),
-		'desc'  => __( 'Toggle the ~140 abilities your AI client can call — Elementor, WordPress core, and Gutenberg.', 'emcp-tools' ),
+		'desc'  => __( 'Toggle the ~140 abilities your AI client can call, Elementor, WordPress core, and Gutenberg.', 'emcp-tools' ),
 		'href'  => admin_url( 'admin.php?page=' . $emcp_page . '-tools' ),
 		'show'  => true,
 	),
 	array(
 		'icon'  => 'dashicons-admin-links',
 		'title' => __( 'Connection', 'emcp-tools' ),
-		'desc'  => __( 'Connect Claude, Cursor, the ChatGPT App and more — copy-paste configs, app passwords, and a one-click bundle.', 'emcp-tools' ),
+		'desc'  => __( 'Connect Claude, Cursor, the ChatGPT App and more, copy-paste configs, app passwords, and a one-click bundle.', 'emcp-tools' ),
 		'href'  => admin_url( 'admin.php?page=' . $emcp_page . '-connection' ),
 		'show'  => true,
 	),
@@ -64,7 +64,7 @@ $emcp_features = array(
 	array(
 		'icon'  => 'dashicons-undo',
 		'title' => __( 'History', 'emcp-tools' ),
-		'desc'  => __( 'Review every change your AI made and roll any of them back — a unified change ledger with one-click undo.', 'emcp-tools' ),
+		'desc'  => __( 'Review every change your AI made and roll any of them back, a unified change ledger with one-click undo.', 'emcp-tools' ),
 		'href'  => admin_url( 'admin.php?page=' . $emcp_page . '-history' ),
 		'show'  => true,
 	),
@@ -79,7 +79,7 @@ $emcp_features = array(
 	array(
 		'icon'  => 'dashicons-layout',
 		'title' => __( 'EMCP Themer', 'emcp-tools' ),
-		'desc'  => __( 'Build headers, footers, and dynamic layouts with any page builder — assigned by display conditions.', 'emcp-tools' ),
+		'desc'  => __( 'Build headers, footers, and dynamic layouts with any page builder, assigned by display conditions.', 'emcp-tools' ),
 		'href'  => admin_url( 'edit.php?post_type=emcp_theme_template' ),
 		'show'  => class_exists( 'EMCP_Tools_Themer_Module' ) && EMCP_Tools_Themer_Module::is_enabled(),
 	),
@@ -116,7 +116,7 @@ $emcp_features = array(
 	array(
 		'icon'  => 'dashicons-editor-code',
 		'title' => __( 'PHP Sandbox', 'emcp-tools' ),
-		'desc'  => __( 'Review and activate AI-authored PHP snippets behind a human approval gate — nothing runs unattended.', 'emcp-tools' ),
+		'desc'  => __( 'Review and activate AI-authored PHP snippets behind a human approval gate, nothing runs unattended.', 'emcp-tools' ),
 		'href'  => admin_url( 'admin.php?page=' . $emcp_page . '-widgets' ),
 		'show'  => true,
 	),
@@ -325,7 +325,7 @@ $emcp_videos = array(
 	<section class="emcp-dash-section" aria-labelledby="emcp-dash-features-h">
 		<div class="emcp-dash-section-head">
 			<h2 id="emcp-dash-features-h" class="emcp-dash-section-title"><?php esc_html_e( 'Explore your toolkit', 'emcp-tools' ); ?></h2>
-			<p class="emcp-dash-section-sub"><?php esc_html_e( 'Everything this plugin can do — jump straight in.', 'emcp-tools' ); ?></p>
+			<p class="emcp-dash-section-sub"><?php esc_html_e( 'Everything this plugin can do, jump straight in.', 'emcp-tools' ); ?></p>
 		</div>
 		<div class="emcp-dash-grid">
 			<?php
@@ -359,7 +359,7 @@ $emcp_videos = array(
 	<section class="emcp-dash-section emcp-dash-section--videos" aria-labelledby="emcp-dash-videos-h">
 		<div class="emcp-dash-section-head">
 			<h2 id="emcp-dash-videos-h" class="emcp-dash-section-title"><?php esc_html_e( 'Featured video guides', 'emcp-tools' ); ?></h2>
-			<p class="emcp-dash-section-sub"><?php esc_html_e( 'Watch and learn — from first connection to full-page builds.', 'emcp-tools' ); ?></p>
+			<p class="emcp-dash-section-sub"><?php esc_html_e( 'Watch and learn, from first connection to full-page builds.', 'emcp-tools' ); ?></p>
 		</div>
 		<div class="emcp-dash-videos">
 			<?php
@@ -408,7 +408,7 @@ $emcp_videos = array(
 						<?php
 						printf(
 							/* translators: 1: installed version, 2: available version */
-							esc_html__( 'You have v%1$s — v%2$s is ready to install.', 'emcp-tools' ),
+							esc_html__( 'You have v%1$s, v%2$s is ready to install.', 'emcp-tools' ),
 							esc_html( $emcp_ver['current'] ),
 							esc_html( $emcp_ver['latest'] )
 						);

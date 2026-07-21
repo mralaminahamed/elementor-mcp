@@ -1274,7 +1274,7 @@ class EMCP_Tools_Admin {
 				'oauthEnabled' => class_exists( 'EMCP_Tools_OAuth_Server' ) && EMCP_Tools_OAuth_Server::is_enabled(),
 				'oauthSignin'  => __( 'The next time your AI client connects, your browser opens so you can authorize it. Approve to finish connecting.', 'emcp-tools' ),
 				/* translators: %s: client label */
-				'genFirst'     => __( 'Generate your credentials above — the config for %s then appears here.', 'emcp-tools' ),
+				'genFirst'     => __( 'Generate your credentials above, the config for %s then appears here.', 'emcp-tools' ),
 				'siteUrl'     => site_url(),
 				'restMeUrl'   => rest_url( 'wp/v2/users/me' ),
 				// Only the filename — never the absolute server path. The proxy runs
@@ -1284,14 +1284,14 @@ class EMCP_Tools_Admin {
 				'proxyPath'   => 'mcp-proxy.mjs',
 				// Connection auth self-test (#41).
 				'authTesting' => __( 'Testing…', 'emcp-tools' ),
-				'authOk'      => __( '✓ Authentication works — your AI client should connect successfully.', 'emcp-tools' ),
-				'authFail'    => __( '✗ Authentication failed (HTTP %d). If the credentials are correct, your server is stripping the Authorization header — see the fix below.', 'emcp-tools' ),
+				'authOk'      => __( '✓ Authentication works, your AI client should connect successfully.', 'emcp-tools' ),
+				'authFail'    => __( '✗ Authentication failed (HTTP %d). If the credentials are correct, your server is stripping the Authorization header, see the fix below.', 'emcp-tools' ),
 				'authError'   => __( 'Could not reach the REST API to test. Check the site URL and that the REST API is enabled.', 'emcp-tools' ),
 				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
 				'createPwNonce' => wp_create_nonce( 'emcp_tools_create_app_password' ),
 				'trackPromptNonce' => wp_create_nonce( 'emcp_tools_track_prompt_copy' ),
 				'generating'    => __( 'Generating…', 'emcp-tools' ),
-				'pwCreated'     => __( 'Application password created — save it below, it is shown only once.', 'emcp-tools' ),
+				'pwCreated'     => __( 'Application password created, save it below, it is shown only once.', 'emcp-tools' ),
 				'syncing'       => __( 'Syncing…', 'emcp-tools' ),
 				// Brand Kits.
 				'applying'      => __( 'Applying…', 'emcp-tools' ),
@@ -1330,7 +1330,7 @@ class EMCP_Tools_Admin {
 						'optimizing'    => __( 'Optimizing…', 'emcp-tools' ),
 						'restoring'     => __( 'Restoring…', 'emcp-tools' ),
 						'done'          => __( 'Done', 'emcp-tools' ),
-						'unsaved'       => __( 'Unsaved changes — click Save Modules to apply.', 'emcp-tools' ),
+						'unsaved'       => __( 'Unsaved changes, click Save Modules to apply.', 'emcp-tools' ),
 					)
 				);
 			}
@@ -1362,12 +1362,12 @@ class EMCP_Tools_Admin {
 		}
 
 		echo '<div class="notice notice-error"><p><strong>EMCP Tools:</strong> ';
-		echo esc_html__( 'A required script is missing — assets/js/admin.js was not found in the plugin folder, so admin features like the Connection-tab config generator will not work.', 'emcp-tools' );
+		echo esc_html__( 'A required script is missing, assets/js/admin.js was not found in the plugin folder, so admin features like the Connection-tab config generator will not work.', 'emcp-tools' );
 		echo ' ';
 		if ( '' !== $mangled ) {
 			printf(
 				/* translators: %s: the mangled filename found, e.g. admin.j_ */
-				esc_html__( 'It looks like security software renamed it to assets/js/%s — rename that file back to admin.js.', 'emcp-tools' ),
+				esc_html__( 'It looks like security software renamed it to assets/js/%s, rename that file back to admin.js.', 'emcp-tools' ),
 				esc_html( $mangled )
 			);
 		} else {
@@ -1426,7 +1426,7 @@ class EMCP_Tools_Admin {
 
 		$app_name = sprintf(
 			/* translators: %s: current date and time */
-			__( 'EMCP Tools (MCP) — %s', 'emcp-tools' ),
+			__( 'EMCP Tools (MCP), %s', 'emcp-tools' ),
 			gmdate( 'Y-m-d H:i' )
 		);
 
@@ -1906,7 +1906,7 @@ class EMCP_Tools_Admin {
 		return array(
 			'dynamic'   => array(
 				'label' => __( 'Dynamic Content', 'emcp-tools' ),
-				'desc'  => __( 'Custom fields & metadata — read and write dynamic content.', 'emcp-tools' ),
+				'desc'  => __( 'Custom fields & metadata, read and write dynamic content.', 'emcp-tools' ),
 			),
 			'ecommerce' => array(
 				'label' => __( 'E-Commerce', 'emcp-tools' ),
@@ -1987,7 +1987,7 @@ class EMCP_Tools_Admin {
 				array( 'title' => __( 'URL', 'emcp-tools' ), 'copy' => '%ENDPOINT%' ),
 				array(
 					'title' => __( 'c. Save, then Authenticate', 'emcp-tools' ),
-					'desc'  => __( 'Click Save. An “Authenticate” button appears on the server row — click it, then “Approve” on the consent screen that opens. Your site is now connected and you can start chatting.', 'emcp-tools' ),
+					'desc'  => __( 'Click Save. An “Authenticate” button appears on the server row, click it, then “Approve” on the consent screen that opens. Your site is now connected and you can start chatting.', 'emcp-tools' ),
 				),
 			),
 		);
@@ -2016,10 +2016,10 @@ class EMCP_Tools_Admin {
 			. '<tr><th>' . esc_html__( 'Name', 'emcp-tools' ) . '</th><td><code>%NAME%</code></td></tr>'
 			. '<tr><th>' . esc_html__( 'Transport', 'emcp-tools' ) . '</th><td>' . esc_html__( 'Streamable HTTP', 'emcp-tools' ) . '</td></tr>'
 			. '<tr><th>' . esc_html__( 'URL', 'emcp-tools' ) . '</th><td><code>%ENDPOINT%</code></td></tr>'
-			. '<tr><th>' . esc_html__( 'Bearer token env var', 'emcp-tools' ) . '</th><td>' . esc_html__( 'Leave blank — EMCP uses a WordPress Application Password (HTTP Basic), not a bearer token.', 'emcp-tools' ) . '</td></tr>'
+			. '<tr><th>' . esc_html__( 'Bearer token env var', 'emcp-tools' ) . '</th><td>' . esc_html__( 'Leave blank, EMCP uses a WordPress Application Password (HTTP Basic), not a bearer token.', 'emcp-tools' ) . '</td></tr>'
 			. '<tr><th>' . esc_html__( 'Headers', 'emcp-tools' ) . '</th><td>' . esc_html__( 'Key', 'emcp-tools' ) . ' <code>Authorization</code> &middot; ' . esc_html__( 'Value', 'emcp-tools' ) . ' <code>Basic %B64%</code></td></tr>'
 			. '</tbody></table>'
-			. '<p class="description">' . esc_html__( 'Then Save. The config blocks below do the same thing — “direct HTTP” for the URL + header approach, or the “Node proxy / npx” config if the HTTP transport gives you handshake trouble.', 'emcp-tools' ) . '</p>';
+			. '<p class="description">' . esc_html__( 'Then Save. The config blocks below do the same thing, “direct HTTP” for the URL + header approach, or the “Node proxy / npx” config if the HTTP transport gives you handshake trouble.', 'emcp-tools' ) . '</p>';
 
 		return array(
 			array(
@@ -2843,11 +2843,11 @@ class EMCP_Tools_Admin {
 				'platform' => 'plugins',
 				'group'    => 'dynamic',
 				'label'    => __( 'ACF (Advanced Custom Fields)', 'emcp-tools' ),
-				'note'     => __( 'Plugin integrations are exposed as two tools — one Read, one Write. The AI calls a tool with an operation name; each tool bundles the operations listed on its card. Toggle a tool to allow or block all of its operations at once. Post-type & taxonomy operations need ACF 6.1+.', 'emcp-tools' ),
+				'note'     => __( 'Plugin integrations are exposed as two tools, one Read, one Write. The AI calls a tool with an operation name; each tool bundles the operations listed on its card. Toggle a tool to allow or block all of its operations at once. Post-type & taxonomy operations need ACF 6.1+.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/acf-read'  => array(
 						'label'       => __( 'ACF Read', 'emcp-tools' ),
-						'description' => __( 'Read Advanced Custom Fields data — field groups, field values, options pages, and (ACF 6.1+) ACF-managed post types and taxonomies.', 'emcp-tools' ),
+						'description' => __( 'Read Advanced Custom Fields data, field groups, field values, options pages, and (ACF 6.1+) ACF-managed post types and taxonomies.', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
 						'operations'  => array(
 							'list-field-groups',
@@ -2862,7 +2862,7 @@ class EMCP_Tools_Admin {
 					),
 					'emcp-tools/acf-write' => array(
 						'label'       => __( 'ACF Write', 'emcp-tools' ),
-						'description' => __( 'Write Advanced Custom Fields data — field values, field groups, and (ACF 6.1+) ACF-managed post types and taxonomies. No delete operations; slugs and field keys are immutable.', 'emcp-tools' ),
+						'description' => __( 'Write Advanced Custom Fields data, field values, field groups, and (ACF 6.1+) ACF-managed post types and taxonomies. No delete operations; slugs and field keys are immutable.', 'emcp-tools' ),
 						'badges'      => array(),
 						'operations'  => array(
 							'update-fields',
@@ -2881,7 +2881,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'ecommerce',
 				'pro'      => true,
 				'label'    => __( 'WooCommerce', 'emcp-tools' ),
-				'note'     => __( 'WooCommerce is exposed as two tools — one Read, one Write — over the full wc/v3 API (~120 operations). The AI calls a tool with an operation name; toggle a tool to allow or block all of its operations at once. Money/irreversible operations (refunds, deletes, batch) additionally require confirm:true. Requires WooCommerce active.', 'emcp-tools' ),
+				'note'     => __( 'WooCommerce is exposed as two tools, one Read, one Write, over the full wc/v3 API (~120 operations). The AI calls a tool with an operation name; toggle a tool to allow or block all of its operations at once. Money/irreversible operations (refunds, deletes, batch) additionally require confirm:true. Requires WooCommerce active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/woo-read'  => array(
 						'label'            => __( 'WooCommerce Read', 'emcp-tools' ),
@@ -2905,11 +2905,11 @@ class EMCP_Tools_Admin {
 				'platform' => 'plugins',
 				'group'    => 'dynamic',
 				'label'    => __( 'Meta Box', 'emcp-tools' ),
-				'note'     => __( 'Plugin integrations are exposed as two tools — one Read, one Write. The AI calls a tool with an operation name; each tool bundles the operations listed on its card. Toggle a tool to allow or block all of its operations at once.', 'emcp-tools' ),
+				'note'     => __( 'Plugin integrations are exposed as two tools, one Read, one Write. The AI calls a tool with an operation name; each tool bundles the operations listed on its card. Toggle a tool to allow or block all of its operations at once.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/metabox-read'  => array(
 						'label'       => __( 'Meta Box Read', 'emcp-tools' ),
-						'description' => __( 'Read Meta Box data — field groups, field definitions, and field values for posts and other supported object types.', 'emcp-tools' ),
+						'description' => __( 'Read Meta Box data, field groups, field definitions, and field values for posts and other supported object types.', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
 						'operations'  => array(
 							'list-field-groups',
@@ -2931,11 +2931,11 @@ class EMCP_Tools_Admin {
 				'platform' => 'plugins',
 				'group'    => 'forms',
 				'label'    => __( 'Contact Form 7', 'emcp-tools' ),
-				'note'     => __( 'Contact Form 7 exposed as two tools — one Read, one Write. Reads list forms, fields, mail templates and messages; writes update mail, messages, and settings. CF7 stores no submissions, so there are no entry operations.', 'emcp-tools' ),
+				'note'     => __( 'Contact Form 7 exposed as two tools, one Read, one Write. Reads list forms, fields, mail templates and messages; writes update mail, messages, and settings. CF7 stores no submissions, so there are no entry operations.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/cf7-read'  => array(
 						'label'            => __( 'Contact Form 7 Read', 'emcp-tools' ),
-						'description'      => __( 'Read CF7 forms — fields, mail templates, messages, and settings.', 'emcp-tools' ),
+						'description'      => __( 'Read CF7 forms, fields, mail templates, messages, and settings.', 'emcp-tools' ),
 						'badges'           => array( 'read-only' ),
 						'operations'       => array( 'list-forms', 'get-form', 'list-notifications', 'get-settings' ),
 						'available'        => self::cf7_available(),
@@ -2956,7 +2956,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'WPForms', 'emcp-tools' ),
-				'note'     => __( 'WPForms exposed as two tools — one Read, one Write. Reads cover forms, fields, notifications, and entries (entries require WPForms Pro); writes update settings/notifications and manage entries. Requires WPForms active.', 'emcp-tools' ),
+				'note'     => __( 'WPForms exposed as two tools, one Read, one Write. Reads cover forms, fields, notifications, and entries (entries require WPForms Pro); writes update settings/notifications and manage entries. Requires WPForms active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/wpforms-read'  => array(
 						'label'            => __( 'WPForms Read', 'emcp-tools' ),
@@ -2981,7 +2981,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'Gravity Forms', 'emcp-tools' ),
-				'note'     => __( 'Gravity Forms exposed as two tools — one Read, one Write — over the GFAPI. Reads cover forms, fields, notifications, and entries; writes set entry status and delete entries. Requires Gravity Forms active.', 'emcp-tools' ),
+				'note'     => __( 'Gravity Forms exposed as two tools, one Read, one Write, over the GFAPI. Reads cover forms, fields, notifications, and entries; writes set entry status and delete entries. Requires Gravity Forms active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/gravityforms-read'  => array(
 						'label'            => __( 'Gravity Forms Read', 'emcp-tools' ),
@@ -3006,7 +3006,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'Fluent Forms', 'emcp-tools' ),
-				'note'     => __( 'Fluent Forms exposed as two tools — one Read, one Write. Reads cover forms, fields, and submissions; writes set submission status and delete submissions. Requires Fluent Forms active.', 'emcp-tools' ),
+				'note'     => __( 'Fluent Forms exposed as two tools, one Read, one Write. Reads cover forms, fields, and submissions; writes set submission status and delete submissions. Requires Fluent Forms active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/fluentforms-read'  => array(
 						'label'            => __( 'Fluent Forms Read', 'emcp-tools' ),
@@ -3031,7 +3031,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'Ninja Forms', 'emcp-tools' ),
-				'note'     => __( 'Ninja Forms exposed as two tools — one Read, one Write. Reads cover forms, fields, and submissions; writes delete submissions. Requires Ninja Forms active.', 'emcp-tools' ),
+				'note'     => __( 'Ninja Forms exposed as two tools, one Read, one Write. Reads cover forms, fields, and submissions; writes delete submissions. Requires Ninja Forms active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/ninjaforms-read'  => array(
 						'label'            => __( 'Ninja Forms Read', 'emcp-tools' ),
@@ -3056,7 +3056,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'Formidable Forms', 'emcp-tools' ),
-				'note'     => __( 'Formidable Forms exposed as two tools — one Read, one Write. Reads cover forms, fields, notifications, and entries; writes update notifications and delete entries. Requires Formidable Forms active.', 'emcp-tools' ),
+				'note'     => __( 'Formidable Forms exposed as two tools, one Read, one Write. Reads cover forms, fields, notifications, and entries; writes update notifications and delete entries. Requires Formidable Forms active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/formidable-read'  => array(
 						'label'            => __( 'Formidable Forms Read', 'emcp-tools' ),
@@ -3081,7 +3081,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'MetForm', 'emcp-tools' ),
-				'note'     => __( 'MetForm exposed as two tools — one Read, one Write. Reads cover forms, fields, and entries; writes delete entries. Requires MetForm (and Elementor) active.', 'emcp-tools' ),
+				'note'     => __( 'MetForm exposed as two tools, one Read, one Write. Reads cover forms, fields, and entries; writes delete entries. Requires MetForm (and Elementor) active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/metform-read'  => array(
 						'label'            => __( 'MetForm Read', 'emcp-tools' ),
@@ -3106,7 +3106,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'forms',
 				'pro'      => true,
 				'label'    => __( 'SureForms', 'emcp-tools' ),
-				'note'     => __( 'SureForms exposed as two tools — one Read, one Write. Reads cover forms, fields, and entries; writes set entry status and delete entries. Requires SureForms active.', 'emcp-tools' ),
+				'note'     => __( 'SureForms exposed as two tools, one Read, one Write. Reads cover forms, fields, and entries; writes set entry status and delete entries. Requires SureForms active.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/sureforms-read'  => array(
 						'label'            => __( 'SureForms Read', 'emcp-tools' ),
@@ -3130,7 +3130,7 @@ class EMCP_Tools_Admin {
 				'platform' => 'plugins',
 				'group'    => 'seo',
 				'label'    => __( 'Slim SEO', 'emcp-tools' ),
-				'note'     => __( 'Slim SEO exposed as two tools — one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social) Slim SEO stores for posts and terms, plus its site settings.', 'emcp-tools' ),
+				'note'     => __( 'Slim SEO exposed as two tools, one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social) Slim SEO stores for posts and terms, plus its site settings.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/slimseo-read'  => array(
 						'label'            => __( 'Slim SEO Read', 'emcp-tools' ),
@@ -3155,7 +3155,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'seo',
 				'pro'      => true,
 				'label'    => __( 'Yoast SEO', 'emcp-tools' ),
-				'note'     => __( 'Yoast SEO exposed as two tools — one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social, focus keyword) Yoast stores for posts and terms, plus site settings.', 'emcp-tools' ),
+				'note'     => __( 'Yoast SEO exposed as two tools, one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social, focus keyword) Yoast stores for posts and terms, plus site settings.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/yoast-read'  => array(
 						'label'            => __( 'Yoast SEO Read', 'emcp-tools' ),
@@ -3180,7 +3180,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'seo',
 				'pro'      => true,
 				'label'    => __( 'Rank Math', 'emcp-tools' ),
-				'note'     => __( 'Rank Math exposed as two tools — one Read, one Write. Read/write post & term SEO metadata and site settings; also read schema (structured data).', 'emcp-tools' ),
+				'note'     => __( 'Rank Math exposed as two tools, one Read, one Write. Read/write post & term SEO metadata and site settings; also read schema (structured data).', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/rankmath-read'  => array(
 						'label'            => __( 'Rank Math Read', 'emcp-tools' ),
@@ -3205,7 +3205,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'seo',
 				'pro'      => true,
 				'label'    => __( 'All in One SEO', 'emcp-tools' ),
-				'note'     => __( 'All in One SEO exposed as two tools — one Read, one Write. Read/write post SEO metadata and read schema (structured data) + site settings.', 'emcp-tools' ),
+				'note'     => __( 'All in One SEO exposed as two tools, one Read, one Write. Read/write post SEO metadata and read schema (structured data) + site settings.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/aioseo-read'  => array(
 						'label'            => __( 'All in One SEO Read', 'emcp-tools' ),
@@ -3230,7 +3230,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'seo',
 				'pro'      => true,
 				'label'    => __( 'SEOPress', 'emcp-tools' ),
-				'note'     => __( 'SEOPress exposed as two tools — one Read, one Write. Read/write post & term SEO metadata and site settings; also read schema (structured data).', 'emcp-tools' ),
+				'note'     => __( 'SEOPress exposed as two tools, one Read, one Write. Read/write post & term SEO metadata and site settings; also read schema (structured data).', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/seopress-read'  => array(
 						'label'            => __( 'SEOPress Read', 'emcp-tools' ),
@@ -3255,7 +3255,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'seo',
 				'pro'      => true,
 				'label'    => __( 'The SEO Framework', 'emcp-tools' ),
-				'note'     => __( 'The SEO Framework exposed as two tools — one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social) it stores for posts and terms.', 'emcp-tools' ),
+				'note'     => __( 'The SEO Framework exposed as two tools, one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social) it stores for posts and terms.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/seoframework-read'  => array(
 						'label'            => __( 'The SEO Framework Read', 'emcp-tools' ),
@@ -3280,7 +3280,7 @@ class EMCP_Tools_Admin {
 				'group'    => 'seo',
 				'pro'      => true,
 				'label'    => __( 'SureRank', 'emcp-tools' ),
-				'note'     => __( 'SureRank exposed as two tools — one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social) SureRank stores for posts and terms.', 'emcp-tools' ),
+				'note'     => __( 'SureRank exposed as two tools, one Read, one Write. Read and write the SEO metadata (title, description, canonical, robots, social) SureRank stores for posts and terms.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/surerank-read'  => array(
 						'label'            => __( 'SureRank Read', 'emcp-tools' ),
@@ -3303,7 +3303,7 @@ class EMCP_Tools_Admin {
 			'theme_active'     => array(
 				'platform' => 'themes',
 				'label'    => __( 'Active Theme', 'emcp-tools' ),
-				'note'     => __( 'Theme integrations are exposed as two tools — one Read, one Write — that bundle internal operations. The AI calls a tool with an operation name; toggle a tool to allow or block all of its operations at once.', 'emcp-tools' ),
+				'note'     => __( 'Theme integrations are exposed as two tools, one Read, one Write, that bundle internal operations. The AI calls a tool with an operation name; toggle a tool to allow or block all of its operations at once.', 'emcp-tools' ),
 				'tools'    => array(
 					'emcp-tools/theme-read'  => array(
 						'label'       => __( 'Theme Read', 'emcp-tools' ),
@@ -3576,12 +3576,12 @@ class EMCP_Tools_Admin {
 					),
 					'emcp-tools/search-images'    => array(
 						'label'       => __( 'Search Images', 'emcp-tools' ),
-						'description' => __( 'Searches a stock-photo provider (Unsplash, Pexels, or Pixabay) for images. Core WordPress tool — available without Elementor. Needs a free provider API key (Connection tab).', 'emcp-tools' ),
+						'description' => __( 'Searches a stock-photo provider (Unsplash, Pexels, or Pixabay) for images. Core WordPress tool, available without Elementor. Needs a free provider API key (Connection tab).', 'emcp-tools' ),
 						'badges'      => array( 'read-only' ),
 					),
 					'emcp-tools/sideload-image'   => array(
 						'label'       => __( 'Sideload Image', 'emcp-tools' ),
-						'description' => __( 'Downloads an external image URL into the WordPress Media Library. Core WordPress tool — available without Elementor.', 'emcp-tools' ),
+						'description' => __( 'Downloads an external image URL into the WordPress Media Library. Core WordPress tool, available without Elementor.', 'emcp-tools' ),
 						'badges'      => array(),
 					),
 					'emcp-tools/add-stock-image'  => array(

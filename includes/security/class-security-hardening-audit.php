@@ -60,7 +60,7 @@ class EMCP_Tools_Security_Hardening_Audit {
 		$scheme = strtolower( (string) wp_parse_url( $home_url, PHP_URL_SCHEME ) );
 		return 'https' === $scheme
 			? EMCP_Tools_Security_Finding::make( 'harden_https', 'hardening', 'HTTPS', 'pass', $home_url, 'The site URL uses HTTPS.' )
-			: EMCP_Tools_Security_Finding::make( 'harden_https', 'hardening', 'HTTPS', 'warning', $home_url, 'The site is not served over HTTPS.', 'Install a TLS certificate and move Site Address to https:// — plain HTTP exposes logins and cookies.' );
+			: EMCP_Tools_Security_Finding::make( 'harden_https', 'hardening', 'HTTPS', 'warning', $home_url, 'The site is not served over HTTPS.', 'Install a TLS certificate and move Site Address to https://, plain HTTP exposes logins and cookies.' );
 	}
 
 	/**

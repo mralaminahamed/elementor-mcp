@@ -81,7 +81,7 @@ $emcp_tools_v1_url       = $emcp_tools_v1_available ? EMCP_Tools_Pro_Prompts::v1
 			<div class="elementor-mcp-prompts-whatsnew-body">
 				<h3><?php esc_html_e( 'The prompts have been rewritten', 'emcp-tools' ); ?></h3>
 				<p>
-					<?php esc_html_e( 'Prompts no longer dictate a fixed, section-by-section layout. Each one now gives the AI a style guide, a design direction, the exact content, and hard standards — accessibility, real photography, consistent SVG icons, and a working contact form — then lets it design the page. Expect noticeably better, more distinctive results.', 'emcp-tools' ); ?>
+					<?php esc_html_e( 'Prompts no longer dictate a fixed, section-by-section layout. Each one now gives the AI a style guide, a design direction, the exact content, and hard standards, accessibility, real photography, consistent SVG icons, and a working contact form, then lets it design the page. Expect noticeably better, more distinctive results.', 'emcp-tools' ); ?>
 				</p>
 				<p>
 					<?php esc_html_e( 'They also work with any page builder: change the first line of a prompt from Elementor to Gutenberg, Bricks, or plain HTML/CSS, and the rest still applies.', 'emcp-tools' ); ?>
@@ -112,7 +112,7 @@ $emcp_tools_v1_url       = $emcp_tools_v1_available ? EMCP_Tools_Pro_Prompts::v1
 		<div class="elementor-mcp-prompts-intro">
 			<h2><?php esc_html_e( 'Sample Prompts', 'emcp-tools' ); ?></h2>
 			<p class="description">
-				<?php esc_html_e( 'Ready-to-use landing page blueprints for AI agents. Copy any prompt below and paste it into your AI client (Claude, Cursor, etc.) — it will automatically build a complete Elementor page using MCP tools.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'Ready-to-use landing page blueprints for AI agents. Copy any prompt below and paste it into your AI client (Claude, Cursor, etc.), it will automatically build a complete Elementor page using MCP tools.', 'emcp-tools' ); ?>
 			</p>
 		</div>
 
@@ -291,7 +291,7 @@ $emcp_tools_v1_url       = $emcp_tools_v1_available ? EMCP_Tools_Pro_Prompts::v1
 		<div class="elementor-mcp-prompts-cta">
 			<div class="elementor-mcp-prompts-cta-content">
 				<h3><?php esc_html_e( 'Unlock 50+ Premium Prompts', 'emcp-tools' ); ?></h3>
-				<p><?php esc_html_e( 'Industry-specific landing page blueprints across 10 categories — restaurants, dental clinics, law firms, photographers, wedding venues, and more. Auto-synced to your site when you upgrade.', 'emcp-tools' ); ?></p>
+				<p><?php esc_html_e( 'Industry-specific landing page blueprints across 10 categories, restaurants, dental clinics, law firms, photographers, wedding venues, and more. Auto-synced to your site when you upgrade.', 'emcp-tools' ); ?></p>
 				<a href="<?php echo esc_url( $emcp_tools_upgrade_url ); ?>" class="button button-primary elementor-mcp-prompts-cta-btn" target="_blank" rel="noopener noreferrer">
 					<svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
 					<?php esc_html_e( 'Upgrade to Pro', 'emcp-tools' ); ?>

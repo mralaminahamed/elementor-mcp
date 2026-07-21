@@ -127,7 +127,7 @@ class EMCP_Tools_Content_Mirror {
 		}
 		if ( ! is_file( $dir . '/.gitignore' ) ) {
 			// Do NOT ignore json — this dir is meant to be committed. Keep a README hint.
-			@file_put_contents( $dir . '/README.txt', "EMCP content mirror — commit the .json files to version your page designs.\n" ); // phpcs:ignore
+			@file_put_contents( $dir . '/README.txt', "EMCP content mirror, commit the .json files to version your page designs.\n" ); // phpcs:ignore
 		}
 
 		$path  = $dir . '/' . self::file_name( $type, $post_id, (string) $post->post_name );

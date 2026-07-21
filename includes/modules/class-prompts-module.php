@@ -31,7 +31,7 @@ class EMCP_Tools_Prompts_Module extends EMCP_Tools_Module {
 	}
 
 	public function description(): string {
-		return __( 'Ready-to-use AI prompt blueprints for building pages — bundled samples plus the premium library.', 'emcp-tools' );
+		return __( 'Ready-to-use AI prompt blueprints for building pages, bundled samples plus the premium library.', 'emcp-tools' );
 	}
 
 	public function tier(): string {

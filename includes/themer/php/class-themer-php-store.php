@@ -347,7 +347,7 @@ class EMCP_Tools_Themer_PHP_Store {
 		$validation = EMCP_Tools_PHP_Snippet_Validator::validate( $code );
 		if ( ! $validation['valid'] || ! $validation['safe'] ) {
 			update_post_meta( $id, self::META_VALIDATION, wp_slash( (string) wp_json_encode( $validation ) ) );
-			return new WP_Error( 'compile_blocked', __( 'Cannot compile — the template fails validation.', 'emcp-tools' ), array( 'validation' => $validation ) );
+			return new WP_Error( 'compile_blocked', __( 'Cannot compile, the template fails validation.', 'emcp-tools' ), array( 'validation' => $validation ) );
 		}
 
 		$ensured = self::ensure_dir();
@@ -358,7 +358,7 @@ class EMCP_Tools_Themer_PHP_Store {
 		$body = EMCP_Tools_PHP_Snippet_Validator::strip_tags( $code );
 		$func = self::func_name( $id );
 		$php  = "<?php\n"
-			. "// EMCP Theme PHP Template {$id} — generated; edits fail the integrity check.\n"
+			. "// EMCP Theme PHP Template {$id}, generated; edits fail the integrity check.\n"
 			. "if ( ! function_exists( '{$func}' ) ) {\n"
 			. "\tfunction {$func}() {\n"
 			. $body . "\n"

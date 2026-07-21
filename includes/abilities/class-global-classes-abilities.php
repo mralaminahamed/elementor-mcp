@@ -119,7 +119,7 @@ class EMCP_Tools_Global_Classes_Abilities {
 	 */
 	public function execute_list_global_classes( $input ) {
 		if ( ! self::is_available() ) {
-			return new \WP_Error( 'unavailable', __( 'Global Classes are not available — Elementor 4.0+ is required.', 'emcp-tools' ) );
+			return new \WP_Error( 'unavailable', __( 'Global Classes are not available, Elementor 4.0+ is required.', 'emcp-tools' ) );
 		}
 
 		$filter = array();

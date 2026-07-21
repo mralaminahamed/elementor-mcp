@@ -100,7 +100,7 @@ class EMCP_Tools_Composite_Abilities {
 			'emcp-tools/build-page',
 			array(
 				'label'               => __( 'Build Page', 'emcp-tools' ),
-				'description'         => __( 'Creates a complete Elementor page from a declarative structure in a single call. Supports nested containers and any widget types. IMPORTANT LAYOUT RULES: (1) For side-by-side columns, use a parent container with flex_direction=row — children are auto-set to content_width=full with equal percentage widths (e.g. 2 children = 50%, 3 = 33.33%). (2) NEVER set flex_wrap or _flex_size in settings — these cause layout overflow. The tool handles layout automatically. (3) Background colors: set background_background=classic and background_color=#hex on containers. (4) Background images: set background_background=classic, background_image={url,id}, background_size=cover. (5) Background overlay: background_overlay_background=classic, background_overlay_color=#hex, background_overlay_opacity={size:0.7,unit:px}. (6) Text alignment: text_align on text/heading widgets. (7) Use search-images and sideload-image tools to get real images before building.', 'emcp-tools' ),
+				'description'         => __( 'Creates a complete Elementor page from a declarative structure in a single call. Supports nested containers and any widget types. IMPORTANT LAYOUT RULES: (1) For side-by-side columns, use a parent container with flex_direction=row, children are auto-set to content_width=full with equal percentage widths (e.g. 2 children = 50%, 3 = 33.33%). (2) NEVER set flex_wrap or _flex_size in settings, these cause layout overflow. The tool handles layout automatically. (3) Background colors: set background_background=classic and background_color=#hex on containers. (4) Background images: set background_background=classic, background_image={url,id}, background_size=cover. (5) Background overlay: background_overlay_background=classic, background_overlay_color=#hex, background_overlay_opacity={size:0.7,unit:px}. (6) Text alignment: text_align on text/heading widgets. (7) Use search-images and sideload-image tools to get real images before building.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_build_page' ),
 				'permission_callback' => array( $this, 'check_create_permission' ),
@@ -127,7 +127,7 @@ class EMCP_Tools_Composite_Abilities {
 						),
 						'structure'     => array(
 							'type'        => 'array',
-							'description' => __( 'Declarative element tree. Each item is type:"container" (with children) or type:"widget" (with widget_type + settings). Shorthand is accepted and coerced: type:"heading" is read as a heading widget, and any node with children is treated as a container — but the response lists these coercions under "warnings", so prefer the explicit shape. Every widget needs a widget_type; a widget with none is skipped and reported.', 'emcp-tools' ),
+							'description' => __( 'Declarative element tree. Each item is type:"container" (with children) or type:"widget" (with widget_type + settings). Shorthand is accepted and coerced: type:"heading" is read as a heading widget, and any node with children is treated as a container, but the response lists these coercions under "warnings", so prefer the explicit shape. Every widget needs a widget_type; a widget with none is skipped and reported.', 'emcp-tools' ),
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
@@ -155,7 +155,7 @@ class EMCP_Tools_Composite_Abilities {
 						'elements_created' => array( 'type' => 'integer' ),
 						'warnings'         => array(
 							'type'        => 'array',
-							'description' => __( 'Non-fatal notes: nodes that were coerced from shorthand or skipped. If present, some elements did not land exactly as written — fix and rebuild or patch with the layout/widget tools.', 'emcp-tools' ),
+							'description' => __( 'Non-fatal notes: nodes that were coerced from shorthand or skipped. If present, some elements did not land exactly as written, fix and rebuild or patch with the layout/widget tools.', 'emcp-tools' ),
 							'items'       => array( 'type' => 'string' ),
 						),
 					),
@@ -307,7 +307,7 @@ class EMCP_Tools_Composite_Abilities {
 		if ( '' !== $type ) {
 			if ( empty( $item['widget_type'] ) ) {
 				$item['widget_type'] = $type;
-				$this->warnings[]    = sprintf( 'Interpreted "type":"%1$s" as a "%1$s" widget — prefer {"type":"widget","widget_type":"%1$s"}.', $type );
+				$this->warnings[]    = sprintf( 'Interpreted "type":"%1$s" as a "%1$s" widget, prefer {"type":"widget","widget_type":"%1$s"}.', $type );
 			} else {
 				$this->warnings[] = sprintf( 'Node had type "%1$s" and widget_type "%2$s"; used widget_type "%2$s".', $type, (string) $item['widget_type'] );
 			}
@@ -373,7 +373,7 @@ class EMCP_Tools_Composite_Abilities {
 				$settings    = $item['settings'] ?? array();
 
 				if ( empty( $widget_type ) ) {
-					$this->warnings[] = 'Skipped a widget with no widget_type — give each widget a widget_type (e.g. "heading", "button", "image").';
+					$this->warnings[] = 'Skipped a widget with no widget_type, give each widget a widget_type (e.g. "heading", "button", "image").';
 				} else {
 					$widget = $this->factory->create_widget( $widget_type, $settings );
 					$this->elements_created++;

@@ -83,7 +83,7 @@ class EMCP_Tools_Performance_Server_Audit {
 	public function evaluate_opcache( bool $enabled ): array {
 		return $enabled
 			? EMCP_Tools_Performance_Finding::make( 'opcache', 'server', 'PHP OPcache', 'pass', true, 'OPcache is enabled.' )
-			: EMCP_Tools_Performance_Finding::make( 'opcache', 'server', 'PHP OPcache', 'warning', false, 'OPcache is disabled.', 'Enable the Zend OPcache extension — it caches compiled PHP and dramatically reduces request time.' );
+			: EMCP_Tools_Performance_Finding::make( 'opcache', 'server', 'PHP OPcache', 'warning', false, 'OPcache is disabled.', 'Enable the Zend OPcache extension, it caches compiled PHP and dramatically reduces request time.' );
 	}
 
 	public function evaluate_object_cache( bool $persistent ): array {
@@ -104,7 +104,7 @@ class EMCP_Tools_Performance_Server_Audit {
 			return EMCP_Tools_Performance_Finding::make( 'wp_debug', 'config', 'WP_DEBUG', 'pass', false, 'WP_DEBUG is off.' );
 		}
 		if ( 'production' === $environment ) {
-			return EMCP_Tools_Performance_Finding::make( 'wp_debug', 'config', 'WP_DEBUG', 'warning', true, 'WP_DEBUG is ON in production.', 'Turn off WP_DEBUG on production — debug logging and notices add overhead and leak information.' );
+			return EMCP_Tools_Performance_Finding::make( 'wp_debug', 'config', 'WP_DEBUG', 'warning', true, 'WP_DEBUG is ON in production.', 'Turn off WP_DEBUG on production, debug logging and notices add overhead and leak information.' );
 		}
 		return EMCP_Tools_Performance_Finding::make( 'wp_debug', 'config', 'WP_DEBUG', 'info', true, sprintf( 'WP_DEBUG is on (environment: %s).', $environment ) );
 	}
@@ -134,7 +134,7 @@ class EMCP_Tools_Performance_Server_Audit {
 		$human = $this->human_bytes( $bytes );
 		$value = array( 'bytes' => $bytes, 'top' => $top_options );
 		if ( $bytes >= self::AUTOLOAD_CRIT_BYTES ) {
-			return EMCP_Tools_Performance_Finding::make( 'autoload_size', 'database', 'Autoloaded options', 'critical', $value, sprintf( 'Autoloaded options total %s — loaded on every request.', $human ), 'Find and disable autoload for the largest offenders (often stale plugin caches). See the listed options.' );
+			return EMCP_Tools_Performance_Finding::make( 'autoload_size', 'database', 'Autoloaded options', 'critical', $value, sprintf( 'Autoloaded options total %s, loaded on every request.', $human ), 'Find and disable autoload for the largest offenders (often stale plugin caches). See the listed options.' );
 		}
 		if ( $bytes >= self::AUTOLOAD_WARN_BYTES ) {
 			return EMCP_Tools_Performance_Finding::make( 'autoload_size', 'database', 'Autoloaded options', 'warning', $value, sprintf( 'Autoloaded options total %s.', $human ), 'Trim autoloaded options above ~1 MB; large autoload bloats every request.' );

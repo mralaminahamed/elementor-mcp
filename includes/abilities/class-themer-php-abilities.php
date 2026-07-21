@@ -61,7 +61,7 @@ class EMCP_Tools_Themer_PHP_Abilities {
 			'emcp-tools/create-theme-php-template',
 			array(
 				'label'               => __( 'Create Theme PHP Template', 'emcp-tools' ),
-				'description'         => __( 'Create a DRAFT PHP template for a Themer region (header|footer|single|archive|any). Emit markup with echo/heredoc — a closing PHP tag is not allowed. Validated; critical constructs (code execution, shell, file loading, network, file writes) are rejected. Never runs until a human selects it in a template metabox.', 'emcp-tools' ),
+				'description'         => __( 'Create a DRAFT PHP template for a Themer region (header|footer|single|archive|any). Emit markup with echo/heredoc, a closing PHP tag is not allowed. Validated; critical constructs (code execution, shell, file loading, network, file writes) are rejected. Never runs until a human selects it in a template metabox.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_create' ),
 				'permission_callback' => array( $this, 'check_write_permission' ),

@@ -41,7 +41,7 @@ class EMCP_Tools_SVG_Support_Module extends EMCP_Tools_Module {
 	}
 
 	public function description(): string {
-		return __( 'Safely allow SVG uploads to the Media Library. Every SVG is sanitized (scripts, event handlers and external references stripped) before it is saved. Mainly for sites without Elementor — Elementor already allows SVG uploads for authorized users.', 'emcp-tools' );
+		return __( 'Safely allow SVG uploads to the Media Library. Every SVG is sanitized (scripts, event handlers and external references stripped) before it is saved. Mainly for sites without Elementor, Elementor already allows SVG uploads for authorized users.', 'emcp-tools' );
 	}
 
 	public function tier(): string {

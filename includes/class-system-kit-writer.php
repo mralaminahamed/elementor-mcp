@@ -181,7 +181,7 @@ class EMCP_Tools_System_Kit_Writer {
 				return new WP_Error(
 					'invalid_color',
 					/* translators: %s: system color slot name */
-					sprintf( __( 'The "%s" slot has an invalid hex color. Aborting — a brand kit replaces the whole palette or none of it.', 'emcp-tools' ), $slot )
+					sprintf( __( 'The "%s" slot has an invalid hex color. Aborting, a brand kit replaces the whole palette or none of it.', 'emcp-tools' ), $slot )
 				);
 			}
 

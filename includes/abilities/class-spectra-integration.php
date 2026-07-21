@@ -203,7 +203,7 @@ class EMCP_Tools_Spectra_Integration extends EMCP_Tools_Theme_Integration {
 		$shared = EMCP_Tools_Spectra_Catalog::shared_attributes( $name );
 		if ( ! empty( $shared ) ) {
 			$entry['shared_attributes'] = $shared;
-			$entry['schema_note']       = __( 'Some native attributes (background image/video, border radius, box shadow) are registered via a shared helper and are NOT in the attribute list above — see shared_attributes. Prefer these native container attributes over a core/html workaround; they are editable in Spectra and survive editor saves.', 'emcp-tools' );
+			$entry['schema_note']       = __( 'Some native attributes (background image/video, border radius, box shadow) are registered via a shared helper and are NOT in the attribute list above, see shared_attributes. Prefer these native container attributes over a core/html workaround; they are editable in Spectra and survive editor saves.', 'emcp-tools' );
 		}
 
 		if ( $full ) {

@@ -33,7 +33,7 @@ class EMCP_Tools_Image_Resize_Abilities {
 			'emcp-tools/resize-media',
 			array(
 				'label'               => __( 'Resize Media', 'emcp-tools' ),
-				'description'         => __( 'Resize an existing Media Library image in place (the attachment ID and its URLs stay the same). Scales to fit the given width and/or height, preserving aspect ratio; pass crop:true to hard-crop to exactly width×height. The original is backed up (reversible), all sub-sizes + WebP are regenerated, and — if the module\'s max-dimension cap is smaller than your target — the cap applies. JPEG/PNG/WebP/GIF.', 'emcp-tools' ),
+				'description'         => __( 'Resize an existing Media Library image in place (the attachment ID and its URLs stay the same). Scales to fit the given width and/or height, preserving aspect ratio; pass crop:true to hard-crop to exactly width×height. The original is backed up (reversible), all sub-sizes + WebP are regenerated, and, if the module\'s max-dimension cap is smaller than your target, the cap applies. JPEG/PNG/WebP/GIF.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_resize' ),
 				'permission_callback' => array( $this, 'check_permission' ),

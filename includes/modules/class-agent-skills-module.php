@@ -37,7 +37,7 @@ class EMCP_Tools_Agent_Skills_Module extends EMCP_Tools_Module {
 	}
 
 	public function description(): string {
-		return __( 'Expose the bundled skills to connected AI agents at runtime — the list-skills / get-skill tools plus a Skills catalog in the discovery context. Turn off to remove that injection (the Skills download on the Skills tab is unaffected).', 'emcp-tools' );
+		return __( 'Expose the bundled skills to connected AI agents at runtime, the list-skills / get-skill tools plus a Skills catalog in the discovery context. Turn off to remove that injection (the Skills download on the Skills tab is unaffected).', 'emcp-tools' );
 	}
 
 	public function tier(): string {

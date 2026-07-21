@@ -47,7 +47,7 @@ class EMCP_Tools_Transaction_Abilities {
 			'emcp-tools/list-changes',
 			array(
 				'label'               => __( 'List Changes', 'emcp-tools' ),
-				'description'         => __( 'Lists recent AI-made changes (Elementor edits, filesystem writes, database writes) recorded in the change ledger, newest first — each with a summary, whether it is reversible, and whether it has already been rolled back. Filter by domain (elementor/filesystem/database), rolled_back, or reversible. Use get-change for full detail and rollback-change to undo one. Read-only.', 'emcp-tools' ),
+				'description'         => __( 'Lists recent AI-made changes (Elementor edits, filesystem writes, database writes) recorded in the change ledger, newest first, each with a summary, whether it is reversible, and whether it has already been rolled back. Filter by domain (elementor/filesystem/database), rolled_back, or reversible. Use get-change for full detail and rollback-change to undo one. Read-only.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_list' ),
 				'permission_callback' => array( $this, 'check_manage' ),
@@ -85,7 +85,7 @@ class EMCP_Tools_Transaction_Abilities {
 			'emcp-tools/rollback-change',
 			array(
 				'label'               => __( 'Roll Back Change', 'emcp-tools' ),
-				'description'         => __( 'Undoes one recorded change by id — restores a page\'s prior Elementor data, restores/removes a file from its backup, or inverses a database write from its before-image. Marks the entry rolled back (no double-rollback) and records a compensating entry. Only reverts changes EMCP itself recorded.', 'emcp-tools' ),
+				'description'         => __( 'Undoes one recorded change by id, restores a page\'s prior Elementor data, restores/removes a file from its backup, or inverses a database write from its before-image. Marks the entry rolled back (no double-rollback) and records a compensating entry. Only reverts changes EMCP itself recorded.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_rollback' ),
 				'permission_callback' => array( $this, 'check_manage' ),

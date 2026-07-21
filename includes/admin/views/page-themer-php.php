@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div class="wrap emcp-themer-php-wrap">
-	<h1><?php esc_html_e( 'EMCP Themer — PHP Templates', 'emcp-tools' ); ?></h1>
+	<h1><?php esc_html_e( 'EMCP Themer, PHP Templates', 'emcp-tools' ); ?></h1>
 	<p class="description">
 		<?php esc_html_e( 'PHP templates authored via MCP. Review and edit the code, then attach one to a template on its edit screen (Display Conditions box → “Render with PHP template”). A template only runs once attached.', 'emcp-tools' ); ?>
 	</p>
@@ -88,7 +88,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p><label for="emcp-themer-php-code"><strong><?php esc_html_e( 'Template code', 'emcp-tools' ); ?></strong></label></p>
 			<textarea id="emcp-themer-php-code" name="code" rows="20" class="large-text code" spellcheck="false" style="width:100%;font-family:Consolas,Monaco,monospace;"><?php echo esc_textarea( $detail['code'] ); ?></textarea>
 			<p class="description">
-				<?php esc_html_e( 'Emit markup with echo/heredoc — a closing PHP tag is not allowed. eval/exec/include, network calls and file writes are rejected on save. If this template is attached, saving re-validates and recompiles it.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'Emit markup with echo/heredoc, a closing PHP tag is not allowed. eval/exec/include, network calls and file writes are rejected on save. If this template is attached, saving re-validates and recompiles it.', 'emcp-tools' ); ?>
 			</p>
 
 			<p class="submit" style="margin-top:8px;">

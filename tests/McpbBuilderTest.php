@@ -65,7 +65,7 @@ final class McpbBuilderTest extends TestCase {
 
 	public function test_display_name_remains_per_host(): void {
 		$m = $this->manifest( 'https://example.com' );
-		$this->assertSame( 'EMCP Tools — example.com', $m['display_name'] );
+		$this->assertSame( 'EMCP Tools - example.com', $m['display_name'] );
 	}
 
 	public function test_credentials_are_embedded_in_env(): void {

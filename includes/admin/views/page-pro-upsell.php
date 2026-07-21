@@ -40,7 +40,7 @@ $emcp_upsell_url     = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_
 		printf( esc_html__( '%s is an EMCP Pro feature', 'emcp-tools' ), esc_html( $emcp_upsell_feature ) );
 		?>
 	</h2>
-	<p><?php esc_html_e( 'Upgrade to EMCP Pro to unlock this feature along with the full Pro toolkit — AI Chat, the SEO & Accessibility toolkit, the Widget Builder, Brand Kits, premium prompts and templates, and more.', 'emcp-tools' ); ?></p>
+	<p><?php esc_html_e( 'Upgrade to EMCP Pro to unlock this feature along with the full Pro toolkit, AI Chat, the SEO & Accessibility toolkit, the Widget Builder, Brand Kits, premium prompts and templates, and more.', 'emcp-tools' ); ?></p>
 	<a class="button button-primary button-hero" href="<?php echo esc_url( $emcp_upsell_url ); ?>" target="_blank" rel="noopener noreferrer">
 		<?php esc_html_e( 'Upgrade to Pro', 'emcp-tools' ); ?>
 	</a>

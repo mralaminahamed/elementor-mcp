@@ -149,7 +149,7 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 
 					<p class="elementor-mcp-activate-note elementor-mcp-activate-note--security">
 						<strong><?php esc_html_e( 'Security note:', 'emcp-tools' ); ?></strong>
-						<?php esc_html_e( 'When enabled, connected AI agents can create, edit, and delete Elementor pages and content on this site through the MCP server. Use a capable AI model and set your client to ask for confirmation before every action — read what the agent is about to do before approving.', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'When enabled, connected AI agents can create, edit, and delete Elementor pages and content on this site through the MCP server. Use a capable AI model and set your client to ask for confirmation before every action, read what the agent is about to do before approving.', 'emcp-tools' ); ?>
 					</p>
 					<p class="elementor-mcp-activate-note">
 						<?php
@@ -162,7 +162,7 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 									: ( 'external' === $emcp_tools_adapter_source ? esc_html__( 'provided by an active MCP Adapter plugin', 'emcp-tools' ) : esc_html__( 'unavailable', 'emcp-tools' ) )
 							);
 						} else {
-							esc_html_e( 'WordPress Abilities API is unavailable — WordPress 6.9 or newer is required.', 'emcp-tools' );
+							esc_html_e( 'WordPress Abilities API is unavailable, WordPress 6.9 or newer is required.', 'emcp-tools' );
 						}
 						?>
 					</p>
@@ -184,7 +184,7 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 					</label>
 
 					<p class="elementor-mcp-activate-note">
-						<?php esc_html_e( 'Enable only for OpenAI-compatible strict function-calling clients (e.g. CrewAI) that reject the default tool schemas. It lists every property as required (optional ones become nullable) and sets additionalProperties:false. Leave this OFF for Claude, Gemini, and Antigravity — they work with the default schemas, and strict mode can break Gemini/Antigravity.', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'Enable only for OpenAI-compatible strict function-calling clients (e.g. CrewAI) that reject the default tool schemas. It lists every property as required (optional ones become nullable) and sets additionalProperties:false. Leave this OFF for Claude, Gemini, and Antigravity, they work with the default schemas, and strict mode can break Gemini/Antigravity.', 'emcp-tools' ); ?>
 					</p>
 					<p class="elementor-mcp-activate-note">
 						<?php
@@ -211,12 +211,12 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 							<?php disabled( ! $emcp_oauth_available ); ?>
 						/>
 						<span class="elementor-mcp-toggle" aria-hidden="true"><span class="elementor-mcp-toggle-track"></span></span>
-						<span class="emcp-switch-label"><?php esc_html_e( 'Let clients connect by signing in (OAuth) — no password to copy', 'emcp-tools' ); ?></span>
+						<span class="emcp-switch-label"><?php esc_html_e( 'Let clients connect by signing in (OAuth), no password to copy', 'emcp-tools' ); ?></span>
 					</label>
 
 					<?php if ( ! $emcp_oauth_available ) : ?>
 						<p class="elementor-mcp-activate-note elementor-mcp-activate-note--security">
-							<?php esc_html_e( 'OAuth requires HTTPS. This site is not served over HTTPS, so OAuth sign-in is unavailable — use an Application Password below.', 'emcp-tools' ); ?>
+							<?php esc_html_e( 'OAuth requires HTTPS. This site is not served over HTTPS, so OAuth sign-in is unavailable, use an Application Password below.', 'emcp-tools' ); ?>
 						</p>
 					<?php endif; ?>
 					<p class="elementor-mcp-activate-note">
@@ -304,7 +304,7 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 			<div data-authfor="app-password">
 			<h3><?php esc_html_e( 'Step 1: Generate Your Credentials', 'emcp-tools' ); ?></h3>
 			<p class="description">
-				<?php esc_html_e( 'Pick an administrator and click Generate — a new Application Password is created automatically and every client config below is filled in. No need to visit your profile.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'Pick an administrator and click Generate, a new Application Password is created automatically and every client config below is filled in. No need to visit your profile.', 'emcp-tools' ); ?>
 			</p>
 
 			<?php
@@ -368,7 +368,7 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 
 				<div id="elementor-mcp-generated-pw-row" style="display: none;">
 					<div class="elementor-mcp-cred-field">
-						<label for="elementor-mcp-generated-pw-copy"><?php esc_html_e( 'New Application Password (save it — shown only once)', 'emcp-tools' ); ?></label>
+						<label for="elementor-mcp-generated-pw-copy"><?php esc_html_e( 'New Application Password (save it, shown only once)', 'emcp-tools' ); ?></label>
 						<div class="elementor-mcp-auth-result">
 							<code id="elementor-mcp-generated-pw"></code>
 							<button type="button" class="button elementor-mcp-copy-btn" data-target="elementor-mcp-generated-pw-copy"><?php esc_html_e( 'Copy', 'emcp-tools' ); ?></button>
@@ -414,7 +414,7 @@ $emcp_tools_server_enabled = class_exists( 'EMCP_Tools_Plugin' )
 						<p><strong><?php esc_html_e( 'Got 401 Unauthorized? Your server is most likely stripping the Authorization header.', 'emcp-tools' ); ?></strong></p>
 						<p class="description"><?php esc_html_e( 'Common on Apache, Plesk, LiteSpeed and some Azure/IIS stacks: the Authorization header never reaches PHP, so WordPress never sees the Application Password and every MCP "initialize" fails with Unauthorized. Pass the header through to PHP, then re-test:', 'emcp-tools' ); ?></p>
 
-						<p class="description" style="margin-bottom: 4px;"><strong><?php esc_html_e( 'Apache / Plesk / LiteSpeed', 'emcp-tools' ); ?></strong> — <?php esc_html_e( 'add to .htaccess, above the # BEGIN WordPress block:', 'emcp-tools' ); ?></p>
+						<p class="description" style="margin-bottom: 4px;"><strong><?php esc_html_e( 'Apache / Plesk / LiteSpeed', 'emcp-tools' ); ?></strong>: <?php esc_html_e( 'add to .htaccess, above the # BEGIN WordPress block:', 'emcp-tools' ); ?></p>
 						<pre class="elementor-mcp-authtest-snippet">&lt;IfModule mod_rewrite.c&gt;
 RewriteEngine On
 RewriteCond %{HTTP:Authorization} ^(.*)
@@ -422,14 +422,14 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 &lt;/IfModule&gt;
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 
-						<p class="description" style="margin-bottom: 4px;"><strong><?php esc_html_e( 'Nginx', 'emcp-tools' ); ?></strong> — <?php esc_html_e( 'add inside the PHP location block, then reload nginx:', 'emcp-tools' ); ?></p>
+						<p class="description" style="margin-bottom: 4px;"><strong><?php esc_html_e( 'Nginx', 'emcp-tools' ); ?></strong>: <?php esc_html_e( 'add inside the PHP location block, then reload nginx:', 'emcp-tools' ); ?></p>
 						<pre class="elementor-mcp-authtest-snippet">fastcgi_param HTTP_AUTHORIZATION $http_authorization;</pre>
 
 						<p class="description">
 							<?php
 							printf(
 								/* translators: %s: command-line example */
-								esc_html__( 'You can also confirm from a terminal: %s — a 200 response means auth works; 401 means the header is being stripped.', 'emcp-tools' ),
+								esc_html__( 'You can also confirm from a terminal: %s, a 200 response means auth works; 401 means the header is being stripped.', 'emcp-tools' ),
 								'<code>curl -u "USER:APP PASSWORD" ' . esc_html( esc_url_raw( rest_url( 'wp/v2/users/me' ) ) ) . '</code>'
 							);
 							?>
@@ -441,7 +441,7 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 
 			<div id="elementor-mcp-client-picker">
 				<h3><?php esc_html_e( 'Connect Your AI Client', 'emcp-tools' ); ?></h3>
-				<p class="description"><?php esc_html_e( 'Pick the app you will connect from — the setup steps below are tailored to it.', 'emcp-tools' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Pick the app you will connect from, the setup steps below are tailored to it.', 'emcp-tools' ); ?></p>
 
 				<div class="elementor-mcp-client-grid" role="tablist" aria-label="<?php esc_attr_e( 'AI client', 'emcp-tools' ); ?>">
 					<?php foreach ( EMCP_Tools_Admin::connection_clients() as $emcp_tools_client ) : ?>
@@ -495,7 +495,7 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 	<div class="elementor-mcp-tabpanel" id="emcp-conn-services" role="tabpanel" data-tab="conn-services">
 		<div class="elementor-mcp-section">
 			<h2><?php esc_html_e( '3rd Party Services', 'emcp-tools' ); ?></h2>
-			<p class="description"><?php esc_html_e( 'Connect external services EMCP tools can use. Stock-image providers power the search-images / add-stock-image tools — add at least one free key; the tools use the first connected provider unless a specific one is requested.', 'emcp-tools' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Connect external services EMCP tools can use. Stock-image providers power the search-images / add-stock-image tools, add at least one free key; the tools use the first connected provider unless a specific one is requested.', 'emcp-tools' ); ?></p>
 
 			<form method="post" action="options.php" id="emcp-conn-services-form" class="emcp-services-form">
 				<?php settings_fields( EMCP_Tools_Admin::SETTINGS_GROUP_SERVICES ); ?>
@@ -516,7 +516,7 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 							/* translators: %s: PHP constant name. */
 							$emcp_sp_placeholder = sprintf( __( 'Set via the %s constant', 'emcp-tools' ), $emcp_sp['const'] );
 						} elseif ( $emcp_sp_saved ) {
-							$emcp_sp_placeholder = __( '•••••••••••••• saved — leave blank to keep', 'emcp-tools' );
+							$emcp_sp_placeholder = __( '•••••••••••••• saved, leave blank to keep', 'emcp-tools' );
 						} else {
 							$emcp_sp_placeholder = __( 'Paste your API key', 'emcp-tools' );
 						}
@@ -568,11 +568,11 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</pre>
 						id="emcp-tools-wpcli-command"
 						name="emcp_tools_wpcli_command"
 						value="<?php echo esc_attr( $emcp_wpcli_const ? '' : (string) get_option( 'emcp_tools_wpcli_command', '' ) ); ?>"
-						placeholder="<?php echo esc_attr( $emcp_wpcli_const ? sprintf( __( 'Set via the %s constant', 'emcp-tools' ), 'EMCP_TOOLS_WPCLI_COMMAND' ) : 'wp   —   or   php /path/to/wp-cli.phar' ); ?>"
+						placeholder="<?php echo esc_attr( $emcp_wpcli_const ? sprintf( __( 'Set via the %s constant', 'emcp-tools' ), 'EMCP_TOOLS_WPCLI_COMMAND' ) : 'wp, or   php /path/to/wp-cli.phar' ); ?>"
 						autocomplete="off" spellcheck="false"
 						<?php disabled( $emcp_wpcli_const ); ?>
 					/>
-					<p class="description"><?php esc_html_e( 'The wp launcher used by the WP-CLI tools over HTTP and for background jobs (e.g. "wp", or "php /path/to/wp-cli.phar"). Leave blank if you connect only over the WP-CLI stdio transport — commands then run in-process, no binary needed.', 'emcp-tools' ); ?></p>
+					<p class="description"><?php esc_html_e( 'The wp launcher used by the WP-CLI tools over HTTP and for background jobs (e.g. "wp", or "php /path/to/wp-cli.phar"). Leave blank if you connect only over the WP-CLI stdio transport, commands then run in-process, no binary needed.', 'emcp-tools' ); ?></p>
 				</div>
 			</form>
 		</div>

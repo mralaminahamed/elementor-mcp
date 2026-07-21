@@ -30,7 +30,7 @@ $emcp_tools_wb_url = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_up
 					<span class="elementor-mcp-badge elementor-mcp-badge--pro">PRO</span>
 				</h2>
 				<p class="description">
-					<?php esc_html_e( 'Code your AI agent generated through the MCP tools — starting with custom Elementor widgets. Everything lives in an isolated sandbox under wp-content/uploads, never in your theme, core, or other plugins. Active widgets appear in the Elementor panel under "Custom (EMCP)".', 'emcp-tools' ); ?>
+					<?php esc_html_e( 'Code your AI agent generated through the MCP tools, starting with custom Elementor widgets. Everything lives in an isolated sandbox under wp-content/uploads, never in your theme, core, or other plugins. Active widgets appear in the Elementor panel under "Custom (EMCP)".', 'emcp-tools' ); ?>
 				</p>
 			</div>
 		</div>
@@ -185,7 +185,7 @@ $emcp_tools_wb_url = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_up
 					<span class="elementor-mcp-badge elementor-mcp-badge--free"><?php esc_html_e( 'FREE', 'emcp-tools' ); ?></span>
 				</h2>
 				<p class="description">
-					<?php esc_html_e( 'Run small pieces of PHP on your site — as a [emcp_snippet] shortcode or on a WordPress hook. An AI agent can draft snippets through the MCP tools, but they stay INACTIVE until you review and activate them here.', 'emcp-tools' ); ?>
+					<?php esc_html_e( 'Run small pieces of PHP on your site, as a [emcp_snippet] shortcode or on a WordPress hook. An AI agent can draft snippets through the MCP tools, but they stay INACTIVE until you review and activate them here.', 'emcp-tools' ); ?>
 				</p>
 			</div>
 		</div>
@@ -193,7 +193,7 @@ $emcp_tools_wb_url = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_up
 		<div class="notice notice-error inline" style="margin: 12px 0;">
 			<p>
 				<strong><?php esc_html_e( 'This runs real PHP on your site.', 'emcp-tools' ); ?></strong>
-				<?php esc_html_e( 'The validator blocks obviously dangerous code (shell/eval/file writes/network/obfuscation), but static analysis is a guardrail, not a guarantee — only activate code you have read and trust. Activation is the approval step; AI can only create inactive drafts.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'The validator blocks obviously dangerous code (shell/eval/file writes/network/obfuscation), but static analysis is a guardrail, not a guarantee, only activate code you have read and trust. Activation is the approval step; AI can only create inactive drafts.', 'emcp-tools' ); ?>
 			</p>
 		</div>
 
@@ -292,7 +292,7 @@ $emcp_tools_wb_url = function_exists( 'emcp_tools_upgrade_url' ) ? emcp_tools_up
 											<?php
 											printf(
 												/* translators: %d: number of warnings */
-												esc_html( _n( '%d validator warning — review the code', '%d validator warnings — review the code', $emcp_tools_swarn, 'emcp-tools' ) ),
+												esc_html( _n( '%d validator warning, review the code', '%d validator warnings, review the code', $emcp_tools_swarn, 'emcp-tools' ) ),
 												(int) $emcp_tools_swarn
 											);
 											?>

@@ -105,9 +105,9 @@ class EMCP_Tools_Kit_Backup_Store {
 		$stamp = current_time( 'Y-m-d H:i:s' );
 		$title = '' !== $label
 			/* translators: 1: brand kit label, 2: date/time */
-			? sprintf( __( 'Before "%1$s" — %2$s', 'emcp-tools' ), $label, $stamp )
+			? sprintf( __( 'Before "%1$s", %2$s', 'emcp-tools' ), $label, $stamp )
 			/* translators: %s: date/time */
-			: sprintf( __( 'Backup — %s', 'emcp-tools' ), $stamp );
+			: sprintf( __( 'Backup, %s', 'emcp-tools' ), $stamp );
 
 		$post_id = wp_insert_post(
 			array(

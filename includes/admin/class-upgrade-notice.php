@@ -257,7 +257,7 @@ class EMCP_Tools_Upgrade_Notice {
 				<div class="emcp-upgrade-banner__lede">
 					<span class="emcp-upgrade-banner__eyebrow"><?php esc_html_e( 'EMCP Tools Pro', 'emcp-tools' ); ?></span>
 					<h2 class="emcp-upgrade-banner__title">
-						<?php esc_html_e( 'Branded landing pages in minutes — straight from your AI.', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'Branded landing pages in minutes, straight from your AI.', 'emcp-tools' ); ?>
 					</h2>
 					<div class="emcp-upgrade-banner__actions">
 					<a class="emcp-upgrade-banner__btn emcp-upgrade-banner__btn--primary" href="<?php echo esc_url( $upgrade_url ); ?>" target="_blank" rel="noopener noreferrer">

@@ -235,13 +235,13 @@ abstract class EMCP_Tools_Theme_Integration {
 	 * @return string
 	 */
 	protected function read_description(): string {
-		return $this->label() . ' — read operations. Call with no operation to list them.';
+		return $this->label() . ', read operations. Call with no operation to list them.';
 	}
 
 	/**
 	 * @return string
 	 */
 	protected function write_description(): string {
-		return $this->label() . ' — write operations. Call with no operation to list them.';
+		return $this->label() . ', write operations. Call with no operation to list them.';
 	}
 }

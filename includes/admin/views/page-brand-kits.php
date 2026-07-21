@@ -93,7 +93,7 @@ foreach ( $emcp_tools_render['categories'] as $emcp_tools_bk_cat ) {
 							<?php
 							printf(
 								/* translators: %d: number of free brand kits */
-								esc_html__( '%d coordinated color + typography kits, free to apply. One click replaces your site\'s global palette and fonts — back up first and restore any time.', 'emcp-tools' ),
+								esc_html__( '%d coordinated color + typography kits, free to apply. One click replaces your site\'s global palette and fonts, back up first and restore any time.', 'emcp-tools' ),
 								(int) $emcp_tools_bk_total
 							);
 							?>
@@ -149,7 +149,7 @@ foreach ( $emcp_tools_render['categories'] as $emcp_tools_bk_cat ) {
 					</span>
 					<div class="elementor-mcp-coming-soon__text">
 						<strong><?php esc_html_e( 'Unlock 40+ more brand kits with Pro.', 'emcp-tools' ); ?></strong>
-						<?php esc_html_e( 'The full library spans corporate, creative, e-commerce, editorial, hospitality, trades, and wellness — plus MCP tools so AI agents can re-skin sites for you.', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'The full library spans corporate, creative, e-commerce, editorial, hospitality, trades, and wellness, plus MCP tools so AI agents can re-skin sites for you.', 'emcp-tools' ); ?>
 						<a href="<?php echo esc_url( $emcp_tools_upgrade_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade to Pro →', 'emcp-tools' ); ?></a>
 					</div>
 				</div>

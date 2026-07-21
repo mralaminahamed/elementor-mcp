@@ -48,7 +48,7 @@ class EMCP_Tools_Mcpb_Builder {
 			// manifest `name`, so a fixed name makes each install silently
 			// overwrite the previous site's bundle. See #86.
 			'name'             => '' !== $slug ? 'emcp-tools-' . $slug : 'emcp-tools',
-			'display_name'     => sprintf( 'EMCP Tools — %s', $host ),
+			'display_name'     => sprintf( 'EMCP Tools - %s', $host ),
 			'version'          => $version,
 			'description'      => sprintf( 'Connect Claude Desktop to %s for Elementor and WordPress management via MCP.', $host ),
 			'author'           => array( 'name' => 'MSR Builds' ),
@@ -182,7 +182,7 @@ class EMCP_Tools_Mcpb_Builder {
 		//    injects the mcp_config.env values.
 		$lines = array(
 			"'use strict';",
-			'// EMCP Tools — self-contained MCP proxy (credentials embedded).',
+			'// EMCP Tools, self-contained MCP proxy (credentials embedded).',
 			'// Credentials are set here so this works even when the host does',
 			'// not inject mcp_config.env into the process environment.',
 		);

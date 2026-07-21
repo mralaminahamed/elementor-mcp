@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EMCP_Tools_Security_Software_Audit {
 
 	const MAX_ABANDONED_LOOKUPS = 30;
-	const ABANDONED_CACHE_TTL   = 43200;  // 12 hours — cache per-slug closed/open status.
+	const ABANDONED_CACHE_TTL   = 43200;  // 12 hours, cache per-slug closed/open status.
 
 	public function evaluate_core_update( bool $available, string $current, string $new ): array {
 		return $available
@@ -167,7 +167,7 @@ class EMCP_Tools_Security_Software_Audit {
 
 			$info = plugins_api( 'plugin_information', array( 'slug' => $slug, 'fields' => array( 'sections' => false ) ) );
 			if ( is_wp_error( $info ) ) {
-				continue; // Not on wordpress.org, or API down — don't flag, don't cache.
+				continue; // Not on wordpress.org, or API down, don't flag, don't cache.
 			}
 			$state = ! empty( $info->closed ) ? 'closed' : 'open';
 			set_transient( $cache_key, $state, self::ABANDONED_CACHE_TTL );

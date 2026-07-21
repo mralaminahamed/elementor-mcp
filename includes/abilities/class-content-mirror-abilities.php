@@ -64,7 +64,7 @@ class EMCP_Tools_Content_Mirror_Abilities {
 			'emcp-tools/restore-content',
 			array(
 				'label'               => __( 'Restore Content', 'emcp-tools' ),
-				'description'         => __( 'Restores a page/template\'s Elementor content from its mirror file (the JSON previously written by export-content) — a file-based undo. Overwrites the current content with the mirrored version.', 'emcp-tools' ),
+				'description'         => __( 'Restores a page/template\'s Elementor content from its mirror file (the JSON previously written by export-content), a file-based undo. Overwrites the current content with the mirrored version.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_restore' ),
 				'permission_callback' => array( $this, 'check_permission' ),

@@ -224,11 +224,11 @@ class EMCP_Tools_Themer_CPT {
 			$theme = function_exists( 'wp_get_theme' ) ? wp_get_theme()->get( 'Name' ) : '';
 			echo '<div class="notice notice-success"><p>' . sprintf(
 				/* translators: %s: theme name */
-				esc_html__( 'EMCP Themer: your theme (%s) is directly supported — standalone headers & footers inject cleanly. Body templates (single/archive/search/404) work on every theme.', 'emcp-tools' ),
+				esc_html__( 'EMCP Themer: your theme (%s) is directly supported, standalone headers & footers inject cleanly. Body templates (single/archive/search/404) work on every theme.', 'emcp-tools' ),
 				esc_html( (string) $theme )
 			) . '</p></div>';
 		} else {
-			echo '<div class="notice notice-warning"><p>' . esc_html__( 'EMCP Themer: body templates (single/archive/search/404) work on every theme. For standalone header/footer replacement your theme is not directly supported — add emcp_themer_location( \'header\' ) / emcp_themer_location( \'footer\' ) to your theme, or enable the full-page-takeover fallback (set the emcp_tools_module_themer_force_render option to 1).', 'emcp-tools' ) . '</p></div>';
+			echo '<div class="notice notice-warning"><p>' . esc_html__( 'EMCP Themer: body templates (single/archive/search/404) work on every theme. For standalone header/footer replacement your theme is not directly supported, add emcp_themer_location( \'header\' ) / emcp_themer_location( \'footer\' ) to your theme, or enable the full-page-takeover fallback (set the emcp_tools_module_themer_force_render option to 1).', 'emcp-tools' ) . '</p></div>';
 		}
 	}
 
@@ -275,7 +275,7 @@ class EMCP_Tools_Themer_CPT {
 		echo '<div class="notice notice-warning"><p><strong>' . esc_html__( 'EMCP Themer: some templates may have the wrong type', 'emcp-tools' ) . '</strong></p><ul style="list-style:disc;margin-left:22px;">';
 		foreach ( $flagged as $id => $f ) {
 			printf(
-				'<li><a href="%1$s"><strong>%2$s</strong></a> — %3$s</li>',
+				'<li><a href="%1$s"><strong>%2$s</strong></a>, %3$s</li>',
 				esc_url( (string) get_edit_post_link( $id ) ),
 				esc_html( $f['title'] ),
 				esc_html( $f['reason'] )
@@ -293,12 +293,12 @@ class EMCP_Tools_Themer_CPT {
 	 */
 	private static function type_mismatch_reason( int $id, string $type ): ?string {
 		if ( '' === $type ) {
-			return __( 'no template type is set, so it will not render — open it and choose a type', 'emcp-tools' );
+			return __( 'no template type is set, so it will not render, open it and choose a type', 'emcp-tools' );
 		}
 		// Content signal: a header/footer holding body-only dynamic elements.
 		if ( in_array( $type, array( 'header', 'footer' ), true ) && self::has_body_elements( $id ) ) {
 			/* translators: %s: template type label (Header / Footer) */
-			return sprintf( __( 'this %s template contains post/archive content elements (title, content, or a posts loop) — those belong in a Single or Archive template', 'emcp-tools' ), ucfirst( $type ) );
+			return sprintf( __( 'this %s template contains post/archive content elements (title, content, or a posts loop), those belong in a Single or Archive template', 'emcp-tools' ), ucfirst( $type ) );
 		}
 		// Title signal: the name names a different type than the one assigned.
 		$expected = self::type_hint_from_title( (string) get_the_title( $id ) );

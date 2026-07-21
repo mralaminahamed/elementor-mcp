@@ -79,7 +79,7 @@ $emcp_tools_badge_labels = array(
 					<?php esc_html_e( 'Compact tool mode', 'emcp-tools' ); ?>
 				</span>
 				<span class="elementor-mcp-low-mode-desc">
-					<?php esc_html_e( 'Exposes 3 dispatcher tools (list-tools, get-tool-schema, call-tool) instead of every individual tool, so MCP clients that cap the tool count can still reach the whole surface. Your per-tool toggles below stay in effect — call-tool refuses any tool you disable. Reconnect your client after changing this.', 'emcp-tools' ); ?>
+					<?php esc_html_e( 'Exposes 3 dispatcher tools (list-tools, get-tool-schema, call-tool) instead of every individual tool, so MCP clients that cap the tool count can still reach the whole surface. Your per-tool toggles below stay in effect, call-tool refuses any tool you disable. Reconnect your client after changing this.', 'emcp-tools' ); ?>
 				</span>
 			</span>
 		</label>
@@ -104,7 +104,7 @@ $emcp_tools_badge_labels = array(
 						<?php esc_html_e( 'Themer PHP Templates (advanced)', 'emcp-tools' ); ?>
 					</span>
 					<span class="elementor-mcp-low-mode-desc">
-						<?php esc_html_e( 'Lets AI agents author raw PHP region templates (header/footer/single/archive) into a validated sandbox, which you then select on a template to take over its render. Off by default — enabling it also reveals the “PHP Templates” screen under the EMCP Themer menu and the per-template selector. The 5 MCP tools below still ship disabled until you enable them.', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'Lets AI agents author raw PHP region templates (header/footer/single/archive) into a validated sandbox, which you then select on a template to take over its render. Off by default, enabling it also reveals the “PHP Templates” screen under the EMCP Themer menu and the per-template selector. The 5 MCP tools below still ship disabled until you enable them.', 'emcp-tools' ); ?>
 					</span>
 				</span>
 			</label>
@@ -115,7 +115,7 @@ $emcp_tools_badge_labels = array(
 	<?php if ( $emcp_tools_compact_mode ) : ?>
 		<div class="elementor-mcp-compact-banner">
 			<p>
-				<?php esc_html_e( 'Compact tool mode is active — your client sees only the 3 dispatcher tools (list-tools, get-tool-schema, call-tool). The per-tool toggles below still control what call-tool is allowed to run.', 'emcp-tools' ); ?>
+				<?php esc_html_e( 'Compact tool mode is active, your client sees only the 3 dispatcher tools (list-tools, get-tool-schema, call-tool). The per-tool toggles below still control what call-tool is allowed to run.', 'emcp-tools' ); ?>
 			</p>
 		</div>
 	<?php endif; ?>
@@ -249,7 +249,7 @@ $emcp_tools_badge_labels = array(
 						<?php if ( ! empty( $emcp_tools_category['pro'] ) && ! $emcp_tools_is_pro ) : ?>
 							<a class="elementor-mcp-cat-upgrade" href="<?php echo esc_url( $emcp_tools_upgrade_url ); ?>" target="_blank" rel="noopener noreferrer">
 								<span class="dashicons dashicons-star-filled" aria-hidden="true"></span>
-								<?php esc_html_e( 'Requires EMCP Pro — Upgrade', 'emcp-tools' ); ?>
+								<?php esc_html_e( 'Requires EMCP Pro, Upgrade', 'emcp-tools' ); ?>
 							</a>
 						<?php endif; ?>
 						<?php if ( empty( $emcp_tools_category['pro'] ) || $emcp_tools_is_pro ) : ?>

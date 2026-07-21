@@ -56,7 +56,7 @@ class EMCP_Tools_Themer_PHP_Admin {
 		// PHP mode with linting — same editor core WordPress uses for theme/plugin files.
 		$settings = wp_enqueue_code_editor( array( 'type' => 'text/x-php' ) );
 		if ( false === $settings ) {
-			return; // User disabled syntax highlighting — the plain textarea still works.
+			return; // User disabled syntax highlighting, the plain textarea still works.
 		}
 		wp_add_inline_script(
 			'code-editor',

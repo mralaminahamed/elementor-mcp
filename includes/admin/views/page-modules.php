@@ -64,7 +64,7 @@ $modules  = $registry ? $registry->all() : array();
 							if ( EMCP_Tools_Image_Optimization_Module::ID === $module->id() ) {
 								esc_html_e( 'Not available on this server (WebP support is missing in the image editor).', 'emcp-tools' );
 							} else {
-								esc_html_e( 'Not available — requires an active Pro license.', 'emcp-tools' );
+								esc_html_e( 'Not available, requires an active Pro license.', 'emcp-tools' );
 							}
 							?>
 						</p>

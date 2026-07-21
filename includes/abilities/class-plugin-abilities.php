@@ -179,7 +179,7 @@ class EMCP_Tools_Plugin_Abilities {
 			'emcp-tools/install-plugin',
 			array(
 				'label'               => __( 'Install Plugin', 'emcp-tools' ),
-				'description'         => __( 'Installs a plugin from the wordpress.org directory by slug (e.g. "contact-form-7"). Optionally activates it. Source is always wordpress.org — arbitrary URLs are not accepted.', 'emcp-tools' ),
+				'description'         => __( 'Installs a plugin from the wordpress.org directory by slug (e.g. "contact-form-7"). Optionally activates it. Source is always wordpress.org, arbitrary URLs are not accepted.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_install_plugin' ),
 				'permission_callback' => array( $this, 'can_install' ),

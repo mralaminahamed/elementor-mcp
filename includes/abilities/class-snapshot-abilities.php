@@ -59,7 +59,7 @@ class EMCP_Tools_Snapshot_Abilities {
 			'emcp-tools/get-page-snapshot',
 			array(
 				'label'               => __( 'Get Page Snapshot', 'emcp-tools' ),
-				'description'         => __( 'Returns ONE normalized digest of a page: structure tree + counts, global colors/typography/classes actually in use, per-device responsive overrides, content outline, and an SEO-lite summary — so you can reason about a page from a single call instead of chaining get-page-structure/get-global-settings/list-global-classes. Pass include:[performance,a11y,seo] for heavy audit summaries (a11y/seo are Pro). Read-only.', 'emcp-tools' ),
+				'description'         => __( 'Returns ONE normalized digest of a page: structure tree + counts, global colors/typography/classes actually in use, per-device responsive overrides, content outline, and an SEO-lite summary, so you can reason about a page from a single call instead of chaining get-page-structure/get-global-settings/list-global-classes. Pass include:[performance,a11y,seo] for heavy audit summaries (a11y/seo are Pro). Read-only.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),

@@ -43,7 +43,7 @@ class EMCP_Tools_Search_Abilities {
 			'emcp-tools/search-content',
 			array(
 				'label'               => __( 'Search Content', 'emcp-tools' ),
-				'description'         => __( 'Searches an indexed corpus of the site\'s own pages, saved templates, widgets, and global styles by natural-language query, returning the best matches ranked by relevance — so you can REUSE an existing page/template/widget instead of building from scratch. Returns object_type + object_id + title + score + snippet; then read/clone the winner with the relevant tool (get-page-structure, apply-template, add-*-widget, etc.). Filter by types. Call reindex-search first if results look stale. Read-only.', 'emcp-tools' ),
+				'description'         => __( 'Searches an indexed corpus of the site\'s own pages, saved templates, widgets, and global styles by natural-language query, returning the best matches ranked by relevance, so you can REUSE an existing page/template/widget instead of building from scratch. Returns object_type + object_id + title + score + snippet; then read/clone the winner with the relevant tool (get-page-structure, apply-template, add-*-widget, etc.). Filter by types. Call reindex-search first if results look stale. Read-only.', 'emcp-tools' ),
 				'category'            => 'emcp-tools',
 				'execute_callback'    => array( $this, 'execute_search' ),
 				'permission_callback' => array( $this, 'check_read_permission' ),
