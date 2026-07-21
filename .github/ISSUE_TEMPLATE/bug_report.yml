@@ -1,0 +1,98 @@
+name: 🐛 Bug report
+description: Something is broken or behaves differently than documented.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. The fastest fixes come from reports that say **which tool was called** and **what came back**, so please fill in as much as you can.
+
+        If wp-admin is completely inaccessible, mention that first, it changes the priority.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+      placeholder: |
+        I asked Claude to add a pricing table to page 42. It replied that the widget
+        was added, but the page is unchanged in the Elementor editor.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The exact sequence. If you have the prompt you used, paste it.
+      placeholder: |
+        1. Connect Claude Desktop using the .mcpb bundle
+        2. Ask: "add a pricing table to page 42"
+        3. Open page 42 in the Elementor editor
+        4. The widget is not there
+    validations:
+      required: true
+
+  - type: input
+    id: tool
+    attributes:
+      label: Which tool was called?
+      description: The MCP tool name, if you know it. Your client usually shows this.
+      placeholder: emcp-tools-add-free-widget
+    validations:
+      required: false
+
+  - type: textarea
+    id: response
+    attributes:
+      label: Tool response or error
+      description: What the tool returned, plus anything from `wp-content/debug.log`. This is auto-formatted as code.
+      render: text
+    validations:
+      required: false
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: MCP client
+      options:
+        - Claude Code
+        - Claude Desktop
+        - Claude (web)
+        - Cursor
+        - VS Code
+        - Antigravity
+        - ChatGPT
+        - Windsurf
+        - WP-CLI (stdio)
+        - Other (say which below)
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: EMCP Tools, WordPress, PHP, and Elementor if relevant.
+      placeholder: "EMCP 3.6.0, WP 6.9.5, PHP 8.3, Elementor 4.1.4 + Pro"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Which build?
+      options:
+        - Free (from GitHub)
+        - Pro
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Other active plugins, a security plugin or host firewall, managed hosting, a multisite setup, anything unusual about the environment.
+    validations:
+      required: false

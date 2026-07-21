@@ -1,371 +1,192 @@
-# Contributing to MCP Tools for Elementor
+# Contributing to EMCP Tools
 
-Thank you for your interest in contributing to MCP Tools for Elementor! This project bridges AI agents and Elementor page design through the Model Context Protocol, and community contributions are essential to making it better.
+Thanks for being here. Bug reports, docs fixes, prompts, and new tools are all genuinely useful, and you don't need to write PHP to help.
 
-## Table of Contents
+- **Found a bug?** [Open a bug report](https://github.com/msrbuilds/elementor-mcp/issues/new?template=bug_report.yml)
+- **Want a tool that doesn't exist?** [Request a feature](https://github.com/msrbuilds/elementor-mcp/issues/new?template=feature_request.yml)
+- **Want a plugin supported?** [Request an integration](https://github.com/msrbuilds/elementor-mcp/issues/new?template=integration_request.yml)
+- **Just an idea or a question?** [Start a discussion](https://github.com/msrbuilds/elementor-mcp/issues/new?template=idea.yml)
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-- [Development Setup](#development-setup)
-- [Architecture Overview](#architecture-overview)
-- [Adding a New MCP Tool](#adding-a-new-mcp-tool)
-- [Contributing Prompts](#contributing-prompts)
-- [Coding Standards](#coding-standards)
-- [Testing](#testing)
-- [Submitting Changes](#submitting-changes)
-- [Release Checklist](#release-checklist)
-- [Reporting Bugs](#reporting-bugs)
-- [Suggesting Features](#suggesting-features)
+User documentation lives at **[emcptools.com/docs](https://emcptools.com/docs/)**. This file is about working on the plugin itself.
 
-## Code of Conduct
+## Ways to contribute
 
-This project follows the [WordPress Community Code of Conduct](https://make.wordpress.org/handbook/community-code-of-conduct/). Please be respectful and constructive in all interactions.
+| | What it involves |
+|---|---|
+| **Report a bug** | The most valuable thing you can do. Include your MCP client, the tool you called, and what came back. |
+| **Improve the docs** | The docs live in the website repo, but if something in this repo is wrong or stale, a PR fixing it is very welcome. |
+| **Contribute a prompt** | A landing-page blueprint in [`prompts/`](prompts/). No PHP needed, see [Contributing prompts](#contributing-prompts). |
+| **Add a tool** | A new MCP ability in an existing domain. See [Adding a tool](#adding-a-tool). |
+| **Add an integration** | Support for a plugin we don't cover yet. This is the highest-leverage code contribution, see [Adding an integration](#adding-an-integration). |
 
-## How Can I Contribute?
+## Development setup
 
-There are many ways to contribute, regardless of your experience level:
+**Requirements:** WordPress 6.9+, PHP 8.1+, Composer, and WP-CLI (strongly recommended). Elementor is **optional**: most domains work without it, install it if you're touching the page-building tools. The MCP Adapter and the Abilities API are bundled, so there's nothing extra to install.
 
-- **Report bugs** — Found something broken? [Open an issue](https://github.com/msrbuilds/elementor-mcp/issues/new).
-- **Suggest features** — Have an idea for a new MCP tool? We'd love to hear it.
-- **Improve documentation** — Fix typos, clarify instructions, or add examples.
-- **Add new widget tools** — Create convenience shortcuts for Elementor widgets not yet covered.
-- **Write tests** — Help improve test coverage with PHPUnit tests.
-- **Fix bugs** — Browse [open issues](https://github.com/msrbuilds/elementor-mcp/issues) and submit a fix.
-- **Contribute prompts** — Add new landing page blueprints for industries not yet covered. See [Contributing Prompts](#contributing-prompts).
-- **Share your experience** — Write about how you use the plugin, share prompts that work well.
+```bash
+cd /path/to/wordpress/wp-content/plugins
+git clone https://github.com/msrbuilds/elementor-mcp.git emcp-tools
+cd emcp-tools
+composer install
+```
 
-## Development Setup
+Activate the plugin, then confirm the server registered:
 
-### Prerequisites
+```bash
+wp mcp-adapter list --path=/path/to/wordpress
+```
 
-- PHP 7.4 or later
-- WordPress 6.8+ (local development environment)
-- Elementor 3.20+ (free or Pro)
-- [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter) plugin
-- Composer (for dev dependencies)
-- WP-CLI (recommended for testing MCP tools)
-
-### Installation
-
-1. Clone the repository into your WordPress plugins directory:
-
-   ```bash
-   cd /path/to/wordpress/wp-content/plugins
-   git clone https://github.com/msrbuilds/elementor-mcp.git
-   cd elementor-mcp
-   ```
-
-2. Install development dependencies:
-
-   ```bash
-   composer install
-   ```
-
-3. Activate the plugin and its dependencies in WordPress.
-
-4. Verify the MCP server is registered:
-
-   ```bash
-   wp mcp-adapter list --path=/path/to/wordpress
-   ```
-
-### Testing MCP Tools
-
-Use the MCP Inspector to test tools interactively:
+To poke at tools interactively:
 
 ```bash
 npx @modelcontextprotocol/inspector wp mcp-adapter serve \
   --server=emcp-tools-server --user=admin --path=/path/to/wordpress
 ```
 
-## Architecture Overview
+> **Note on the `pro/` directory.** The Pro tier lives in a separate private repository, mounted as a git submodule at `pro/`. A normal clone simply won't have it, and the plugin runs fine without it, every Pro unit is guarded. If you see references to `pro/` in the code, that's why.
 
-Understanding the plugin's architecture will help you contribute effectively.
+## Repository layout
 
 ```
 emcp-tools/
-├── elementor-mcp.php              # Bootstrap: constants, dependency checks, require_once
+├── emcp-tools.php                  # Bootstrap: header, constants, requires, init
 ├── includes/
-│   ├── class-plugin.php           # Singleton orchestrator (hooks registration)
-│   ├── class-elementor-data.php   # Data access layer (read/write Elementor documents)
-│   ├── class-element-factory.php  # Builds valid Elementor JSON structures
-│   ├── class-id-generator.php     # 7-char hex unique IDs
-│   ├── class-openverse-client.php # Openverse API HTTP client
-│   ├── abilities/                 # MCP tools grouped by domain
-│   │   ├── class-ability-registrar.php    # Coordinates all ability groups
-│   │   ├── class-query-abilities.php      # Read-only discovery tools
-│   │   ├── class-page-abilities.php       # Page CRUD
-│   │   ├── class-layout-abilities.php     # Container/layout tools
-│   │   ├── class-widget-abilities.php     # Widget add/update tools
-│   │   ├── class-template-abilities.php   # Template tools
-│   │   ├── class-global-abilities.php     # Global settings tools
-│   │   ├── class-composite-abilities.php  # build-page composite tool
-│   │   ├── class-stock-image-abilities.php # Stock image tools
-│   │   ├── class-svg-icon-abilities.php   # SVG icon upload tool
-│   │   └── class-custom-code-abilities.php # CSS/JS/snippet tools
-│   ├── schemas/                   # JSON Schema generation
-│   │   ├── class-schema-generator.php
-│   │   └── class-control-mapper.php
-│   └── validators/                # Input validation
-│       ├── class-element-validator.php
-│       └── class-settings-validator.php
+│   ├── class-bootstrap.php         # Loads every class, wires hooks
+│   ├── class-plugin.php            # Singleton orchestrator
+│   ├── class-elementor-data.php    # Elementor document read/write layer
+│   ├── class-element-factory.php   # Builds valid Elementor JSON
+│   ├── abilities/                  # MCP tools, grouped by domain
+│   │   ├── class-ability-registrar.php   # Registers every group
+│   │   ├── class-query-abilities.php     # Discovery (Elementor)
+│   │   ├── class-content-abilities.php   # WordPress content
+│   │   ├── forms/                        # Form-plugin integrations
+│   │   ├── seo/                          # SEO-plugin integrations
+│   │   └── addons/                       # Elementor addon packs (Pro)
+│   ├── modules/                    # Toggleable features (Modules tab)
+│   ├── themer/                     # EMCP Themer (theme builder)
+│   ├── security/ · performance/    # Scanners
+│   ├── schemas/ · validators/      # Control-to-JSON-Schema, input validation
+│   └── admin/                      # Admin screens
+├── prompts/                        # Landing-page blueprints
+└── tests/                          # Public test suite
 ```
 
-### Key Concepts
+**Key ideas:**
 
-- **Abilities** are MCP tools registered via the WordPress Abilities API (`wp_register_ability()`).
-- **Data Layer** wraps Elementor's document system — always use `$this->data` methods, never update `_elementor_data` meta directly.
-- **Element Factory** creates valid Elementor JSON element structures with proper IDs.
-- **Schema Generator** auto-generates JSON Schema from Elementor's widget controls, so AI agents know what settings each widget accepts.
+- **Abilities are the tools.** Each one is registered with the WordPress Abilities API and surfaced over MCP.
+- **Never write `_elementor_data` directly.** Go through the data layer, it triggers CSS regeneration and cache busting. Raw meta writes cause bugs that only appear on the front end.
+- **Schemas are generated,** not hand-written, from Elementor's own widget controls.
 
-## Adding a New MCP Tool
+## Adding a tool
 
-This is the most common type of contribution. Here's how to add a new tool:
+Add it to the ability class for its domain, or create a new class if it genuinely doesn't fit.
 
-### 1. Choose the right ability class
-
-Tools are grouped by domain. Add your tool to the appropriate existing class, or create a new one if it doesn't fit.
-
-### 2. Register the ability
-
-In your ability class's `register()` method, call `wp_register_ability()`:
+**1. Register it.** Use the `emcp_tools_register_ability()` wrapper, not `wp_register_ability()` directly:
 
 ```php
-wp_register_ability(
+emcp_tools_register_ability(
     'emcp-tools/my-new-tool',
     array(
-        'title'               => __( 'My New Tool', 'elementor-mcp' ),
-        'description'         => __( 'What this tool does.', 'elementor-mcp' ),
-        'category'            => 'elementor-mcp',
+        'label'               => __( 'My New Tool', 'emcp-tools' ),
+        'description'         => __( 'What it does, written for an AI agent deciding whether to call it.', 'emcp-tools' ),
+        'category'            => 'emcp-tools',
         'input_schema'        => array(
             'type'       => 'object',
             'properties' => array(
                 'post_id' => array(
                     'type'        => 'integer',
-                    'description' => __( 'The page/post ID.', 'elementor-mcp' ),
+                    'description' => __( 'The page/post ID.', 'emcp-tools' ),
                 ),
             ),
-            'required' => array( 'post_id' ),
+            'required'   => array( 'post_id' ),
         ),
         'permission_callback' => array( $this, 'check_edit_permission' ),
-        'callback'            => array( $this, 'handle_my_new_tool' ),
+        'execute_callback'    => array( $this, 'execute_my_new_tool' ),
     )
 );
 ```
 
-### 3. Implement the handler
+> **`category` is required.** Leave it out and `wp_register_ability()` drops the ability silently, with no error. The tool simply never appears. This has bitten us more than once.
 
-```php
-public function handle_my_new_tool( array $input ) {
-    $post_id = absint( $input['post_id'] );
+**2. Implement it.** Return an array on success, a `WP_Error` on failure. Never return a bare `false`.
 
-    // Your logic here using $this->data and $this->factory
+**3. Register the group** in `class-ability-registrar.php`, and add the tool to `get_all_tools()` in `includes/admin/class-admin.php` so it appears on the Tools tab.
 
-    return array(
-        'success' => true,
-        'message' => 'Tool completed successfully.',
-    );
-}
-```
+**4. If it writes, deletes, or affects the whole site,** ship it disabled by default: bump `DEFAULTS_VERSION` in the admin class and seed your slug. Destructive tools should also require `confirm: true`.
 
-### 4. Register in the registrar
+**Descriptions are a UX surface.** An agent picks tools by reading them, so write for that reader: say what it does and when to use it, not just what it's called.
 
-If you created a new ability class, add it to `class-ability-registrar.php`:
+## Adding an integration
 
-```php
-$my_class = new Elementor_MCP_My_Abilities( $this->data, $this->factory );
-$my_class->register();
-$this->ability_names = array_merge( $this->ability_names, $my_class->get_ability_names() );
-```
+Support for a third-party plugin is the most useful code contribution, and it follows a fixed shape: **two dispatcher tools**, `<plugin>-read` and `<plugin>-write`, each taking `{ operation, arguments }`. That keeps the tool list small no matter how many plugins we support.
 
-And add the `require_once` in `elementor-mcp.php`.
+Look at `includes/abilities/forms/` or `includes/abilities/seo/` for working examples. Both have an abstract base class doing the dispatching, so a new adapter is mostly a map of operations.
 
-### 5. Add to admin tools list
+Rules that matter:
 
-Add the tool entry to `get_all_tools()` in `includes/admin/class-admin.php` under the appropriate category.
+- **Register only when the plugin is active.** Never assume.
+- **Use the plugin's public API,** not its database tables. Tables change without notice; APIs are contracts.
+- **Reads on by default, writes off.** Anything destructive needs `confirm: true`.
+- **Never guess a field or control name.** Read it from the plugin. Many systems (Elementor and Spectra especially) accept any key you send without complaining, so a wrong name looks like it worked and silently does nothing.
 
-## Contributing Prompts
+Please open an [integration request](https://github.com/msrbuilds/elementor-mcp/issues/new?template=integration_request.yml) before starting a large one, so we can agree the operation list first.
 
-The `prompts/` directory contains sample landing page blueprints that users can copy and paste into their AI client to auto-build complete Elementor pages. Contributing new prompts is a great way to help without writing PHP.
+## Contributing prompts
 
-### Prompt Structure
+A prompt is a complete landing-page blueprint in `prompts/`. Include a design system (colours, typography, spacing), the full page structure, image search keywords, and the execution order. Use one of the existing files as your template, and name it `INDUSTRY_NAME.md` in caps with underscores.
 
-Each prompt is a standalone Markdown file (`.md`) that an AI agent can follow from start to finish. A well-structured prompt includes these sections in order:
+Test it end to end against a real site before submitting: paste it into your AI client and confirm the page actually builds.
 
-1. **Title & overview** — What type of page this builds (e.g., "Dental Clinic Landing Page").
-2. **Layout rules** — Container-first approach, flexbox direction, responsive widths.
-3. **Design system** — Color palette (hex values), typography (font families, sizes, weights), spacing scale.
-4. **Image sourcing** — Keywords for `search-images` tool calls, with fallback placeholder descriptions.
-5. **SVG icons** — Icon specifications for `upload-svg-icon` (raw SVG markup or common icon names).
-6. **Page structure** — Section-by-section breakdown (hero, services, testimonials, CTA, footer, etc.) with specific widget types, text content, and settings.
-7. **Entrance animations** — Use Elementor's built-in `_animation` (e.g., `fadeInUp`, `fadeInLeft`, `zoomIn`), `animation_duration` (`slow` or default), and `_animation_delay` (in ms) for staggered effects.
-8. **Custom CSS** — Only where Elementor's built-in controls are insufficient (hover states, pseudo-elements). Use the `selector` keyword for element-scoped CSS.
-9. **Custom JavaScript** — Scroll-triggered counters, smooth scroll, or other interactivity via `add-custom-js`.
-10. **Execution order** — Numbered step-by-step instructions telling the AI which tools to call and in what sequence.
-11. **Final checklist** — Verification steps (responsive check, link targets, image alt text, consistent spacing).
+## Coding standards
 
-### Guidelines
+WordPress coding standards, strictly.
 
-- **Use only MCP tool names** — Reference tools like `create-page`, `add-container`, `add-heading`, `search-images`, etc. Don't use generic instructions like "add a title" — be specific about which widget tool to use.
-- **Be explicit with settings** — Include hex colors, font sizes, padding values, and widget-specific settings. The more specific the prompt, the more consistent the output across different AI clients.
-- **Prefer built-in animations** — Use Elementor's `_animation` and `_animation_delay` settings over custom CSS animations. This keeps prompts simpler and leverages Elementor's native Motion Effects.
-- **Minimize custom CSS** — Only add custom CSS for things Elementor can't do natively (e.g., hover color transitions, gradient text, backdrop filters). Always use the `selector` keyword for scoping.
-- **Include realistic content** — Use placeholder text that sounds like a real business, not lorem ipsum. Include realistic pricing, phone numbers, addresses, and business hours.
-- **Test your prompt** — Run it through an AI client (Claude Code, Cursor, etc.) connected to a local WordPress + Elementor setup to verify it builds correctly.
-
-### Naming Convention
-
-Prompt files use `UPPER_SNAKE_CASE.md` matching the business type:
-
-```
-prompts/
-├── LOCAL_BUSINESS.md
-├── DENTAL_CLINIC.md
-├── HAIR_SALON.md
-└── YOUR_NEW_PROMPT.md
-```
-
-### Submitting a Prompt
-
-1. Create your `.md` file in the `prompts/` directory.
-2. Add an entry to the `$prompt_meta` array in `includes/admin/views/page-prompts.php` with `title`, `industry` tag, and a one-line `description`.
-3. Add a row to the Sample Prompts table in `README.md`.
-4. Open a PR with the prompt file and the two metadata updates.
-
-### Example Reference
-
-See any existing prompt in `prompts/` (e.g., `LOCAL_BUSINESS.md`) for the expected structure and level of detail.
-
-## Coding Standards
-
-This project follows WordPress coding standards strictly:
-
-- **Naming**: `snake_case` for functions/variables, `Upper_Snake_Case` for classes, `UPPER_SNAKE` for constants.
-- **Prefix everything**: All functions, classes, hooks, and options use the `elementor_mcp` or `Elementor_MCP` prefix.
-- **Strings**: All user-facing strings must be translatable using `__()`, `esc_html__()`, etc. with the `elementor-mcp` text domain.
-- **Security**: Sanitize all input (`sanitize_text_field`, `absint`), escape all output (`esc_html`, `esc_attr`, `esc_url`), check capabilities before privileged operations.
-- **No direct meta updates**: Always use `$this->data->save_elementor_data()` which triggers Elementor CSS regeneration and cache busting.
-
-### PHP Compatibility
-
-- Target PHP 7.4+ (no union types, no named arguments, no enums).
-- Use type hints for parameters and return types where supported.
+- **Naming:** `snake_case` functions and variables, `Upper_Snake_Case` classes, `UPPER_SNAKE` constants.
+- **Prefixes:** `EMCP_Tools_` for classes, `emcp_tools_` for functions, hooks, and options.
+- **Text domain:** `emcp-tools`. Every user-facing string goes through `__()` / `esc_html__()`.
+- **Security is not optional.** Sanitize input, escape output, `$wpdb->prepare()` for SQL, verify nonces, check capabilities before anything privileged.
+- **PHP 8.1+.** Typed properties, union types, and named arguments are all fine.
 
 ## Testing
 
-### Running Tests
+The public suite needs no private submodule:
 
 ```bash
 composer install
-vendor/bin/phpunit --configuration phpunit.xml.dist
+vendor/bin/phpunit -c tests/phpunit.xml
 ```
 
-### Writing Tests
+Put new tests in `tests/`, named `SomethingTest.php`. Test the pure logic, validators, schema mapping, dispatcher routing, permission delegation, rather than trying to boot WordPress.
 
-- Place test files in the `tests/` directory.
-- Follow PHPUnit naming conventions: `Test_My_Feature` class in `tests/test-my-feature.php`.
-- Mock Elementor and WordPress functions as needed.
+**Test the trap, not just the happy path.** The most valuable tests we have pin down behaviour that silently breaks: a permission that must not escalate, a signature that must not appear verbatim on disk, a confirm gate that must refuse. If you fixed a bug, add the test that would have caught it.
 
-## Submitting Changes
+## Submitting a pull request
 
-### Pull Request Process
+1. Fork, then branch from `main` (`git checkout -b feature/my-tool`).
+2. Make the change, and run `php -l` on every file you touched.
+3. Run the public test suite.
+4. Add a `CHANGELOG.md` entry describing the change from a user's point of view.
+5. Open the PR against `main`.
 
-1. **Fork** the repository and create a feature branch from `main`:
+**Guidelines:**
 
-   ```bash
-   git checkout -b feature/my-new-tool
-   ```
+- One feature or fix per PR. Small PRs get reviewed quickly; large mixed ones stall.
+- Say what problem it solves, not just what it changes.
+- If you found something surprising while building it, put that in the PR. It's often the most useful part.
+- Don't update tool counts by hand, they're generated.
 
-2. **Make your changes** following the coding standards above.
+## Reporting bugs
 
-3. **Test locally** — ensure your tool works via MCP Inspector and doesn't break existing tools.
+Use the [bug report template](https://github.com/msrbuilds/elementor-mcp/issues/new?template=bug_report.yml). The details that actually speed up a fix:
 
-4. **Run PHP syntax check** on all modified files:
+- Plugin, WordPress, and PHP versions (and Elementor, if relevant)
+- Which **MCP client** you're using
+- The **tool you called** and the arguments
+- What you expected versus what happened
+- Anything from `wp-content/debug.log`
 
-   ```bash
-   php -l includes/abilities/class-my-abilities.php
-   ```
-
-5. **Commit** with a clear, descriptive message:
-
-   ```bash
-   git commit -m "Add my-new-tool ability for doing X"
-   ```
-
-6. **Push** and open a Pull Request against `main`.
-
-### PR Guidelines
-
-- Keep PRs focused — one feature or fix per PR.
-- Include a clear description of what the tool does and why it's useful.
-- Update the tool count in `README.md`, `readme.txt`, and `CLAUDE.md` if adding new tools (see [Release Checklist](#release-checklist)).
-- Add a changelog entry in `readme.txt`.
-- If adding Pro-only tools, make sure they conditionally register when Elementor Pro is active.
-
-## Release Checklist
-
-Before tagging a new release, verify these items are consistent across all files:
-
-### Version Number
-
-Update the version string in **all** of these locations:
-
-| File | Location |
-|---|---|
-| `elementor-mcp.php` | Plugin header `Version:` field |
-| `elementor-mcp.php` | `ELEMENTOR_MCP_VERSION` constant |
-| `readme.txt` | `Stable tag:` header |
-| `readme.txt` | New `= x.y.z =` changelog entry |
-| `readme.txt` | New `= x.y.z =` upgrade notice entry |
-| `README.md` | Version badge in shields.io URL |
-
-> `@since` tags in PHP docblocks should reflect the version a feature was **introduced**, not the current release — don't bump these on patch releases.
-
-### Tool Count
-
-When tools are added or removed, update the count in **all** of these locations:
-
-| File | What to update |
-|---|---|
-| `README.md` | Features section (`~NN MCP Tools`) |
-| `README.md` | MCP Tools badge (`MCP_Tools-~NN-orange`) |
-| `readme.txt` | Description paragraph (`~NN MCP`) |
-| `CLAUDE.md` | Project Overview paragraph (`~NN MCP tools`) and status line |
-
-### Feature Parity
-
-The feature bullet lists in `README.md` (Features section) and `readme.txt` (Description > Key Features) must cover the same capabilities. When adding a new feature category (e.g., Stock Images, Custom Code), add it to **both** files.
-
-### Quick Verification
-
-```bash
-# Check version consistency
-grep -n "1\\.x\\.y" elementor-mcp.php readme.txt README.md
-
-# Check tool count consistency
-grep -n "~[0-9]* MCP" README.md readme.txt CLAUDE.md
-```
-
-## Reporting Bugs
-
-When reporting bugs, please include:
-
-1. **Plugin version** and **Elementor version**.
-2. **WordPress version** and **PHP version**.
-3. **Steps to reproduce** the issue.
-4. **Expected behavior** vs **actual behavior**.
-5. **Error logs** if applicable (check `wp-content/debug.log`).
-6. **MCP client** you're using (Claude Code, Claude Desktop, Cursor, etc.).
-
-## Suggesting Features
-
-Feature requests are welcome! When suggesting a new MCP tool:
-
-1. **Describe the use case** — what are you trying to build with AI that this tool would enable?
-2. **Specify the inputs/outputs** — what parameters should the tool accept and what should it return?
-3. **Note if it requires Pro** — does the feature depend on Elementor Pro APIs?
-4. **Consider the permission model** — what WordPress capability should be required?
+For anything security-sensitive, please **don't** open a public issue. Email **hello@msrbuilds.com** instead.
 
 ---
 
-Thank you for contributing to MCP Tools for Elementor! Every contribution, no matter how small, helps make AI-powered Elementor design better for everyone.
+Every contribution helps, including the ones that just tell us something is broken. Thank you.

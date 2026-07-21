@@ -1,0 +1,67 @@
+name: ✨ Feature request
+description: Suggest a new tool or capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The most useful requests describe **what you're trying to get done**, not just the tool you think you need. We can often solve the goal with tools that already exist, or design something better than the original idea.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The task you want an AI agent to handle, in your own words.
+      placeholder: |
+        I want to tell Claude "archive every draft post older than a year" without
+        clicking through the posts list myself.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would the tool do?
+      description: Roughly what it takes in and gives back. Don't worry about exact naming.
+      placeholder: |
+        Something like bulk-update-posts: a query (post type, status, date range)
+        plus the change to apply, returning how many posts matched and changed.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - Elementor page building
+        - Gutenberg blocks
+        - WordPress content
+        - Media
+        - Users, settings, plugins or themes
+        - Theme building (EMCP Themer)
+        - Performance or security
+        - Filesystem or database
+        - A plugin integration
+        - Admin interface
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How do you handle it today?
+      description: Manually, with another plugin, or by chaining existing EMCP tools? This tells us how much the gap actually costs.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: destructive
+    attributes:
+      label: Would this write or delete anything?
+      description: Not a blocker, it just means the tool ships disabled by default and may need a confirmation step.
+      options:
+        - label: Yes, it would change or remove data
+          required: false

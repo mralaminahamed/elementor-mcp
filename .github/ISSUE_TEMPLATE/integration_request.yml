@@ -1,0 +1,68 @@
+name: 🔌 Plugin integration request
+description: Ask for support for a WordPress plugin we don't cover yet.
+title: "[Integration]: "
+labels: ["integration", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        EMCP already speaks ACF, Meta Box, WooCommerce, 8 form builders, 7 SEO plugins, and the Elementor addon packs. See the [integrations directory](https://emcptools.com/integrations/) before requesting, yours may already be there.
+
+        Integrations follow a fixed shape: **two tools**, `<plugin>-read` and `<plugin>-write`, each taking an operation and arguments. So the useful question is *which operations matter*.
+
+  - type: input
+    id: plugin
+    attributes:
+      label: Which plugin?
+      placeholder: "Events Calendar, by The Events Calendar"
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Plugin URL
+      description: wordpress.org listing or the vendor page.
+      placeholder: https://wordpress.org/plugins/the-events-calendar/
+    validations:
+      required: true
+
+  - type: textarea
+    id: operations
+    attributes:
+      label: What should an AI be able to do with it?
+      description: List the operations that would actually be useful. Be concrete.
+      placeholder: |
+        Read: list events, get one event, list venues and organizers
+        Write: create an event, update date/venue, cancel an event
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Does it have a paid tier?
+      options:
+        - Free only
+        - Free with a paid tier
+        - Paid only
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: api
+    attributes:
+      label: Does it expose a REST API or public PHP functions?
+      description: Integrations are built on a plugin's own API rather than its database tables, so this decides how feasible it is. A link to its developer docs is ideal.
+      placeholder: "Yes, REST API at /wp-json/tribe/events/v1/"
+    validations:
+      required: false
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: What would you use it for?
+      description: A real workflow helps us prioritise, and often shapes the operation list.
+    validations:
+      required: false

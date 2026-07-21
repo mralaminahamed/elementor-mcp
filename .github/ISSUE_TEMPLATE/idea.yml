@@ -1,0 +1,41 @@
+name: 💡 Idea or question
+description: A rough idea, a question, or feedback that isn't a bug or a concrete feature.
+title: "[Idea]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Half-formed ideas are welcome here. So are questions about how something works, or feedback on something that felt awkward.
+
+        If you already know exactly what you want built, the [feature request](https://github.com/msrbuilds/elementor-mcp/issues/new?template=feature_request.yml) template will get you a faster answer.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's on your mind?
+      placeholder: |
+        Agents keep rebuilding sections that already exist elsewhere on my site.
+        Is there a way to steer them toward reusing what's there?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: What led to it?
+      description: What you were doing when this came up. Concrete context turns a vague idea into something buildable.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of post is this?
+      options:
+        - An idea I'd like to see built
+        - A question about how something works
+        - Feedback on something that felt awkward
+        - Something I want to build myself, checking it fits first
+    validations:
+      required: true
