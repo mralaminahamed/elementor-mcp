@@ -2,6 +2,14 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [3.6.1]
+
+> Two fixes for problems that could block real work: atomic widget edits bricking a page, and tool results some AI clients refused to accept.
+
+### Fixed
+- **Editing an Elementor v4 atomic widget could lock the page ([#101](https://github.com/msrbuilds/elementor-mcp/issues/101)).** Atomic props are typed: `tag` expects `{$$type:"string"}`, `title` expects `{$$type:"html-v3"}`. Passing a plain string, which is the natural thing for an AI agent to do, was written straight to the page. Elementor then stored the raw value, fell back to the prop default (so headings and paragraphs rendered placeholder text like "Type your paragraph here"), and **every later save of that page failed** with `Settings validation failed`, locking it out of the API and the editor alike. Plain values are now converted to the shape Elementor expects, and because the conversion runs on the merged settings, **it also repairs pages an earlier version already damaged**, including props you are not currently editing. Elementor's own prop types decide what is valid, so this keeps working when it revises them.
+- **Tool results that are a list were rejected by some AI clients.** The MCP specification requires `structuredContent` to be a JSON object, and the adapter passed a tool's return value into that field verbatim. Any tool returning a top-level array, notably several WooCommerce reads such as product, order and customer lists, produced a response strict clients refused with a dictionary-validation error. Results are now always well-formed: object results are untouched, and lists and single values are returned under a `data` key. Reported upstream as [WordPress/mcp-adapter#253](https://github.com/WordPress/mcp-adapter/issues/253); our fix lives in EMCP so it survives dependency updates.
+
 ## [3.6.0]
 
 > Elementor addon plugins over MCP, plus a fix for a fatal that could lock you out of wp-admin.

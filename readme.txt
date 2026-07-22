@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.9
 Tested up to: 7.0
-Stable tag: 3.6.0
+Stable tag: 3.6.1
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -171,6 +171,11 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 2. Connection configuration page with copy-paste configs.
 
 == Changelog ==
+
+= 3.6.1 =
+Two fixes for problems that could block real work.
+* Fixed: #101, editing an Elementor v4 atomic widget could lock the page. Passing a plain text value (the natural thing for an AI to do) was stored raw, so widgets rendered placeholder text and every later save failed with "Settings validation failed". Plain values are now converted to the shape Elementor expects, and pages already damaged by this are repaired on the next edit.
+* Fixed: tool results that are a list were rejected by some AI clients. structuredContent must be a JSON object per the MCP spec; lists and single values are now returned under a "data" key. Affected several WooCommerce reads (product, order and customer lists). Reported upstream as WordPress/mcp-adapter#253.
 
 = 3.6.0 =
 Elementor addon plugins over MCP, plus a fix for a fatal that could lock you out of wp-admin.
