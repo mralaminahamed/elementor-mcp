@@ -211,10 +211,11 @@ class EMCP_Tools_Atomic_Props {
 	}
 
 	/**
-	 * Recursively unwraps $$type values back to plain values.
-	 *
 	 * Returns an atomic widget's prop schema, or an empty array when Elementor
 	 * or the widget type isn't available.
+	 *
+	 * Cached per widget type: a page-wide coercion pass asks for the same handful
+	 * of schemas hundreds of times.
 	 *
 	 * @since 3.6.1
 	 *
@@ -222,6 +223,26 @@ class EMCP_Tools_Atomic_Props {
 	 * @return array<string, object>
 	 */
 	public static function props_schema( string $widget_type ): array {
+		static $cache = array();
+
+		if ( array_key_exists( $widget_type, $cache ) ) {
+			return $cache[ $widget_type ];
+		}
+
+		$cache[ $widget_type ] = self::load_props_schema( $widget_type );
+
+		return $cache[ $widget_type ];
+	}
+
+	/**
+	 * Uncached schema lookup.
+	 *
+	 * @since 3.6.2
+	 *
+	 * @param string $widget_type Atomic widget type.
+	 * @return array<string, object>
+	 */
+	private static function load_props_schema( string $widget_type ): array {
 		if ( '' === $widget_type || ! class_exists( '\Elementor\Plugin' ) ) {
 			return array();
 		}
@@ -301,19 +322,264 @@ class EMCP_Tools_Atomic_Props {
 				continue;
 			}
 
-			if ( self::prop_accepts( $prop, $value ) ) {
+			$settings[ $key ] = self::coerce_against_prop( $prop, $value );
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Coerces every atomic widget in an element tree.
+	 *
+	 * Elementor validates the WHOLE tree on save, so a single un-converted
+	 * widget anywhere on the page blocks the save, including the very edit
+	 * meant to repair the page. Fixing only the element being written left
+	 * users stuck on a page they could not unstick (issue #102).
+	 *
+	 * Runs on save so any write repairs the entire page. It only ever turns
+	 * invalid values into valid ones: anything Elementor already accepts is
+	 * returned untouched, and anything nothing fits is left alone.
+	 *
+	 * @since 3.6.2
+	 *
+	 * @param array $elements Element tree (Elementor's `elements` array).
+	 * @return array
+	 */
+	public static function coerce_tree( array $elements ): array {
+		foreach ( $elements as &$element ) {
+			if ( ! is_array( $element ) ) {
 				continue;
 			}
 
-			foreach ( self::envelope_candidates( $value ) as $candidate ) {
-				if ( self::prop_accepts( $prop, $candidate ) ) {
-					$settings[ $key ] = $candidate;
-					break;
+			if (
+				'widget' === ( $element['elType'] ?? '' )
+				&& ! empty( $element['widgetType'] )
+				&& ! empty( $element['settings'] )
+				&& is_array( $element['settings'] )
+			) {
+				$element['settings'] = self::coerce_settings(
+					(string) $element['widgetType'],
+					$element['settings']
+				);
+			}
+
+			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
+				$element['elements'] = self::coerce_tree( $element['elements'] );
+			}
+		}
+		unset( $element );
+
+		return $elements;
+	}
+
+	/**
+	 * Coerces one value into whatever its prop type accepts.
+	 *
+	 * The prop type describes itself, so nothing here hardcodes envelope names.
+	 * A union is asked for its members (`get_prop_types()`), each member for its
+	 * key (`get_key()`), and an object-shaped member for its inner shape
+	 * (`get_shape()`), which is then coerced recursively.
+	 *
+	 * That generality is the point. The first version of this guessed candidate
+	 * envelopes and handled only strings and rich text, so `e-button`'s `link`
+	 * still failed and the page stayed locked (issue #102). Reading the shape
+	 * instead covers link, and whatever object-shaped prop Elementor adds next.
+	 *
+	 * @since 3.6.2
+	 *
+	 * @param object $prop  An Elementor prop type.
+	 * @param mixed  $value The value to coerce.
+	 * @return mixed The coerced value, or the original when nothing fits.
+	 */
+	protected static function coerce_against_prop( $prop, $value ) {
+		if ( self::prop_accepts( $prop, $value ) ) {
+			return $value;
+		}
+
+		foreach ( self::candidates_for( $prop, $value ) as $candidate ) {
+			if ( self::prop_accepts( $prop, $candidate ) ) {
+				return $candidate;
+			}
+		}
+
+		// Nothing fits. Leave it alone so Elementor reports a precise error
+		// rather than us silently storing something reshaped.
+		return $value;
+	}
+
+	/**
+	 * Builds candidate envelopes for a value from the prop type's own members.
+	 *
+	 * @since 3.6.2
+	 *
+	 * @param object $prop  An Elementor prop type.
+	 * @param mixed  $value The raw value.
+	 * @return array<int, mixed>
+	 */
+	protected static function candidates_for( $prop, $value ): array {
+		$members = array( $prop );
+		if ( method_exists( $prop, 'get_prop_types' ) ) {
+			try {
+				$found = (array) $prop->get_prop_types();
+				if ( ! empty( $found ) ) {
+					$members = array_values( $found );
+				}
+			} catch ( \Throwable $e ) {
+				$members = array( $prop );
+			}
+		}
+
+		$candidates = array();
+
+		foreach ( $members as $member ) {
+			if ( ! is_object( $member ) || ! method_exists( $member, 'get_key' ) ) {
+				continue;
+			}
+
+			try {
+				$key = $member->get_key();
+			} catch ( \Throwable $e ) {
+				continue;
+			}
+
+			// Object-shaped: coerce the inner shape, then wrap. A prop type can
+			// expose get_shape() and still return nothing useful, so fall through
+			// to the primitive handling below rather than dropping the candidate.
+			if ( method_exists( $member, 'get_shape' ) ) {
+				$inner = self::coerce_shape( $member, $value );
+				if ( null !== $inner ) {
+					$candidates[] = array(
+						'$$type' => $key,
+						'value'  => $inner,
+					);
+					continue;
+				}
+			}
+
+			// Primitive: wrap the value, and offer a cast where it is lossless.
+			if ( is_scalar( $value ) || null === $value ) {
+				$candidates[] = array(
+					'$$type' => $key,
+					'value'  => $value,
+				);
+				if ( is_scalar( $value ) ) {
+					$candidates[] = array(
+						'$$type' => $key,
+						'value'  => (string) $value,
+					);
 				}
 			}
 		}
 
-		return $settings;
+		// Fallbacks for prop types that do not describe themselves. Everything
+		// Elementor ships exposes get_key(), but a prop type offering only
+		// validate() would otherwise yield no candidates at all, making this
+		// weaker than the version it replaced. These are the common envelopes.
+		if ( is_scalar( $value ) ) {
+			$text = (string) $value;
+			if ( is_bool( $value ) ) {
+				$candidates[] = self::boolean( $value );
+			}
+			if ( is_int( $value ) || is_float( $value ) ) {
+				$candidates[] = self::number( $value );
+			}
+			$candidates[] = self::string( $text );
+			$candidates[] = self::html( $text );
+		} elseif ( is_array( $value ) && ! isset( $value['$$type'] ) ) {
+			$inner = $value;
+			if ( isset( $inner['content'] ) && is_string( $inner['content'] ) ) {
+				$inner['content'] = self::string( $inner['content'] );
+			}
+			if ( ! isset( $inner['children'] ) || ! is_array( $inner['children'] ) ) {
+				$inner['children'] = array();
+			}
+			$candidates[] = array(
+				'$$type' => 'html-v3',
+				'value'  => $inner,
+			);
+		}
+
+		return $candidates;
+	}
+
+	/**
+	 * Coerces a value into an object prop type's inner shape.
+	 *
+	 * Handles the two ways a legacy value arrives: as an array using Elementor's
+	 * older key names (a v3 link stores `url` / `is_external`, while the atomic
+	 * shape wants `destination` / `isTargetBlank`), or as a bare scalar that
+	 * belongs in the shape's principal field (a plain string for rich text
+	 * belongs in `content`).
+	 *
+	 * @since 3.6.2
+	 *
+	 * @param object $member An object-shaped Elementor prop type.
+	 * @param mixed  $value  The raw value.
+	 * @return array|null The coerced inner shape, or null when it cannot apply.
+	 */
+	protected static function coerce_shape( $member, $value ): ?array {
+		try {
+			$shape = (array) $member->get_shape();
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+
+		if ( empty( $shape ) ) {
+			return null;
+		}
+
+		// Legacy and shorthand key names, mapped onto the atomic shape.
+		$aliases = array(
+			'destination'   => array( 'url', 'href', 'link' ),
+			'isTargetBlank' => array( 'is_external', 'target_blank', 'targetBlank' ),
+			'content'       => array( 'text', 'title', 'html' ),
+		);
+
+		// A bare scalar belongs in the shape's principal field.
+		if ( ! is_array( $value ) ) {
+			foreach ( array( 'content', 'destination', 'url', 'value' ) as $primary ) {
+				if ( isset( $shape[ $primary ] ) ) {
+					$value = array( $primary => $value );
+					break;
+				}
+			}
+
+			if ( ! is_array( $value ) ) {
+				return null;
+			}
+		}
+
+		$out = array();
+
+		foreach ( $shape as $field => $sub ) {
+			$raw = null;
+
+			if ( array_key_exists( $field, $value ) ) {
+				$raw = $value[ $field ];
+			} else {
+				foreach ( $aliases[ $field ] ?? array() as $alias ) {
+					if ( array_key_exists( $alias, $value ) ) {
+						$raw = $value[ $alias ];
+						break;
+					}
+				}
+			}
+
+			if ( null === $raw ) {
+				continue;
+			}
+
+			$out[ $field ] = is_object( $sub ) && method_exists( $sub, 'validate' )
+				? self::coerce_against_prop( $sub, $raw )
+				: $raw;
+		}
+
+		// `children` is a plain array on rich text, not a wrapped prop.
+		if ( isset( $shape['children'] ) && ! isset( $out['children'] ) ) {
+			$out['children'] = array();
+		}
+
+		return empty( $out ) ? null : $out;
 	}
 
 	/**
@@ -332,49 +598,6 @@ class EMCP_Tools_Atomic_Props {
 		} catch ( \Throwable $e ) {
 			return false;
 		}
-	}
-
-	/**
-	 * Envelopes to try for a raw value, cheapest and most specific first.
-	 *
-	 * @since 3.6.1
-	 *
-	 * @param mixed $value The raw value.
-	 * @return array<int, array>
-	 */
-	protected static function envelope_candidates( $value ): array {
-		$candidates = array();
-
-		if ( is_array( $value ) && ! isset( $value['$$type'] ) ) {
-			// A rich-text body handed over without its envelope. Wrap the inner
-			// content too when it arrived as a bare string.
-			$inner = $value;
-			if ( isset( $inner['content'] ) && is_string( $inner['content'] ) ) {
-				$inner['content'] = self::string( $inner['content'] );
-			}
-			if ( ! isset( $inner['children'] ) || ! is_array( $inner['children'] ) ) {
-				$inner['children'] = array();
-			}
-			$candidates[] = array(
-				'$$type' => 'html-v3',
-				'value'  => $inner,
-			);
-			return $candidates;
-		}
-
-		if ( is_bool( $value ) ) {
-			$candidates[] = self::boolean( $value );
-		}
-		if ( is_int( $value ) || is_float( $value ) ) {
-			$candidates[] = self::number( $value );
-		}
-		if ( is_scalar( $value ) ) {
-			$text         = (string) $value;
-			$candidates[] = self::string( $text );
-			$candidates[] = self::html( $text );
-		}
-
-		return $candidates;
 	}
 
 	/**

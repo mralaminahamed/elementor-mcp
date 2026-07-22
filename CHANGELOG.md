@@ -2,6 +2,11 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [3.6.2]
+
+### Fixed
+- **Repairing a page damaged by an older version could still fail ([#102](https://github.com/msrbuilds/elementor-mcp/issues/102)).** 3.6.1 converted the widget you were editing, but Elementor validates the whole page on save, so a single un-converted widget elsewhere in the tree blocked the save and the repair never completed. Conversion now runs across the entire element tree on every save, so editing any one widget repairs the whole page. Button links stored in the older shape, `{"is_external":true,"url":"..."}`, are also mapped to the `destination` / `isTargetBlank` shape Elementor expects. Conversion is driven by each widget's own prop schema rather than a fixed list of types, and pages that are already valid are left byte-for-byte unchanged.
+
 ## [3.6.1]
 
 > Two fixes for problems that could block real work: atomic widget edits bricking a page, and tool results some AI clients refused to accept.

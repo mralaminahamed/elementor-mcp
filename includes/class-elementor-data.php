@@ -200,6 +200,15 @@ class EMCP_Tools_Data {
 			return $document;
 		}
 
+		// v4 atomic: Elementor validates the WHOLE element tree on save, so one
+		// widget holding raw (unwrapped) prop values blocks every save of the
+		// page, including the edit meant to repair it. Coercing only the element
+		// being written left users stuck on a page they could not unstick (#102).
+		//
+		// Sweep the tree on the way out instead. This only ever turns invalid
+		// values into valid ones, so it is a no-op for healthy pages.
+		$data = EMCP_Tools_Atomic_Props::coerce_tree( $data );
+
 		// Capture the prior Elementor data so the change ledger can offer a rollback.
 		$emcp_before_raw = get_post_meta( $post_id, '_elementor_data', true );
 
