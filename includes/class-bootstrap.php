@@ -270,6 +270,18 @@ class EMCP_Tools_Bootstrap {
 	 * @since 2.1.0
 	 */
 	private static function wire_hooks(): void {
+		// structuredContent must be a JSON object; the adapter assigns a tool's
+		// return value to it verbatim, so a list result makes strict clients
+		// reject the response. Our own abilities are normalized at registration,
+		// but this catches everything else the server surfaces, including the
+		// three core/* abilities we do not register ourselves. Normalization is
+		// idempotent, so running on both paths is harmless.
+		add_filter(
+			'mcp_adapter_tool_call_result',
+			array( 'EMCP_Tools_Schema_Compat', 'normalize_result' ),
+			99
+		);
+
 		// Content search index: install-on-init + incremental re-index on save/delete.
 		EMCP_Tools_Search_Index::init();
 		// OAuth sign-in: install storage on init (routes wired in later phases).
