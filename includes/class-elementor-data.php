@@ -530,6 +530,23 @@ class EMCP_Tools_Data {
 
 				$item['settings'] = array_merge( $item['settings'], $settings );
 
+				// v4 atomic: props are typed, and a raw value like `'Hello'`
+				// instead of `{$$type:'html-v3',…}` is not merely ignored, it
+				// poisons the element. Elementor falls back to the prop default
+				// (so the widget renders placeholder text) and every later save
+				// of the page throws `Settings validation failed`, locking the
+				// page out of both the API and the editor (#101).
+				//
+				// Coerce on the MERGED settings so this both accepts the plain
+				// values an agent naturally sends AND repairs anything an earlier
+				// version already wrote.
+				if ( 'widget' === ( $item['elType'] ?? '' ) && ! empty( $item['widgetType'] ) ) {
+					$item['settings'] = EMCP_Tools_Atomic_Props::coerce_settings(
+						(string) $item['widgetType'],
+						$item['settings']
+					);
+				}
+
 				// v4 atomic: a local style class only renders when the element's
 				// `classes` prop references it. An agent that writes a `styles`
 				// map but forgets to add the class id to settings.classes gets a

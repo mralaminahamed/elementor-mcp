@@ -213,6 +213,173 @@ class EMCP_Tools_Atomic_Props {
 	/**
 	 * Recursively unwraps $$type values back to plain values.
 	 *
+	 * Returns an atomic widget's prop schema, or an empty array when Elementor
+	 * or the widget type isn't available.
+	 *
+	 * @since 3.6.1
+	 *
+	 * @param string $widget_type Atomic widget type, e.g. 'e-heading'.
+	 * @return array<string, object>
+	 */
+	public static function props_schema( string $widget_type ): array {
+		if ( '' === $widget_type || ! class_exists( '\Elementor\Plugin' ) ) {
+			return array();
+		}
+
+		$manager = \Elementor\Plugin::$instance->widgets_manager ?? null;
+		if ( ! $manager || ! method_exists( $manager, 'get_widget_types' ) ) {
+			return array();
+		}
+
+		try {
+			$widget = $manager->get_widget_types( $widget_type );
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+
+		if ( ! $widget || ! method_exists( $widget, 'get_props_schema' ) ) {
+			return array();
+		}
+
+		try {
+			return (array) $widget::get_props_schema();
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+	}
+
+	/**
+	 * Coerces atomic settings into the `$$type` envelopes Elementor expects.
+	 *
+	 * Atomic props are typed: `tag` wants `{$$type:'string'}`, `title` wants
+	 * `{$$type:'html-v3'}`, and so on. A raw value like `'Hello'` is rejected.
+	 * The trouble is that raw values were still *written* to `_elementor_data`,
+	 * where they do lasting damage: Elementor falls back to the prop default, so
+	 * the element renders placeholder text, and every later save of that page
+	 * throws `Settings validation failed`. The page becomes uneditable through
+	 * both the API and the editor (issue #101).
+	 *
+	 * Passing a plain string is the obvious thing for an agent to do, so accept
+	 * it and wrap it rather than corrupting the page. Because this runs on the
+	 * MERGED settings, it also repairs values a previous version already wrote.
+	 *
+	 * Elementor's own prop types are the oracle: candidate envelopes are offered
+	 * to `validate()` and the first accepted one wins. Nothing here hardcodes
+	 * which type a prop wants, so it keeps working when Elementor revises them
+	 * (`html` -> `html-v2` -> `html-v3` already happened).
+	 *
+	 * @since 3.6.1
+	 *
+	 * @param string $widget_type Atomic widget type, e.g. 'e-heading'.
+	 * @param array  $settings    Settings to coerce.
+	 * @return array
+	 */
+	public static function coerce_settings( string $widget_type, array $settings ): array {
+		return self::coerce_with_schema( self::props_schema( $widget_type ), $settings );
+	}
+
+	/**
+	 * The coercion itself, against a supplied prop schema.
+	 *
+	 * Split out from coerce_settings() so it can be exercised without a live
+	 * Elementor: it needs only objects exposing `validate()`.
+	 *
+	 * @since 3.6.1
+	 *
+	 * @param array $schema   Map of prop name => Elementor prop type.
+	 * @param array $settings Settings to coerce.
+	 * @return array
+	 */
+	public static function coerce_with_schema( array $schema, array $settings ): array {
+		if ( empty( $schema ) ) {
+			return $settings;
+		}
+
+		foreach ( $settings as $key => $value ) {
+			$prop = $schema[ $key ] ?? null;
+			if ( ! is_object( $prop ) || ! method_exists( $prop, 'validate' ) ) {
+				continue;
+			}
+
+			if ( self::prop_accepts( $prop, $value ) ) {
+				continue;
+			}
+
+			foreach ( self::envelope_candidates( $value ) as $candidate ) {
+				if ( self::prop_accepts( $prop, $candidate ) ) {
+					$settings[ $key ] = $candidate;
+					break;
+				}
+			}
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Whether a prop type accepts a value. Prop types can throw on odd input,
+	 * which counts as "no".
+	 *
+	 * @since 3.6.1
+	 *
+	 * @param object $prop  An Elementor prop type.
+	 * @param mixed  $value Candidate value.
+	 * @return bool
+	 */
+	protected static function prop_accepts( $prop, $value ): bool {
+		try {
+			return (bool) $prop->validate( $value );
+		} catch ( \Throwable $e ) {
+			return false;
+		}
+	}
+
+	/**
+	 * Envelopes to try for a raw value, cheapest and most specific first.
+	 *
+	 * @since 3.6.1
+	 *
+	 * @param mixed $value The raw value.
+	 * @return array<int, array>
+	 */
+	protected static function envelope_candidates( $value ): array {
+		$candidates = array();
+
+		if ( is_array( $value ) && ! isset( $value['$$type'] ) ) {
+			// A rich-text body handed over without its envelope. Wrap the inner
+			// content too when it arrived as a bare string.
+			$inner = $value;
+			if ( isset( $inner['content'] ) && is_string( $inner['content'] ) ) {
+				$inner['content'] = self::string( $inner['content'] );
+			}
+			if ( ! isset( $inner['children'] ) || ! is_array( $inner['children'] ) ) {
+				$inner['children'] = array();
+			}
+			$candidates[] = array(
+				'$$type' => 'html-v3',
+				'value'  => $inner,
+			);
+			return $candidates;
+		}
+
+		if ( is_bool( $value ) ) {
+			$candidates[] = self::boolean( $value );
+		}
+		if ( is_int( $value ) || is_float( $value ) ) {
+			$candidates[] = self::number( $value );
+		}
+		if ( is_scalar( $value ) ) {
+			$text         = (string) $value;
+			$candidates[] = self::string( $text );
+			$candidates[] = self::html( $text );
+		}
+
+		return $candidates;
+	}
+
+	/**
+	 * Unwraps a $$type-wrapped prop into a plain PHP value.
+	 *
 	 * Used for returning AI-friendly data from get-element-settings.
 	 *
 	 * @param mixed $prop The prop value (may or may not be $$type-wrapped).
