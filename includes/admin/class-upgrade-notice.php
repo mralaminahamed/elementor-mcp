@@ -70,7 +70,7 @@ class EMCP_Tools_Upgrade_Notice {
 		$upgrade_url = function_exists( 'emcp_tools_upgrade_url' )
 			? emcp_tools_upgrade_url()
 			: 'https://emcptools.com/pricing';
-		$docs_url    = 'https://emcptools.com/docs/prompts/premium-library';
+		$docs_url    = 'https://emcptools.com/pricing';
 		$nonce       = wp_create_nonce( self::NONCE_ACTION );
 		?>
 		<style>
@@ -81,8 +81,8 @@ class EMCP_Tools_Upgrade_Notice {
 			padding: 24px 28px;
 			border-radius: 14px;
 			color: #fff;
-			background: linear-gradient(120deg, #4338ca 0%, #6366f1 45%, #8b5cf6 100%);
-			box-shadow: 0 10px 30px -10px rgba(76, 29, 149, 0.45);
+			background: #4338ca;
+			box-shadow: 0 10px 30px -12px rgba(17, 24, 39, 0.35);
 			isolation: isolate;
 			width: calc(100% - 80px);
 		}
@@ -257,7 +257,7 @@ class EMCP_Tools_Upgrade_Notice {
 				<div class="emcp-upgrade-banner__lede">
 					<span class="emcp-upgrade-banner__eyebrow"><?php esc_html_e( 'EMCP Tools Pro', 'emcp-tools' ); ?></span>
 					<h2 class="emcp-upgrade-banner__title">
-						<?php esc_html_e( 'Branded landing pages in minutes, straight from your AI.', 'emcp-tools' ); ?>
+						<?php esc_html_e( 'Give your AI a copilot for all of WordPress, not just Elementor.', 'emcp-tools' ); ?>
 					</h2>
 					<div class="emcp-upgrade-banner__actions">
 					<a class="emcp-upgrade-banner__btn emcp-upgrade-banner__btn--primary" href="<?php echo esc_url( $upgrade_url ); ?>" target="_blank" rel="noopener noreferrer">
@@ -274,29 +274,43 @@ class EMCP_Tools_Upgrade_Notice {
 					<li>
 						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
 						<div class="emcp-upgrade-banner__feature-text">
+							<strong><?php esc_html_e( 'AI Chat in your editor', 'emcp-tools' ); ?></strong>
+							<span><?php esc_html_e( 'build and edit by chatting, local or cloud models', 'emcp-tools' ); ?></span>
+						</div>
+					</li>
+					<li>
+						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
+						<div class="emcp-upgrade-banner__feature-text">
+							<strong><?php esc_html_e( 'Speaks your whole stack', 'emcp-tools' ); ?></strong>
+							<span><?php esc_html_e( 'ACF, WooCommerce, SEO and form plugins', 'emcp-tools' ); ?></span>
+						</div>
+					</li>
+					<li>
+						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
+						<div class="emcp-upgrade-banner__feature-text">
+							<strong><?php esc_html_e( 'SEO and Accessibility toolkit', 'emcp-tools' ); ?></strong>
+							<span><?php esc_html_e( 'audit and auto-fix any page', 'emcp-tools' ); ?></span>
+						</div>
+					</li>
+					<li>
+						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
+						<div class="emcp-upgrade-banner__feature-text">
+							<strong><?php esc_html_e( 'Widget Builder', 'emcp-tools' ); ?></strong>
+							<span><?php esc_html_e( 'custom Elementor widgets from a prompt', 'emcp-tools' ); ?></span>
+						</div>
+					</li>
+					<li>
+						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
+						<div class="emcp-upgrade-banner__feature-text">
 							<strong><?php esc_html_e( '50+ Premium Prompts', 'emcp-tools' ); ?></strong>
-							<span><?php esc_html_e( 'across 10 industries', 'emcp-tools' ); ?></span>
+							<span><?php esc_html_e( 'proven blueprints across 10 industries', 'emcp-tools' ); ?></span>
 						</div>
 					</li>
 					<li>
 						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
 						<div class="emcp-upgrade-banner__feature-text">
 							<strong><?php esc_html_e( 'Templates Library', 'emcp-tools' ); ?></strong>
-							<span><?php esc_html_e( 'one-click apply to any page', 'emcp-tools' ); ?></span>
-						</div>
-					</li>
-					<li>
-						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
-						<div class="emcp-upgrade-banner__feature-text">
-							<strong><?php esc_html_e( 'Priority Support', 'emcp-tools' ); ?></strong>
-							<span><?php esc_html_e( 'fast email responses', 'emcp-tools' ); ?></span>
-						</div>
-					</li>
-					<li>
-						<span class="emcp-upgrade-banner__check" aria-hidden="true">&#10003;</span>
-						<div class="emcp-upgrade-banner__feature-text">
-							<strong><?php esc_html_e( 'Lifetime Option', 'emcp-tools' ); ?></strong>
-							<span><?php esc_html_e( 'pay once, own forever', 'emcp-tools' ); ?></span>
+							<span><?php esc_html_e( 'one-click, apply to any page', 'emcp-tools' ); ?></span>
 						</div>
 					</li>
 				</ul>
